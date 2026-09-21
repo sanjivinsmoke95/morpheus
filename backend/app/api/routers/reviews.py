@@ -1,14 +1,18 @@
 """Human review decisions — persisted with immutable AI + evidence snapshots."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_roles
 from app.db import get_db
-from app.models import Evidence, Recommendation, RecommendationEvidence, Review, ReviewDecision, User
+from app.models import (
+    Analysis, Evidence, Recommendation, RecommendationEvidence, Requirement, Review, ReviewDecision,
+    Standard, User,
+)
 from app.models.enums import Role
 from app.schemas.slice import ReviewDecisionCreate, ReviewDecisionRead
+from app.services.evidence import assemble
 
 router = APIRouter(tags=["reviews"])
 
@@ -62,6 +66,55 @@ def record_decision(
         rec = db.get(Recommendation, payload.target_id)
         if rec:
             rec.review_status = _STATUS_MAP.get(payload.decision, rec.review_status)
+    db.commit()
+    return decision
+
+
+@router.post("/analyses/{analysis_id}/reviews/add-standard", response_model=ReviewDecisionRead,
+             status_code=status.HTTP_201_CREATED)
+def add_standard(
+    analysis_id: str,
+    requirement_id: str = Body(...),
+    is_number: str = Body(...),
+    reason: str = Body(default=""),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(Role.OFFICER, Role.REVIEWER, Role.ADMIN)),
+):
+    """Officer adds an existing standard to a requirement during review. This does
+    NOT create an authoritative record — it references a standard that must already
+    exist, and logs an ADD_STANDARD decision."""
+    analysis = db.get(Analysis, analysis_id)
+    requirement = db.get(Requirement, requirement_id)
+    std = db.execute(select(Standard).where(Standard.is_number == is_number)).scalar_one_or_none()
+    if not analysis or not requirement:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis or requirement not found.")
+    if not std:
+        raise HTTPException(status.HTTP_404_NOT_FOUND,
+                            "That standard is not in the database — an admin must curate it first.")
+    existing = db.execute(select(Recommendation).where(
+        Recommendation.requirement_id == requirement_id, Recommendation.standard_id == std.id)).scalar_one_or_none()
+    if not existing:
+        rec = Recommendation(
+            analysis_id=analysis_id, requirement_id=requirement_id, standard_id=std.id,
+            applicability_class="CONDITIONAL", relevance="MEDIUM", relevance_score=0.0,
+            retrieval_method="officer", signals_json={"officer_added": 1},
+            rationale="Added by an officer during review.", confidence="MEDIUM",
+            review_status="ACCEPTED", is_primary=False,
+        )
+        db.add(rec)
+        db.flush()
+        tender_ev = assemble.tender_evidence(db, requirement, analysis.document_id)
+        std_ev = assemble.standard_evidence(db, std)
+        db.add(RecommendationEvidence(recommendation_id=rec.id, evidence_id=tender_ev.id, role="officer"))
+        db.add(RecommendationEvidence(recommendation_id=rec.id, evidence_id=std_ev.id, role="scope"))
+        target_id = rec.id
+    else:
+        target_id = existing.id
+
+    review = _get_or_create_review(db, analysis_id, user)
+    decision = ReviewDecision(review_id=review.id, target_type="recommendation", target_id=target_id,
+                              decision="ADD_STANDARD", reason=reason or f"Added {is_number}", decided_by=user.id)
+    db.add(decision)
     db.commit()
     return decision
 

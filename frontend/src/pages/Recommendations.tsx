@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useDecide, useRecommendations, useRequirements, type Recommendation } from "@/lib/morpheus";
 
@@ -13,7 +14,8 @@ const AC_COLOR: Record<string, string> = {
 
 export function RecommendationsPage() {
   const { id = "" } = useParams();
-  const { data: recs, isLoading } = useRecommendations(id);
+  const [showExcluded, setShowExcluded] = useState(false);
+  const { data: recs, isLoading } = useRecommendations(id, showExcluded);
   const { data: reqs } = useRequirements(id);
 
   const byReq = new Map<string, Recommendation[]>();
@@ -31,6 +33,9 @@ export function RecommendationsPage() {
           <p className="mt-0.5 text-sm text-zinc-400">Applicable standards per requirement, with evidence. You decide.</p>
         </div>
         <div className="flex gap-2">
+          <Link to={`/analyses/${id}/review`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm font-medium hover:bg-white/20">
+            Review
+          </Link>
           <Link to={`/analyses/${id}/readiness`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm font-medium hover:bg-white/20">
             Readiness
           </Link>
@@ -42,6 +47,11 @@ export function RecommendationsPage() {
           </Link>
         </div>
       </div>
+
+      <label className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
+        <input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} />
+        Show excluded candidates (why not)
+      </label>
 
       {isLoading ? (
         <div className="mt-6 h-40 animate-pulse rounded-lg bg-white/5" />
@@ -70,7 +80,10 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
   const status = rec.review_status;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 p-3">
+    <div className={`rounded-lg border p-3 ${rec.excluded ? "border-white/5 bg-black/10 opacity-70" : "border-white/10 bg-black/20"}`}>
+      {rec.excluded && (
+        <div className="mb-1 text-[11px] text-red-300/80">Excluded — {rec.exclusion_reason || "weaker than higher-ranked candidates"}</div>
+      )}
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -109,6 +122,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
         </div>
 
         {/* decision */}
+        {!rec.excluded && (
         <div className="flex flex-none flex-col items-end gap-1">
           <span className={`text-[11px] ${status === "ACCEPTED" ? "text-emerald-400" : status === "REJECTED" ? "text-red-400" : "text-zinc-500"}`}>
             {status}
@@ -120,6 +134,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
               className="rounded bg-red-500/20 px-2 py-1 text-[11px] text-red-300 hover:bg-red-500/30">Reject</button>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

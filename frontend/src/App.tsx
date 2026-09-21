@@ -16,6 +16,7 @@ import { ReadinessPage } from "@/pages/Readiness";
 import { AuditPage } from "@/pages/Audit";
 import { RegulatoryPage } from "@/pages/Regulatory";
 import { CopilotPage } from "@/pages/Copilot";
+import { ReviewPage } from "@/pages/Review";
 import { EvaluationPage } from "@/pages/Evaluation";
 import { AdminPage } from "@/pages/Admin";
 import { FeedbackPage } from "@/pages/Feedback";
@@ -49,6 +50,7 @@ export function App() {
           <Route path="/analyses/:id/audit" element={<AuditPage />} />
           <Route path="/analyses/:id/regulatory" element={<RegulatoryPage />} />
           <Route path="/analyses/:id/copilot" element={<CopilotPage />} />
+          <Route path="/analyses/:id/review" element={<ReviewPage />} />
           <Route path="/evaluation" element={<EvaluationPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/feedback" element={<FeedbackPage />} />

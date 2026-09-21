@@ -132,10 +132,24 @@ export function useEditRequirement(analysisId: string) {
 }
 
 // ---- recommendations ----
-export function useRecommendations(analysisId: string) {
+export function useRecommendations(analysisId: string, includeExcluded = false) {
   return useQuery<Recommendation[]>({
-    queryKey: ["recommendations", analysisId],
-    queryFn: async () => (await api.get<Recommendation[]>(`/analyses/${analysisId}/recommendations`)).data,
+    queryKey: ["recommendations", analysisId, includeExcluded],
+    queryFn: async () =>
+      (await api.get<Recommendation[]>(`/analyses/${analysisId}/recommendations`,
+        { params: { include_excluded: includeExcluded } })).data,
+  });
+}
+
+export function useAddStandard(analysisId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { requirement_id: string; is_number: string; reason?: string }) =>
+      (await api.post(`/analyses/${analysisId}/reviews/add-standard`, payload)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
+      qc.invalidateQueries({ queryKey: ["decisions", analysisId] });
+    },
   });
 }
 
