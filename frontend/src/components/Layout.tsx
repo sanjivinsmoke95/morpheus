@@ -4,16 +4,12 @@ import { useAuth } from "@/lib/auth";
 // Full product navigation. Phase 1 ships Dashboard; later phases enable the rest.
 const NAV = [
   { to: "/", label: "Dashboard", enabled: true },
-  { label: "New Analysis", enabled: false },
-  { label: "Requirement Matrix", enabled: false },
-  { label: "Recommendations", enabled: false },
+  { to: "/analyses/new", label: "New Analysis", enabled: true },
+  { to: "/history", label: "History", enabled: true },
   { label: "Knowledge Graph", enabled: false },
   { label: "Coverage & Gaps", enabled: false },
   { label: "Conflicts", enabled: false },
   { label: "Readiness", enabled: false },
-  { label: "Review", enabled: false },
-  { label: "Reports", enabled: false },
-  { label: "History", enabled: false },
   { label: "Evaluation", enabled: false },
   { label: "Admin", enabled: false },
 ];
