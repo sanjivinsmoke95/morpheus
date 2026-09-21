@@ -44,6 +44,7 @@ def run_analysis(db: Session, analysis: Analysis) -> None:
     try:
         _extract_requirements(db, analysis)
         _recommend_all(db, analysis)
+        _audit(db, analysis)
         _set_status(db, analysis, AnalysisStatus.READY)
     except Exception as exc:  # noqa: BLE001 — record the failing stage, don't crash the worker
         logger.exception("pipeline failed for analysis %s", analysis.id)
@@ -93,6 +94,16 @@ def _recommend_all(db: Session, analysis: Analysis) -> None:
     for req in reqs:
         _recommend_for(db, analysis, req)
     _set_status(db, analysis, AnalysisStatus.CLASSIFYING)
+    db.commit()
+
+
+def _audit(db: Session, analysis: Analysis) -> None:
+    _set_status(db, analysis, AnalysisStatus.AUDITING)
+    from app.services.audit.conflicts import detect_conflicts
+    from app.services.audit.coverage import run_coverage_and_gaps
+
+    detect_conflicts(db, analysis.id)
+    run_coverage_and_gaps(db, analysis.id)
     db.commit()
 
 

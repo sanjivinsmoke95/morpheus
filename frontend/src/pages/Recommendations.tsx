@@ -31,6 +31,9 @@ export function RecommendationsPage() {
           <p className="mt-0.5 text-sm text-zinc-400">Applicable standards per requirement, with evidence. You decide.</p>
         </div>
         <div className="flex gap-2">
+          <Link to={`/analyses/${id}/readiness`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm font-medium hover:bg-white/20">
+            Readiness
+          </Link>
           <Link to={`/analyses/${id}/graph`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm font-medium hover:bg-white/20">
             Knowledge graph
           </Link>

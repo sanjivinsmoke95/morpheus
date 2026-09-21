@@ -231,6 +231,23 @@ export function useVersionFindings(analysisId: string) {
   });
 }
 
+// ---- audit (Phase 4) ----
+export function useReadiness(analysisId: string) {
+  return useQuery<Record<string, number>>({
+    queryKey: ["readiness", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/readiness`)).data,
+  });
+}
+export function useCoverage(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["coverage", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/coverage`)).data });
+}
+export function useGaps(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["gaps", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/gaps`)).data });
+}
+export function useConflicts(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["conflicts", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/conflicts`)).data });
+}
+
 // ---- reports ----
 export function useCreateReport() {
   return useMutation({

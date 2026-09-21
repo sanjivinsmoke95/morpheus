@@ -8,6 +8,7 @@ from app.models.evidence import Evidence
 from app.models.recommendation import Recommendation, RecommendationEvidence
 from app.models.review import Review, ReviewDecision
 from app.models.report import Report
+from app.models.audit import Conflict, CoverageResult, Gap
 
 __all__ = [
     "User",
@@ -27,4 +28,7 @@ __all__ = [
     "Review",
     "ReviewDecision",
     "Report",
+    "CoverageResult",
+    "Gap",
+    "Conflict",
 ]
