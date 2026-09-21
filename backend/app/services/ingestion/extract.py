@@ -38,6 +38,22 @@ class ExtractionResult:
         return "\n".join(p.text for p in self.pages)
 
 
+def detect_language(text: str) -> str:
+    """Lightweight script-based language hint (multilingual foundation, spec §21).
+
+    Numeric/normalized values are language-independent, so the pipeline stays
+    robust; full non-English requirement extraction is delegated to the LLM path.
+    """
+    sample = (text or "")[:4000]
+    if any("ఀ" <= c <= "౿" for c in sample):
+        return "te"  # Telugu
+    if any("ऀ" <= c <= "ॿ" for c in sample):
+        return "hi"  # Devanagari (Hindi)
+    if any(c.isalpha() and ord(c) < 128 for c in sample):
+        return "en"
+    return "unknown"
+
+
 def extract(data: bytes, mime_type: str, filename: str) -> ExtractionResult:
     name = (filename or "").lower()
     if mime_type == "application/pdf" or name.endswith(".pdf"):

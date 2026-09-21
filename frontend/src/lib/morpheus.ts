@@ -259,6 +259,14 @@ export function useAmendmentImpact(analysisId: string) {
   return useQuery<any[]>({ queryKey: ["amendments", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/amendments`)).data });
 }
 
+// ---- advanced (Phase 6) ----
+export function useCopilot(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["copilot", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/copilot`)).data });
+}
+export function useHistoryCompare(analysisId: string) {
+  return useQuery<any>({ queryKey: ["history-compare", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/history-compare`)).data });
+}
+
 // ---- reports ----
 export function useCreateReport() {
   return useMutation({

@@ -24,7 +24,8 @@ export function ReadinessPage() {
           <h1 className="text-xl font-semibold">Procurement readiness</h1>
           <p className="mt-0.5 text-sm text-zinc-400">A snapshot of what's covered, missing, conflicting, or needs review.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Link to={`/analyses/${id}/copilot`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20">Copilot & history</Link>
           <Link to={`/analyses/${id}/regulatory`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20">Certification & QCO</Link>
           <Link to={`/analyses/${id}/audit`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm hover:bg-white/20">Coverage & findings →</Link>
         </div>

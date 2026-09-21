@@ -104,6 +104,9 @@ def _audit(db: Session, analysis: Analysis) -> None:
 
     detect_conflicts(db, analysis.id)
     run_coverage_and_gaps(db, analysis.id)
+    # Snapshot for historical comparison of future tenders.
+    from app.services.advanced.service import store_as_historical
+    store_as_historical(db, analysis)
     db.commit()
 
 

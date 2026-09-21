@@ -8,7 +8,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.models import Document, DocumentPage
-from app.services.ingestion.extract import extract
+from app.services.ingestion.extract import detect_language, extract
 from app.services.object_store import get_object_store
 
 
@@ -21,7 +21,8 @@ def ingest_document(db: Session, data: bytes, filename: str, mime_type: str, use
     doc = Document(
         uploaded_by=user_id, filename=filename, mime_type=mime_type, byte_size=len(data),
         checksum_sha256=checksum, storage_key=storage_key, page_count=len(result.pages),
-        is_scanned=result.is_scanned, data_origin="CURATED",
+        is_scanned=result.is_scanned, language_detected=detect_language(result.full_text),
+        data_origin="CURATED",
     )
     db.add(doc)
     db.flush()

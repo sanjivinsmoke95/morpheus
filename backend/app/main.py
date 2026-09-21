@@ -16,8 +16,8 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers import (
-    admin, analyses, audit, auth, documents, graph, recommendations, regulatory,
-    reports, requirements, reviews, standards,
+    admin, advanced, analyses, audit, auth, documents, graph, recommendations,
+    regulatory, reports, requirements, reviews, standards,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging
@@ -108,3 +108,4 @@ app.include_router(graph.router, prefix=api)
 app.include_router(standards.router, prefix=api)
 app.include_router(audit.router, prefix=api)
 app.include_router(regulatory.router, prefix=api)
+app.include_router(advanced.router, prefix=api)
