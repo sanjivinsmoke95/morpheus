@@ -267,6 +267,18 @@ export function useHistoryCompare(analysisId: string) {
   return useQuery<any>({ queryKey: ["history-compare", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/history-compare`)).data });
 }
 
+// ---- evaluation (Phase 7) ----
+export function useEvaluation() {
+  return useQuery<any>({ queryKey: ["evaluation"], queryFn: async () => (await api.get(`/evaluation`)).data });
+}
+export function useRunEvaluation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.post(`/evaluation/run`)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["evaluation"] }),
+  });
+}
+
 // ---- reports ----
 export function useCreateReport() {
   return useMutation({

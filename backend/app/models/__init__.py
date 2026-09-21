@@ -11,6 +11,7 @@ from app.models.report import Report
 from app.models.audit import Conflict, CoverageResult, Gap
 from app.models.regulatory import CertificationRecord, QcoRecord
 from app.models.advanced import Feedback, HistoricalTender
+from app.models.evaluation import EvaluationCase, EvaluationResult
 
 __all__ = [
     "User",
@@ -37,4 +38,6 @@ __all__ = [
     "CertificationRecord",
     "HistoricalTender",
     "Feedback",
+    "EvaluationCase",
+    "EvaluationResult",
 ]

@@ -16,8 +16,8 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers import (
-    admin, advanced, analyses, audit, auth, documents, graph, recommendations,
-    regulatory, reports, requirements, reviews, standards,
+    admin, advanced, analyses, audit, auth, documents, evaluation, graph,
+    recommendations, regulatory, reports, requirements, reviews, standards,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging
@@ -45,6 +45,8 @@ async def lifespan(_app: FastAPI):
             with SessionLocal() as db:
                 seed_users(db)
                 seed_demo_standards(db)
+                from app.services.evaluation.harness import run_evaluation
+                run_evaluation(db)  # compute baseline metrics on the gold set
     yield
     logger.info("Shutting down")
 
@@ -109,3 +111,4 @@ app.include_router(standards.router, prefix=api)
 app.include_router(audit.router, prefix=api)
 app.include_router(regulatory.router, prefix=api)
 app.include_router(advanced.router, prefix=api)
+app.include_router(evaluation.router, prefix=api)

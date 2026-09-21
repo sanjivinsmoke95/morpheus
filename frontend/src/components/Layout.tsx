@@ -7,10 +7,7 @@ const NAV = [
   { to: "/analyses/new", label: "New Analysis", enabled: true },
   { to: "/history", label: "History", enabled: true },
   { label: "Knowledge Graph", enabled: false },
-  { label: "Coverage & Gaps", enabled: false },
-  { label: "Conflicts", enabled: false },
-  { label: "Readiness", enabled: false },
-  { label: "Evaluation", enabled: false },
+  { to: "/evaluation", label: "Evaluation", enabled: true },
   { label: "Admin", enabled: false },
 ];
 
