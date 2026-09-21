@@ -2,13 +2,15 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 
 // Full product navigation. Phase 1 ships Dashboard; later phases enable the rest.
-const NAV = [
+type NavItem = { to?: string; label: string; enabled: boolean; roles?: string[] };
+
+const NAV: NavItem[] = [
   { to: "/", label: "Dashboard", enabled: true },
   { to: "/analyses/new", label: "New Analysis", enabled: true },
   { to: "/history", label: "History", enabled: true },
-  { label: "Knowledge Graph", enabled: false },
-  { to: "/evaluation", label: "Evaluation", enabled: true },
-  { label: "Admin", enabled: false },
+  { to: "/evaluation", label: "Evaluation", enabled: true, roles: ["ADMIN", "REVIEWER"] },
+  { to: "/feedback", label: "Feedback", enabled: true, roles: ["ADMIN"] },
+  { to: "/admin", label: "Admin", enabled: true, roles: ["ADMIN"] },
 ];
 
 export function Layout() {
@@ -24,7 +26,7 @@ export function Layout() {
           </div>
         </div>
         <nav className="flex-1 space-y-0.5 px-2 py-2 text-sm">
-          {NAV.map((item) =>
+          {NAV.filter((item) => !item.roles || (user && item.roles.includes(user.role))).map((item) =>
             item.enabled && item.to ? (
               <NavLink
                 key={item.label}

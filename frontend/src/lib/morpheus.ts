@@ -267,6 +267,35 @@ export function useHistoryCompare(analysisId: string) {
   return useQuery<any>({ queryKey: ["history-compare", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/history-compare`)).data });
 }
 
+// ---- admin ----
+export function useIngestion() {
+  return useQuery<Record<string, any>>({ queryKey: ["ingestion"], queryFn: async () => (await api.get(`/admin/ingestion`)).data });
+}
+export function useAdminHealth() {
+  return useQuery<any>({ queryKey: ["admin-health"], queryFn: async () => (await api.get(`/admin/health`)).data });
+}
+export function useCreateStandard() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: Record<string, any>) => (await api.post(`/admin/standards`, payload)).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ingestion"] }),
+  });
+}
+export function useImportStandards() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const fd = new FormData();
+      fd.append("file", file);
+      return (await api.post(`/admin/standards/import`, fd)).data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["ingestion"] }),
+  });
+}
+export function useFeedback() {
+  return useQuery<any[]>({ queryKey: ["feedback"], queryFn: async () => (await api.get(`/feedback`)).data });
+}
+
 // ---- evaluation (Phase 7) ----
 export function useEvaluation() {
   return useQuery<any>({ queryKey: ["evaluation"], queryFn: async () => (await api.get(`/evaluation`)).data });
