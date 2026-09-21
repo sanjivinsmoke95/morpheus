@@ -3,6 +3,7 @@ from app.models.document import Document, DocumentPage
 from app.models.analysis import Analysis
 from app.models.requirement import Requirement, RequirementAttribute
 from app.models.standard import Standard, StandardChunk
+from app.models.relationship import StandardAmendment, StandardRelationship, StandardVersion
 from app.models.evidence import Evidence
 from app.models.recommendation import Recommendation, RecommendationEvidence
 from app.models.review import Review, ReviewDecision
@@ -17,6 +18,9 @@ __all__ = [
     "RequirementAttribute",
     "Standard",
     "StandardChunk",
+    "StandardRelationship",
+    "StandardVersion",
+    "StandardAmendment",
     "Evidence",
     "Recommendation",
     "RecommendationEvidence",

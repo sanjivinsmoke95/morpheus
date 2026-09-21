@@ -59,8 +59,9 @@ def _comparator(context: str) -> str:
 
 
 def _split_sentences(text: str) -> list[str]:
-    # Split on newlines and sentence terminators, keep non-trivial fragments.
-    rough = re.split(r"(?<=[.;:])\s+|\n+", text)
+    # Split on newlines and sentence terminators. NOT on ':' — it would break a
+    # standard reference like "IS 1520 : 2007" and lose the year.
+    rough = re.split(r"(?<=[.;])\s+|\n+", text)
     return [s.strip() for s in rough if len(s.strip()) >= 4]
 
 

@@ -117,3 +117,37 @@ DEMO_STANDARDS: list[dict] = [
         "keywords": ["appliance", "safety", "insulation", "earthing", "electrical", "household"],
     },
 ]
+
+# Typed relationships between demo standards (by is_number). DEMO_SYNTHETIC.
+DEMO_RELATIONSHIPS: list[dict] = [
+    ("IS 1520 : 2007", "IS 5120 : 1977", "NORMATIVE_REFERENCE", "Pump technical/testing requirements", "HIGH"),
+    ("IS 1520 : 2007", "IS 210 : 2009", "MATERIAL", "Pump body cast iron per grey iron castings", "HIGH"),
+    ("IS 1520 : 2007", "IS 3624 : 1987", "TESTING", "Pressure verified with pressure gauges", "MEDIUM"),
+    ("IS 1520 : 2007", "IS 325 : 1996", "RELATED_TO", "Driven by a three-phase induction motor", "MEDIUM"),
+    ("IS 325 : 1996", "IS 12615 : 2018", "RELATED_TO", "Energy-efficiency classes for the motor", "MEDIUM"),
+    ("IS 456 : 2000", "IS 2062 : 2011", "MATERIAL", "Reinforcement steel", "HIGH"),
+    ("IS 456 : 2000", "IS 383 : 2016", "MATERIAL", "Aggregates for concrete", "HIGH"),
+    ("IS 4985 : 2000", "IS 1520 : 2007", "RELATED_TO", "Water supply system components", "LOW"),
+]
+
+# Version history (by is_number). Marks current vs superseded versions.
+DEMO_VERSIONS: list[dict] = [
+    {"is_number": "IS 1520 : 2007", "versions": [
+        {"version_label": "1980", "is_current": False, "notes": "Superseded by the 2007 revision."},
+        {"version_label": "2007", "is_current": True, "notes": "Current revision."}]},
+    {"is_number": "IS 325 : 1996", "versions": [{"version_label": "1996", "is_current": True, "notes": ""}]},
+    {"is_number": "IS 456 : 2000", "versions": [{"version_label": "2000", "is_current": True, "notes": ""}]},
+    {"is_number": "IS 5120 : 1977", "versions": [{"version_label": "1977", "is_current": True, "notes": ""}]},
+]
+
+# Amendments (by is_number). Data only — impact analysis is Phase 5.
+DEMO_AMENDMENTS: list[dict] = [
+    {"is_number": "IS 456 : 2000", "amendments": [
+        {"amendment_no": "Amendment No. 1", "amendment_date": "2005-06-01",
+         "affected_clauses": ["8.2 Durability"], "summary": "Revised durability and cover requirements."},
+        {"amendment_no": "Amendment No. 2", "amendment_date": "2010-03-01",
+         "affected_clauses": ["26.4 Nominal cover"], "summary": "Updated nominal cover for exposure conditions."}]},
+    {"is_number": "IS 1520 : 2007", "amendments": [
+        {"amendment_no": "Amendment No. 1", "amendment_date": "2010-09-01",
+         "affected_clauses": ["9 Efficiency"], "summary": "Revised minimum efficiency and test tolerance."}]},
+]

@@ -159,6 +159,78 @@ export function useDecide(analysisId: string) {
   });
 }
 
+// ---- graph / standards / versions ----
+export interface GraphNode {
+  id: string;
+  is_number: string;
+  title: string;
+  status: string;
+  sector: string;
+  data_origin: string;
+  recommended?: boolean;
+}
+export interface GraphEdge {
+  id: string;
+  from: string;
+  to: string;
+  relationship_type: string;
+  relationship_confidence: string;
+  source_name: string;
+  data_origin: string;
+  evidence_id: string | null;
+}
+
+export function useGraph(analysisId: string) {
+  return useQuery<{ nodes: GraphNode[]; edges: GraphEdge[] }>({
+    queryKey: ["graph", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/graph`)).data,
+  });
+}
+
+export function useEdgeDetail() {
+  return useMutation({
+    mutationFn: async (edgeId: string) => (await api.get(`/graph/edges/${edgeId}`)).data,
+  });
+}
+
+export interface StandardDetail {
+  standard: GraphNode;
+  scope: string;
+  current_version: string;
+  source_url: string;
+  source_name: string;
+  verification_status: string;
+  versions: { version_label: string; is_current: boolean; notes: string; data_origin: string }[];
+  amendments: { amendment_no: string; amendment_date: string | null; affected_clauses: string[]; summary: string; data_origin: string }[];
+  relationships: { id: string; relationship_type: string; direction: string; target_is_number: string; target_title: string; confidence: string; data_origin: string }[];
+}
+
+export function useStandardDetail(id: string) {
+  return useQuery<StandardDetail>({
+    queryKey: ["standard", id],
+    queryFn: async () => (await api.get<StandardDetail>(`/standards/${id}`)).data,
+    enabled: !!id,
+  });
+}
+
+export interface VersionFinding {
+  referenced_text: string;
+  is_number: string | null;
+  referenced_version: string | null;
+  current_version: string | null;
+  discrepancy_type: string;
+  confidence: string;
+  note: string;
+  evidence: { text: string; page: number | null; section: string };
+}
+
+export function useVersionFindings(analysisId: string) {
+  return useQuery<VersionFinding[]>({
+    queryKey: ["versions", analysisId],
+    queryFn: async () => (await api.get<VersionFinding[]>(`/analyses/${analysisId}/versions`)).data,
+  });
+}
+
 // ---- reports ----
 export function useCreateReport() {
   return useMutation({

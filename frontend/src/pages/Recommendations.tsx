@@ -30,9 +30,14 @@ export function RecommendationsPage() {
           <h1 className="text-xl font-semibold">Recommendations</h1>
           <p className="mt-0.5 text-sm text-zinc-400">Applicable standards per requirement, with evidence. You decide.</p>
         </div>
-        <Link to={`/analyses/${id}/reports`} className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm font-medium text-black hover:bg-emerald-400">
-          Generate report →
-        </Link>
+        <div className="flex gap-2">
+          <Link to={`/analyses/${id}/graph`} className="rounded-md bg-white/10 px-3 py-1.5 text-sm font-medium hover:bg-white/20">
+            Knowledge graph
+          </Link>
+          <Link to={`/analyses/${id}/reports`} className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm font-medium text-black hover:bg-emerald-400">
+            Generate report →
+          </Link>
+        </div>
       </div>
 
       {isLoading ? (

@@ -8,8 +8,14 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.data.demo_standards import DEMO_STANDARDS
-from app.models import Standard, StandardChunk
+from datetime import date
+
+from app.data.demo_standards import (
+    DEMO_AMENDMENTS, DEMO_RELATIONSHIPS, DEMO_STANDARDS, DEMO_VERSIONS,
+)
+from app.models import (
+    Evidence, Standard, StandardAmendment, StandardChunk, StandardRelationship, StandardVersion,
+)
 from app.models.enums import DataOrigin
 from app.services.ai import get_embedder
 from app.services.standards.util import normalize_is_number
@@ -65,5 +71,55 @@ def seed_demo_standards(db: Session) -> int:
         created += 1
     if created:
         db.commit()
-        logger.info("Seeded %d demo standards.", created)
+    _seed_graph(db, now)
+    if created:
+        logger.info("Seeded %d demo standards + graph.", created)
     return created
+
+
+def _by_number(db: Session) -> dict:
+    return {s.is_number: s for s in db.execute(select(Standard)).scalars()}
+
+
+def _seed_graph(db: Session, now: str) -> None:
+    """Relationships (with evidence), versions, and amendments. Idempotent."""
+    idx = _by_number(db)
+    # Relationships
+    existing_rel = {
+        (r.from_standard_id, r.to_standard_id, r.relationship_type)
+        for r in db.execute(select(StandardRelationship)).scalars()
+    }
+    for frm, to, rtype, note, conf in DEMO_RELATIONSHIPS:
+        a, b = idx.get(frm), idx.get(to)
+        if not a or not b or (a.id, b.id, rtype) in existing_rel:
+            continue
+        ev = Evidence(source_type="standard_relationship", source_name="DEMO",
+                      text=f"{frm} {rtype} {to}: {note}", retrieved_at=now,
+                      relationship_type=rtype, data_origin=DataOrigin.DEMO_SYNTHETIC.value)
+        db.add(ev)
+        db.flush()
+        db.add(StandardRelationship(from_standard_id=a.id, to_standard_id=b.id, relationship_type=rtype,
+                                    note=note, relationship_confidence=conf, evidence_id=ev.id,
+                                    data_origin=DataOrigin.DEMO_SYNTHETIC.value, source_name="DEMO", retrieved_at=now))
+    # Versions
+    have_versions = {v.standard_id for v in db.execute(select(StandardVersion)).scalars()}
+    for entry in DEMO_VERSIONS:
+        std = idx.get(entry["is_number"])
+        if not std or std.id in have_versions:
+            continue
+        for v in entry["versions"]:
+            db.add(StandardVersion(standard_id=std.id, version_label=v["version_label"],
+                                   is_current=v["is_current"], notes=v.get("notes", ""),
+                                   data_origin=DataOrigin.DEMO_SYNTHETIC.value, source_name="DEMO", retrieved_at=now))
+    # Amendments
+    have_amend = {a.standard_id for a in db.execute(select(StandardAmendment)).scalars()}
+    for entry in DEMO_AMENDMENTS:
+        std = idx.get(entry["is_number"])
+        if not std or std.id in have_amend:
+            continue
+        for am in entry["amendments"]:
+            db.add(StandardAmendment(standard_id=std.id, amendment_no=am["amendment_no"],
+                                     amendment_date=date.fromisoformat(am["amendment_date"]) if am.get("amendment_date") else None,
+                                     affected_clauses=am.get("affected_clauses", []), summary=am.get("summary", ""),
+                                     data_origin=DataOrigin.DEMO_SYNTHETIC.value, source_name="DEMO", retrieved_at=now))
+    db.commit()
