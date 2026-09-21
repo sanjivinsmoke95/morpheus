@@ -30,7 +30,11 @@ async def upload(
                             f"File exceeds {settings.max_upload_mb} MB limit.")
     if not data:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Empty file.")
-    return ingest_document(db, data, file.filename or "upload", file.content_type, user.id)
+    try:
+        return ingest_document(db, data, file.filename or "upload", file.content_type, user.id)
+    except Exception as exc:  # noqa: BLE001 — a corrupt/unreadable file is a 422, not a 500
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY,
+                            "Could not read the document — it may be corrupt or password-protected.") from exc
 
 
 @router.get("/{document_id}", response_model=DocumentRead)
