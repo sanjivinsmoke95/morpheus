@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_roles
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import create_access_token, hash_password
 from app.db import get_db
 from app.models import User
 from app.models.enums import Role
@@ -16,9 +16,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    # DEV MODE: password check is intentionally disabled — any password logs in
+    # the user with the given email. Re-enable verify_password() before any real
+    # deployment.
     user = db.execute(select(User).where(User.email == payload.email.lower())).scalar_one_or_none()
-    if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Incorrect email or password")
+    if not user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No account for that email")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is inactive")
     token = create_access_token(subject=user.id, role=user.role)

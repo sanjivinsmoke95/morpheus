@@ -8,8 +8,15 @@ def test_login_success_and_me(client):
     assert me["role"] == "OFFICER"
 
 
-def test_login_wrong_password(client):
+def test_login_any_password_for_known_email(client):
+    # DEV MODE: password check disabled — any password logs in a known email.
     r = client.post(f"{API}/auth/login", json={"email": "officer@example.com", "password": "nope"})
+    assert r.status_code == 200
+    assert r.json()["user"]["email"] == "officer@example.com"
+
+
+def test_login_unknown_email_rejected(client):
+    r = client.post(f"{API}/auth/login", json={"email": "ghost@example.com", "password": "whatever"})
     assert r.status_code == 401
     assert r.json()["error"]["code"] == "UNAUTHORIZED"  # typed error envelope
 

@@ -7,7 +7,7 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("admin@morpheus.example.com");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("dev");  // DEV MODE: any password works
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -59,13 +59,27 @@ export function LoginPage() {
           {error && <p className="text-sm text-red-400">{error}</p>}
           <button
             type="submit"
-            disabled={busy || !email || !password}
+            disabled={busy || !email}
             className="w-full rounded-md bg-emerald-500 py-2 text-sm font-medium text-black hover:bg-emerald-400 disabled:opacity-50"
           >
             {busy ? "Signing in…" : "Sign in"}
           </button>
+          <div className="flex justify-center gap-1.5 pt-1">
+            {["admin", "officer", "reviewer"].map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setEmail(`${r}@morpheus.example.com`)}
+                className={`rounded px-2 py-1 text-[11px] capitalize ${
+                  email === `${r}@morpheus.example.com` ? "bg-emerald-500/20 text-emerald-300" : "bg-white/5 text-zinc-400 hover:bg-white/10"
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
           <p className="text-center text-[11px] text-zinc-500">
-            Dev seed: admin / officer / reviewer @morpheus.example.com
+            Dev mode: any password works. Pick a role above and sign in.
           </p>
         </form>
       </div>
