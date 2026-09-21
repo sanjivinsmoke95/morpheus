@@ -1,23 +1,25 @@
-"""Test harness: in-memory SQLite + TestClient with the DB dependency overridden.
+"""Test harness.
 
-Deterministic and offline (stub providers). No Postgres/Neo4j needed for Phase 1.
+Uses a shared FILE-based SQLite DB so the API request sessions, the orchestrator's
+background-task session (its own SessionLocal), and any direct session all see the
+same data — which lets the real end-to-end pipeline (including background tasks)
+run in tests. Deterministic and offline (stub providers).
 """
 
 import os
+import pathlib
 
-os.environ.setdefault("DATABASE_URL", "sqlite://")
+_DB_PATH = pathlib.Path(__file__).parent / "_pytest.db"
+os.environ.setdefault("DATABASE_URL", f"sqlite:///{_DB_PATH}")
 os.environ.setdefault("ENVIRONMENT", "test")
 os.environ["LLM_PROVIDER"] = "stub"
 os.environ["EMBEDDING_PROVIDER"] = "stub"
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.core.security import hash_password
-from app.db import Base, get_db
+from app.db import Base, SessionLocal, engine
 from app.main import app
 from app.models import User
 from app.models.enums import Role
@@ -27,37 +29,23 @@ API = "/api/v1"
 
 @pytest.fixture
 def db_sessionmaker():
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    TestingSession = sessionmaker(bind=engine, autoflush=False, autocommit=False, expire_on_commit=False)
-    Base.metadata.create_all(bind=engine)
-    yield TestingSession
-    Base.metadata.drop_all(bind=engine)
+    return SessionLocal
 
 
 @pytest.fixture
 def client(db_sessionmaker):
-    def override_get_db():
-        db = db_sessionmaker()
-        try:
-            yield db
-            db.commit()
-        except Exception:
-            db.rollback()
-            raise
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    # Seed one user per role directly.
-    db = db_sessionmaker()
-    for email, role in [("admin@example.com", Role.ADMIN), ("officer@example.com", Role.OFFICER), ("reviewer@example.com", Role.REVIEWER)]:
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    for email, role in [("admin@example.com", Role.ADMIN), ("officer@example.com", Role.OFFICER),
+                        ("reviewer@example.com", Role.REVIEWER)]:
         db.add(User(email=email, full_name=role.value, password_hash=hash_password("password123"), role=role.value))
     db.commit()
     db.close()
 
     with TestClient(app) as c:
         yield c
-    app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
 
 
 def login(client, email="officer@example.com", password="password123") -> dict:

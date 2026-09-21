@@ -15,7 +15,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routers import admin, auth
+from app.api.routers import (
+    admin, analyses, auth, documents, recommendations, reports, requirements, reviews,
+)
 from app.core.config import settings
 from app.core.logging import configure_logging
 from app.db import Base, SessionLocal, engine
@@ -37,9 +39,11 @@ async def lifespan(_app: FastAPI):
         Base.metadata.create_all(bind=engine)
         if settings.environment == "development":
             from app.core.seed import seed_users
+            from app.services.standards.seed import seed_demo_standards
 
             with SessionLocal() as db:
                 seed_users(db)
+                seed_demo_standards(db)
     yield
     logger.info("Shutting down")
 
@@ -93,3 +97,9 @@ def liveness() -> dict:
 api = settings.api_prefix
 app.include_router(auth.router, prefix=api)
 app.include_router(admin.router, prefix=api)
+app.include_router(documents.router, prefix=api)
+app.include_router(analyses.router, prefix=api)
+app.include_router(requirements.router, prefix=api)
+app.include_router(recommendations.router, prefix=api)
+app.include_router(reviews.router, prefix=api)
+app.include_router(reports.router, prefix=api)
