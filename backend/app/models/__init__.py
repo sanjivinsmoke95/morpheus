@@ -9,6 +9,7 @@ from app.models.recommendation import Recommendation, RecommendationEvidence
 from app.models.review import Review, ReviewDecision
 from app.models.report import Report
 from app.models.audit import Conflict, CoverageResult, Gap
+from app.models.regulatory import CertificationRecord, QcoRecord
 
 __all__ = [
     "User",
@@ -31,4 +32,6 @@ __all__ = [
     "CoverageResult",
     "Gap",
     "Conflict",
+    "QcoRecord",
+    "CertificationRecord",
 ]

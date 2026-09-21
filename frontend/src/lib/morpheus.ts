@@ -248,6 +248,17 @@ export function useConflicts(analysisId: string) {
   return useQuery<any[]>({ queryKey: ["conflicts", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/conflicts`)).data });
 }
 
+// ---- regulatory (Phase 5) ----
+export function useQco(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["qco", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/qco`)).data });
+}
+export function useCertification(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["cert", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/certification`)).data });
+}
+export function useAmendmentImpact(analysisId: string) {
+  return useQuery<any[]>({ queryKey: ["amendments", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/amendments`)).data });
+}
+
 // ---- reports ----
 export function useCreateReport() {
   return useMutation({

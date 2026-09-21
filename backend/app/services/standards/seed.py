@@ -11,10 +11,11 @@ from sqlalchemy.orm import Session
 from datetime import date
 
 from app.data.demo_standards import (
-    DEMO_AMENDMENTS, DEMO_RELATIONSHIPS, DEMO_STANDARDS, DEMO_VERSIONS,
+    DEMO_AMENDMENTS, DEMO_CERT, DEMO_QCO, DEMO_RELATIONSHIPS, DEMO_STANDARDS, DEMO_VERSIONS,
 )
 from app.models import (
-    Evidence, Standard, StandardAmendment, StandardChunk, StandardRelationship, StandardVersion,
+    CertificationRecord, Evidence, QcoRecord, Standard, StandardAmendment, StandardChunk,
+    StandardRelationship, StandardVersion,
 )
 from app.models.enums import DataOrigin
 from app.services.ai import get_embedder
@@ -122,4 +123,26 @@ def _seed_graph(db: Session, now: str) -> None:
                                      amendment_date=date.fromisoformat(am["amendment_date"]) if am.get("amendment_date") else None,
                                      affected_clauses=am.get("affected_clauses", []), summary=am.get("summary", ""),
                                      data_origin=DataOrigin.DEMO_SYNTHETIC.value, source_name="DEMO", retrieved_at=now))
+    # QCO
+    have_qco = {q.standard_id for q in db.execute(select(QcoRecord)).scalars()}
+    for entry in DEMO_QCO:
+        std = idx.get(entry["is_number"])
+        if not std or std.id in have_qco:
+            continue
+        db.add(QcoRecord(standard_id=std.id, product_description=entry.get("product_description", ""),
+                         qco_status=entry["qco_status"], order_name=entry.get("order_name", ""),
+                         effective_date=date.fromisoformat(entry["effective_date"]) if entry.get("effective_date") else None,
+                         notes=entry.get("notes", ""), data_origin=DataOrigin.DEMO_SYNTHETIC.value,
+                         source_name="DEMO", retrieved_at=now))
+    # Certification
+    have_cert = {c.standard_id for c in db.execute(select(CertificationRecord)).scalars()}
+    for entry in DEMO_CERT:
+        std = idx.get(entry["is_number"])
+        if not std or std.id in have_cert:
+            continue
+        db.add(CertificationRecord(standard_id=std.id, scheme=entry.get("scheme", ""),
+                                   product_description=entry.get("product_description", ""),
+                                   requirement=entry.get("requirement", ""),
+                                   effective_date=date.fromisoformat(entry["effective_date"]) if entry.get("effective_date") else None,
+                                   data_origin=DataOrigin.DEMO_SYNTHETIC.value, source_name="DEMO", retrieved_at=now))
     db.commit()

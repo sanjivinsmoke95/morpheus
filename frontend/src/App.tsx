@@ -14,6 +14,7 @@ import { KnowledgeGraphPage } from "@/pages/KnowledgeGraph";
 import { StandardDetailPage } from "@/pages/StandardDetail";
 import { ReadinessPage } from "@/pages/Readiness";
 import { AuditPage } from "@/pages/Audit";
+import { RegulatoryPage } from "@/pages/Regulatory";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -42,6 +43,7 @@ export function App() {
           <Route path="/standards/:id" element={<StandardDetailPage />} />
           <Route path="/analyses/:id/readiness" element={<ReadinessPage />} />
           <Route path="/analyses/:id/audit" element={<AuditPage />} />
+          <Route path="/analyses/:id/regulatory" element={<RegulatoryPage />} />
           <Route path="/history" element={<HistoryPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

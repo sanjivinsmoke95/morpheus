@@ -140,6 +140,30 @@ DEMO_VERSIONS: list[dict] = [
     {"is_number": "IS 5120 : 1977", "versions": [{"version_label": "1977", "is_current": True, "notes": ""}]},
 ]
 
+# QCO records (by is_number). DEMO — regulatory status is shown only from records.
+DEMO_QCO: list[dict] = [
+    {"is_number": "IS 302 : 2008", "qco_status": "MANDATORY", "product_description": "Household electrical appliances",
+     "order_name": "Electrical Appliances (Quality Control) Order (DEMO)", "effective_date": "2021-01-01",
+     "notes": "Registration mandatory before sale (illustrative)."},
+    {"is_number": "IS 616 : 2017", "qco_status": "MANDATORY", "product_description": "Audio/video electronic apparatus",
+     "order_name": "Electronics & IT Goods (CRS) Order (DEMO)", "effective_date": "2020-10-01",
+     "notes": "Compulsory Registration Scheme (illustrative)."},
+    {"is_number": "IS 1520 : 2007", "qco_status": "VOLUNTARY", "product_description": "Centrifugal water pumps",
+     "order_name": "", "effective_date": None, "notes": "ISI marking voluntary (illustrative)."},
+    {"is_number": "IS 456 : 2000", "qco_status": "UNKNOWN", "product_description": "Concrete works",
+     "order_name": "", "effective_date": None, "notes": "No QCO record on file — verify."},
+]
+
+# Certification records (by is_number). DEMO.
+DEMO_CERT: list[dict] = [
+    {"is_number": "IS 302 : 2008", "scheme": "CRS", "product_description": "Household appliances",
+     "requirement": "BIS registration under CRS before sale.", "effective_date": "2021-01-01"},
+    {"is_number": "IS 616 : 2017", "scheme": "CRS", "product_description": "Electronic apparatus",
+     "requirement": "BIS registration under CRS.", "effective_date": "2020-10-01"},
+    {"is_number": "IS 1520 : 2007", "scheme": "ISI", "product_description": "Water pumps",
+     "requirement": "ISI marking under a BIS licence (voluntary).", "effective_date": None},
+]
+
 # Amendments (by is_number). Data only — impact analysis is Phase 5.
 DEMO_AMENDMENTS: list[dict] = [
     {"is_number": "IS 456 : 2000", "amendments": [
