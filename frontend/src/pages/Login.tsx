@@ -35,9 +35,9 @@ export function LoginPage() {
             <div className="text-xs text-muted">Standards Compliance for Public Procurement</div>
           </div>
         </div>
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-line bg-surface p-6 shadow-sm">
+        <form onSubmit={submit} className="space-y-3 rounded-2xl border border-line bg-surface p-6 shadow-[0_8px_30px_rgba(73,55,27,0.05)]">
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted">Email</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">Email</label>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -47,7 +47,7 @@ export function LoginPage() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-muted">Password</label>
+            <label className="mb-1 block text-xs font-semibold text-muted">Password</label>
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
