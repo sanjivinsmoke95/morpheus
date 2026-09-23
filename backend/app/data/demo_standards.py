@@ -116,6 +116,117 @@ DEMO_STANDARDS: list[dict] = [
         "requirements for household and similar electrical appliances including insulation and earthing.",
         "keywords": ["appliance", "safety", "insulation", "earthing", "electrical", "household"],
     },
+    # ---- LED / lighting (solar street-light cluster) ----
+    {
+        "is_number": "IS 10322 (Part 5/Sec 3) : 2013",
+        "title": "Luminaires — Particular requirements for street lighting luminaires",
+        "sector": "electrical", "product_categories": ["luminaire", "street light", "led luminaire", "lighting"],
+        "materials": ["aluminium"], "status": "ACTIVE", "current_version": "2013",
+        "scope": "Safety and performance requirements for fixed street-lighting luminaires including "
+        "ingress protection (IP rating), luminous efficacy, electrical safety and photobiological safety.",
+        "keywords": ["luminaire", "street light", "led", "ip65", "efficacy", "lumen", "cct", "lighting", "outdoor"],
+    },
+    {
+        "is_number": "IS 16107 (Part 2/Sec 1) : 2014",
+        "title": "Luminaire performance — Particular requirements for LED luminaires",
+        "sector": "electrical", "product_categories": ["led luminaire", "led light", "luminaire"],
+        "materials": [], "status": "ACTIVE", "current_version": "2014",
+        "scope": "Performance requirements for LED luminaires including luminous flux, efficacy (lm/W), "
+        "colour rendering index (CRI), correlated colour temperature (CCT) and lumen maintenance.",
+        "keywords": ["led", "luminaire", "efficacy", "lm/w", "cri", "cct", "lumen", "performance", "lighting"],
+    },
+    {
+        "is_number": "IS 16106 : 2012",
+        "title": "LED modules for general lighting — Safety requirements",
+        "sector": "electrical", "product_categories": ["led module", "led"],
+        "materials": [], "status": "ACTIVE", "current_version": "2012",
+        "scope": "Safety specification for LED modules used in general lighting, including electrical "
+        "and thermal safety and marking.",
+        "keywords": ["led", "module", "safety", "lighting", "thermal", "electrical"],
+    },
+    {
+        "is_number": "IS 15885 (Part 2/Sec 13) : 2012",
+        "title": "Safety of lamps — Particular requirements for LED lamps",
+        "sector": "electrical", "product_categories": ["led lamp", "lamp", "led"],
+        "materials": [], "status": "ACTIVE", "current_version": "2012",
+        "scope": "Safety requirements for self-ballasted LED lamps for general lighting services over "
+        "50 V, including protection against electric shock.",
+        "keywords": ["led", "lamp", "safety", "lighting", "shock", "self-ballasted"],
+    },
+    # ---- solar / energy ----
+    {
+        "is_number": "IS 16077 : 2013",
+        "title": "Photovoltaic (PV) systems — Charge controllers",
+        "sector": "electrical", "product_categories": ["charge controller", "solar", "mppt", "pv"],
+        "materials": [], "status": "ACTIVE", "current_version": "2013",
+        "scope": "Requirements for solar photovoltaic charge controllers including MPPT operation, "
+        "over-charge and deep-discharge protection, and ingress protection.",
+        "keywords": ["solar", "charge controller", "mppt", "pv", "battery", "protection", "photovoltaic"],
+    },
+    {
+        "is_number": "IS 14286 : 2010",
+        "title": "Crystalline silicon terrestrial photovoltaic (PV) modules — Design qualification",
+        "sector": "electrical", "product_categories": ["solar panel", "pv module", "solar", "photovoltaic"],
+        "materials": ["silicon"], "status": "ACTIVE", "current_version": "2010",
+        "scope": "Design qualification and type approval for crystalline silicon terrestrial PV modules, "
+        "including power output, degradation and environmental testing.",
+        "keywords": ["solar", "panel", "pv", "module", "photovoltaic", "silicon", "watt", "degradation"],
+    },
+    {
+        "is_number": "IS 16270 : 2014",
+        "title": "Secondary lithium cells and batteries for solar photovoltaic application",
+        "sector": "electrical", "product_categories": ["battery", "lithium battery", "solar battery", "lifepo4"],
+        "materials": ["lithium"], "status": "ACTIVE", "current_version": "2014",
+        "scope": "Requirements and safety tests for secondary lithium cells and batteries used in solar "
+        "photovoltaic applications, including cycle life, depth of discharge and safety.",
+        "keywords": ["battery", "lithium", "solar", "cycle life", "depth of discharge", "lifepo4", "backup"],
+    },
+    # ---- poles / structural / installation ----
+    {
+        "is_number": "IS 2713 (Part 1) : 1980",
+        "title": "Tubular steel poles for overhead power lines — Dimensions and properties",
+        "sector": "materials", "product_categories": ["pole", "steel pole", "tubular pole", "lighting pole"],
+        "materials": ["steel"], "status": "ACTIVE", "current_version": "1980",
+        "scope": "Dimensions, wall thickness and mechanical properties of swaged and continuously tapered "
+        "tubular steel poles for overhead lines and lighting.",
+        "keywords": ["pole", "steel", "tubular", "galvanised", "wind load", "height", "structural"],
+    },
+    {
+        "is_number": "IS 3043 : 2018",
+        "title": "Code of practice for earthing",
+        "sector": "electrical", "product_categories": ["earthing", "grounding"],
+        "materials": [], "status": "ACTIVE", "current_version": "2018", "publication_year": 1987, "revision_year": 2018,
+        "scope": "Code of practice for earthing of electrical installations including earth electrode "
+        "resistance, earthing conductors and protection against electric shock.",
+        "keywords": ["earthing", "grounding", "electrode", "shock", "protection", "tn-s", "installation"],
+    },
+    {
+        "is_number": "IS 694 : 2010",
+        "title": "Polyvinyl chloride insulated unsheathed and sheathed cables/cords",
+        "sector": "electrical", "product_categories": ["cable", "wiring cable", "pvc cable"],
+        "materials": ["copper", "pvc"], "status": "ACTIVE", "current_version": "2010",
+        "scope": "Requirements for PVC insulated cables and cords for working voltages up to 1100 V, "
+        "including conductor size, insulation and current rating.",
+        "keywords": ["cable", "wiring", "pvc", "copper", "voltage", "conductor", "sq mm"],
+    },
+    {
+        "is_number": "IS 8828 : 1996",
+        "title": "Electrical accessories — Circuit breakers for overcurrent protection (MCB)",
+        "sector": "electrical", "product_categories": ["mcb", "circuit breaker", "protection"],
+        "materials": [], "status": "ACTIVE", "current_version": "1996",
+        "scope": "Requirements for miniature circuit breakers for over-current protection in household and "
+        "similar installations, including breaking capacity and trip characteristics.",
+        "keywords": ["mcb", "circuit breaker", "overcurrent", "protection", "ka", "fault", "trip"],
+    },
+    {
+        "is_number": "IS 12063 : 1987",
+        "title": "Classification of degrees of protection provided by enclosures (IP code)",
+        "sector": "electrical", "product_categories": ["enclosure", "ip rating", "ingress protection"],
+        "materials": [], "status": "ACTIVE", "current_version": "1987",
+        "scope": "Classification of degrees of protection (IP code) provided by enclosures for electrical "
+        "equipment against ingress of solid objects, dust and water.",
+        "keywords": ["ip", "ingress", "protection", "enclosure", "dust", "water", "ip65", "ip54"],
+    },
 ]
 
 # Typed relationships between demo standards (by is_number). DEMO_SYNTHETIC.
@@ -128,6 +239,18 @@ DEMO_RELATIONSHIPS: list[dict] = [
     ("IS 456 : 2000", "IS 2062 : 2011", "MATERIAL", "Reinforcement steel", "HIGH"),
     ("IS 456 : 2000", "IS 383 : 2016", "MATERIAL", "Aggregates for concrete", "HIGH"),
     ("IS 4985 : 2000", "IS 1520 : 2007", "RELATED_TO", "Water supply system components", "LOW"),
+    # solar street-light cluster
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 16107 (Part 2/Sec 1) : 2014", "NORMATIVE_REFERENCE",
+     "Street luminaire performance per LED luminaire performance standard", "HIGH"),
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 16106 : 2012", "SAFETY", "LED module safety", "HIGH"),
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 12063 : 1987", "TESTING", "IP-rating classification", "MEDIUM"),
+    ("IS 16107 (Part 2/Sec 1) : 2014", "IS 15885 (Part 2/Sec 13) : 2012", "RELATED_TO", "LED lamp safety", "MEDIUM"),
+    ("IS 16077 : 2013", "IS 16270 : 2014", "RELATED_TO", "Charge controller manages the battery", "HIGH"),
+    ("IS 16077 : 2013", "IS 14286 : 2010", "RELATED_TO", "Charge controller for the PV module", "HIGH"),
+    ("IS 2713 (Part 1) : 1980", "IS 2062 : 2011", "MATERIAL", "Pole fabricated from structural steel", "HIGH"),
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 3043 : 2018", "INSTALLATION", "Luminaire installation earthing", "MEDIUM"),
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 694 : 2010", "MATERIAL", "Internal wiring cables", "MEDIUM"),
+    ("IS 10322 (Part 5/Sec 3) : 2013", "IS 8828 : 1996", "SAFETY", "Circuit protection", "MEDIUM"),
 ]
 
 # Version history (by is_number). Marks current vs superseded versions.
@@ -152,6 +275,18 @@ DEMO_QCO: list[dict] = [
      "order_name": "", "effective_date": None, "notes": "ISI marking voluntary (illustrative)."},
     {"is_number": "IS 456 : 2000", "qco_status": "UNKNOWN", "product_description": "Concrete works",
      "order_name": "", "effective_date": None, "notes": "No QCO record on file — verify."},
+    {"is_number": "IS 16107 (Part 2/Sec 1) : 2014", "qco_status": "MANDATORY",
+     "product_description": "LED luminaires for street/general lighting",
+     "order_name": "Electronics & IT Goods (Requirement for Compulsory Registration) Order (DEMO)",
+     "effective_date": "2021-04-01", "notes": "LED products require BIS registration before sale (illustrative)."},
+    {"is_number": "IS 15885 (Part 2/Sec 13) : 2012", "qco_status": "MANDATORY",
+     "product_description": "Self-ballasted LED lamps",
+     "order_name": "Electronics & IT Goods (CRS) Order (DEMO)", "effective_date": "2019-10-01",
+     "notes": "Compulsory Registration Scheme for LED lamps (illustrative)."},
+    {"is_number": "IS 14286 : 2010", "qco_status": "MANDATORY",
+     "product_description": "Crystalline silicon PV modules",
+     "order_name": "Solar PV Modules (Quality Control) Order (DEMO)", "effective_date": "2021-04-01",
+     "notes": "PV modules require BIS registration (illustrative)."},
 ]
 
 # Certification records (by is_number). DEMO.

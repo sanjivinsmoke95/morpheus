@@ -47,6 +47,11 @@ async def lifespan(_app: FastAPI):
                 seed_demo_standards(db)
                 from app.services.evaluation.harness import run_evaluation
                 run_evaluation(db)  # compute baseline metrics on the gold set
+            try:
+                from scripts.seed_showcase import main as seed_showcase
+                seed_showcase()  # idempotent pre-analysed demo tender; never blocks startup
+            except Exception:  # noqa: BLE001
+                logger.exception("Showcase seed skipped")
     yield
     logger.info("Shutting down")
 
