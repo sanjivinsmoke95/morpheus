@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { Card, EmptyState, LinkButton, Skeleton, StatusChip } from "@/components/ui";
@@ -37,7 +38,7 @@ export function DashboardPage() {
     </div>
   );
 }
-function Metric({label,value,detail}:{label:string;value:React.ReactNode;detail:string}) { return <Card className="p-5"><div className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted">{label}</div><div className="mt-2 text-3xl font-extrabold tracking-tight text-primary">{value}</div><div className="mt-1 text-xs text-muted">{detail}</div></Card>; }
+function Metric({label,value,detail}:{label:string;value:ReactNode;detail:string}) { return <Card className="p-5"><div className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-muted">{label}</div><div className="mt-2 text-3xl font-extrabold tracking-tight text-primary">{value}</div><div className="mt-1 text-xs text-muted">{detail}</div></Card>; }
 function Feature({icon,title,text}:{icon:string;title:string;text:string}) { return <Card className="p-5"><span className="grid h-10 w-10 place-items-center rounded-xl bg-primary-soft text-lg text-primary">{icon}</span><h3 className="mt-4 text-sm font-extrabold">{title}</h3><p className="mt-1 text-xs leading-5 text-muted">{text}</p></Card>; }
 function AnalysisRow({analysis}:{analysis:Analysis}) { const ready=analysis.status==="READY"; const to=ready?"/analyses/"+analysis.id:"/analyses/"+analysis.id+"/processing"; return <Link to={to} className="group flex items-center gap-4 border-b border-line/70 px-5 py-4 last:border-0 hover:bg-panel/60"><span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-panel text-primary">▤</span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold">{analysis.title}</span><span className="mt-0.5 block text-xs text-muted">{analysis.sector||"Auto-detected"} · {new Date(analysis.created_at).toLocaleDateString()}</span></span>{ready?<VerdictChip id={analysis.id}/>:<StatusChip tone="info">Processing</StatusChip>}<span className="text-muted transition-transform group-hover:translate-x-1">→</span></Link>; }
 function VerdictChip({id}:{id:string}) { const {data,isLoading}=useReadiness(id); if(isLoading)return <StatusChip>…</StatusChip>; const v=verdictFromReadiness(data); const label=v.kind==="READY"?"Ready":v.kind==="ATTENTION"?"Review":"Action needed"; return <StatusChip tone={v.tone}>{label}</StatusChip>; }
