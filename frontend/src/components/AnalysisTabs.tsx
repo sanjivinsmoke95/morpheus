@@ -5,16 +5,18 @@ type Tab = { to: string; label: string };
 
 const primary = (id: string): Tab[] => [
   { to: `/analyses/${id}`, label: "Overview" },
-  { to: `/analyses/${id}/standards`, label: "Standards" },
+  { to: `/analyses/${id}/requirements`, label: "Requirements" },
+  { to: `/analyses/${id}/standards`, label: "Standards Review" },
+  { to: `/analyses/${id}/issues`, label: "Issues & Gaps" },
+  { to: `/analyses/${id}/evidence`, label: "Evidence" },
   { to: `/analyses/${id}/reports`, label: "Report" },
 ];
 
 const advanced = (id: string): Tab[] => [
-  { to: `/analyses/${id}/requirements`, label: "Requirements" },
-  { to: `/analyses/${id}/recommendations`, label: "Match signals" },
-  { to: `/analyses/${id}/audit`, label: "Coverage & findings" },
+  { to: `/analyses/${id}/recommendations`, label: "Why matched" },
+  { to: `/analyses/${id}/audit`, label: "Coverage detail" },
   { to: `/analyses/${id}/regulatory`, label: "Certification & QCO" },
-  { to: `/analyses/${id}/graph`, label: "Knowledge graph" },
+  { to: `/analyses/${id}/graph`, label: "How standards connect" },
   { to: `/analyses/${id}/copilot`, label: "Copilot & history" },
   { to: `/analyses/${id}/review`, label: "Decision log" },
 ];

@@ -1,7 +1,7 @@
 from app.models.user import User
 from app.models.document import Document, DocumentPage
 from app.models.analysis import Analysis
-from app.models.requirement import Requirement, RequirementAttribute
+from app.models.requirement import Requirement, RequirementAttribute, RequirementNote
 from app.models.standard import Standard, StandardChunk
 from app.models.relationship import StandardAmendment, StandardRelationship, StandardVersion
 from app.models.evidence import Evidence
@@ -20,6 +20,7 @@ __all__ = [
     "Analysis",
     "Requirement",
     "RequirementAttribute",
+    "RequirementNote",
     "Standard",
     "StandardChunk",
     "StandardRelationship",

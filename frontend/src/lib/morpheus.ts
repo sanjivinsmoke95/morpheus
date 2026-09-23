@@ -122,8 +122,9 @@ export function useRequirements(analysisId: string) {
 export function useEditRequirement(analysisId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, description }: { id: string; description: string }) =>
-      (await api.patch<Requirement>(`/requirements/${id}`, { description })).data,
+    mutationFn: async ({ id, description, requirement_type }: { id: string; description?: string; requirement_type?: string }) =>
+      (await api.patch<Requirement>(`/requirements/${id}`,
+        { ...(description != null ? { description } : {}), ...(requirement_type != null ? { requirement_type } : {}) })).data,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requirements", analysisId] });
       qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
@@ -436,5 +437,71 @@ export function useStandardsSearch(q: string, sector?: string) {
     queryKey: ["standards-search", q, sector ?? ""],
     queryFn: async () =>
       (await api.get("/standards", { params: { q: q || undefined, sector: sector || undefined, limit: 100 } })).data,
+  });
+}
+
+// ---- P2/P5/P6: coverage-by-category, issues, clauses, ask, notes, add-requirement ----
+export interface CategoryCoverage { category: string; full: number; partial: number; missing: number; total: number; }
+export function useCoverageByCategory(analysisId: string) {
+  return useQuery<CategoryCoverage[]>({
+    queryKey: ["coverage-by-category", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/coverage-by-category`)).data,
+  });
+}
+
+export interface Issue {
+  id: string; type: "CONFLICT" | "GAP" | "OUTDATED"; severity: string;
+  title: string; description: string; standard_is_number: string | null; recommended_action: string;
+}
+export function useIssues(analysisId: string) {
+  return useQuery<Issue[]>({
+    queryKey: ["issues", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/issues`)).data,
+  });
+}
+
+export interface ClausePage {
+  page_number: number; text_excerpt: string;
+  standards: { is_number: string; title: string; evidence_text: string; role: string; relevance: string }[];
+}
+export function useClauses(analysisId: string) {
+  return useQuery<ClausePage[]>({
+    queryKey: ["clauses", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/clauses`)).data,
+  });
+}
+
+export interface AskAnswer { answer: string; abstained: boolean; citations: { is_number: string; text: string }[]; }
+export function useAsk(analysisId: string) {
+  return useMutation({
+    mutationFn: async (question: string) =>
+      (await api.post<AskAnswer>(`/analyses/${analysisId}/ask`, { question })).data,
+  });
+}
+
+export interface RequirementNote { id: string; body: string; author: string | null; created_at: string | null; }
+export function useNotes(requirementId: string, enabled = true) {
+  return useQuery<RequirementNote[]>({
+    queryKey: ["notes", requirementId],
+    queryFn: async () => (await api.get(`/requirements/${requirementId}/notes`)).data,
+    enabled,
+  });
+}
+export function useAddNote(requirementId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (body: string) => (await api.post(`/requirements/${requirementId}/notes`, { body })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notes", requirementId] }),
+  });
+}
+export function useAddRequirement(analysisId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { description: string; requirement_type: string }) =>
+      (await api.post(`/analyses/${analysisId}/requirements`, payload)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["requirements", analysisId] });
+      qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
+    },
   });
 }

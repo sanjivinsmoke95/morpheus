@@ -12,6 +12,8 @@ import { ProcessingPage } from "@/pages/Processing";
 import { OverviewPage } from "@/pages/Overview";
 import { StandardsPage } from "@/pages/Standards";
 import { RequirementsPage } from "@/pages/Requirements";
+import { IssuesGapsPage } from "@/pages/IssuesGaps";
+import { EvidencePage } from "@/pages/Evidence";
 import { RecommendationsPage } from "@/pages/Recommendations";
 import { ReportsPage } from "@/pages/Reports";
 import { HistoryPage } from "@/pages/History";
@@ -51,6 +53,8 @@ export function App() {
           <Route path="/analyses/:id" element={<OverviewPage />} />
           <Route path="/analyses/:id/standards" element={<StandardsPage />} />
           <Route path="/analyses/:id/requirements" element={<RequirementsPage />} />
+          <Route path="/analyses/:id/issues" element={<IssuesGapsPage />} />
+          <Route path="/analyses/:id/evidence" element={<EvidencePage />} />
           <Route path="/analyses/:id/recommendations" element={<RecommendationsPage />} />
           <Route path="/analyses/:id/reports" element={<ReportsPage />} />
           <Route path="/analyses/:id/graph" element={<KnowledgeGraphPage />} />

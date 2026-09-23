@@ -21,6 +21,19 @@ class Requirement(Base, UUIDMixin, TimestampMixin):
     is_edited: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
+class RequirementNote(Base, UUIDMixin, TimestampMixin):
+    """An officer's free-text note on a requirement (review context, not evidence)."""
+
+    __tablename__ = "requirement_notes"
+
+    requirement_id: Mapped[str] = mapped_column(
+        ForeignKey("requirements.id", ondelete="CASCADE"), index=True, nullable=False
+    )
+    analysis_id: Mapped[str] = mapped_column(ForeignKey("analyses.id", ondelete="CASCADE"), index=True, nullable=False)
+    author_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+
+
 class RequirementAttribute(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "requirement_attributes"
 
