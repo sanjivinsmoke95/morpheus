@@ -2,128 +2,172 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 
-type NavItem = { to: string; label: string; roles?: string[] };
+type NavItem = { to: string; label: string; icon: string; end?: boolean; roles?: string[] };
+type NavGroup = { heading: string; items: NavItem[] };
 
-const NAV: NavItem[] = [
-  { to: "/", label: "Home" },
-  { to: "/analyses/new", label: "New Analysis" },
-  { to: "/history", label: "History" },
+const NAV: NavGroup[] = [
+  {
+    heading: "Workspace",
+    items: [
+      { to: "/", label: "Dashboard", icon: "▦", end: true },
+      { to: "/analyses/new", label: "New Analysis", icon: "＋" },
+      { to: "/history", label: "My Tenders", icon: "▤" },
+    ],
+  },
+  {
+    heading: "Intelligence",
+    items: [
+      { to: "/analytics", label: "Department Analytics", icon: "◔" },
+      { to: "/standards", label: "Standards Library", icon: "▣" },
+      { to: "/regulatory-updates", label: "Regulatory Updates", icon: "◈" },
+    ],
+  },
+  {
+    heading: "Account",
+    items: [
+      { to: "/evaluation", label: "Accuracy Proof", icon: "◎", roles: ["ADMIN", "REVIEWER"] },
+      { to: "/feedback", label: "Feedback", icon: "✎", roles: ["ADMIN"] },
+      { to: "/admin", label: "Admin", icon: "⚙", roles: ["ADMIN"] },
+    ],
+  },
 ];
 
-const ACCOUNT_NAV: NavItem[] = [
-  { to: "/evaluation", label: "Evaluation", roles: ["ADMIN", "REVIEWER"] },
-  { to: "/feedback", label: "Feedback", roles: ["ADMIN"] },
-  { to: "/admin", label: "Admin", roles: ["ADMIN"] },
-];
+function itemVisible(item: NavItem, role?: string) {
+  return !item.roles || (role != null && item.roles.includes(role));
+}
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-    isActive ? "bg-white/15 text-white" : "text-white/80 hover:bg-white/10 hover:text-white"
+  `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+    isActive
+      ? "bg-white/15 text-white"
+      : "text-white/75 hover:bg-white/10 hover:text-white"
   }`;
 
 export function Layout() {
   const { user, logout } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const accountItems = ACCOUNT_NAV.filter((i) => !i.roles || (user && i.roles.includes(user.role)));
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const sidebar = (
+    <div className="flex h-full flex-col bg-primary text-white">
+      {/* Brand */}
+      <div className="flex items-center gap-2.5 px-5 py-5">
+        <img
+          src="/brand/morpheus_wordmark_light.png"
+          alt="MORPHEUS"
+          className="h-7 w-auto"
+        />
+      </div>
+      <div className="px-5 pb-4">
+        <p className="text-[11px] leading-snug text-white/60">
+          Standards Compliance Intelligence for Public Procurement
+        </p>
+      </div>
+
+      {/* Nav */}
+      <nav className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-2">
+        {NAV.map((group) => {
+          const items = group.items.filter((i) => itemVisible(i, user?.role));
+          if (items.length === 0) return null;
+          return (
+            <div key={group.heading}>
+              <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-white/45">
+                {group.heading}
+              </div>
+              <div className="space-y-0.5">
+                {items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    end={item.end}
+                    className={linkClass}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    <span className="w-4 text-center text-white/60" aria-hidden>
+                      {item.icon}
+                    </span>
+                    {item.label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </nav>
+
+      {/* User + sign out */}
+      <div className="border-t border-white/10 p-3">
+        <div className="flex items-center gap-2.5 rounded-lg px-2 py-2">
+          <span className="grid h-8 w-8 flex-none place-items-center rounded-full bg-white/20 text-xs font-semibold">
+            {(user?.full_name || user?.email || "?").slice(0, 1).toUpperCase()}
+          </span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-xs font-medium">
+              {user?.full_name || user?.email}
+            </span>
+            <span className="block text-[10px] uppercase tracking-wide text-white/60">
+              {user?.role}
+            </span>
+          </span>
+        </div>
+        <button
+          onClick={logout}
+          className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white"
+        >
+          Sign out
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-canvas text-ink">
-      <header className="bg-primary text-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
-          <NavLink to="/" className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-white font-bold text-primary">
-              M
-            </span>
-            <span className="leading-tight">
-              <span className="block text-sm font-semibold tracking-wide">MORPHEUS</span>
-              <span className="block text-[11px] text-white/70">
-                Standards Compliance for Public Procurement
-              </span>
-            </span>
-          </NavLink>
+    <div className="min-h-screen bg-canvas text-ink lg:flex">
+      {/* Desktop sidebar */}
+      <aside className="hidden w-60 flex-none lg:block">
+        <div className="fixed inset-y-0 left-0 w-60">{sidebar}</div>
+      </aside>
 
-          <nav className="ml-4 hidden items-center gap-1 sm:flex">
-            {NAV.map((item) => (
-              <NavLink key={item.to} to={item.to} end={item.to === "/"} className={linkClass}>
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-
-          <div className="relative ml-auto">
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-white/10"
-              aria-expanded={menuOpen}
-            >
-              <span className="grid h-7 w-7 place-items-center rounded-full bg-white/20 text-xs font-semibold">
-                {(user?.full_name || user?.email || "?").slice(0, 1).toUpperCase()}
-              </span>
-              <span className="hidden text-left leading-tight sm:block">
-                <span className="block max-w-[10rem] truncate text-xs font-medium">
-                  {user?.full_name || user?.email}
-                </span>
-                <span className="block text-[10px] uppercase tracking-wide text-white/70">
-                  {user?.role}
-                </span>
-              </span>
-              <span className="text-xs">▾</span>
-            </button>
-
-            {menuOpen && (
-              <>
-                <button
-                  className="fixed inset-0 z-10 cursor-default"
-                  aria-hidden
-                  onClick={() => setMenuOpen(false)}
-                />
-                <div className="absolute right-0 z-20 mt-2 w-52 overflow-hidden rounded-lg border border-line bg-surface py-1 text-ink shadow-lg">
-                  <div className="border-b border-line px-3 py-2 sm:hidden">
-                    {NAV.map((item) => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        end={item.to === "/"}
-                        onClick={() => setMenuOpen(false)}
-                        className="block rounded px-2 py-1.5 text-sm text-ink hover:bg-panel"
-                      >
-                        {item.label}
-                      </NavLink>
-                    ))}
-                  </div>
-                  {accountItems.length > 0 && (
-                    <div className="border-b border-line py-1">
-                      {accountItems.map((item) => (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setMenuOpen(false)}
-                          className="block px-3 py-2 text-sm text-ink hover:bg-panel"
-                        >
-                          {item.label}
-                        </NavLink>
-                      ))}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false);
-                      logout();
-                    }}
-                    className="block w-full px-3 py-2 text-left text-sm text-danger hover:bg-danger-soft"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
+      {/* Mobile top bar */}
+      <header className="flex items-center gap-3 bg-primary px-4 py-3 text-white lg:hidden">
+        <button
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+          className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/10"
+        >
+          ☰
+        </button>
+        <img src="/brand/morpheus_wordmark_light.png" alt="MORPHEUS" className="h-6 w-auto" />
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-        <Outlet />
-      </main>
+      {/* Mobile slide-over */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-ink/40" onClick={() => setMobileOpen(false)} aria-hidden />
+          <div className="absolute inset-y-0 left-0 w-64">
+            <button
+              onClick={() => setMobileOpen(false)}
+              aria-label="Close menu"
+              className="absolute right-3 top-4 z-10 grid h-8 w-8 place-items-center rounded-lg text-white/80 hover:bg-white/10"
+            >
+              ✕
+            </button>
+            {sidebar}
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="min-w-0 flex-1">
+        <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+          <Outlet />
+        </main>
+        <footer className="mx-auto max-w-6xl px-4 pb-8 sm:px-6 lg:px-10">
+          <p className="border-t border-line pt-4 text-[11px] leading-snug text-muted">
+            Prototype — not an official Government of India system. Standards data shown may be
+            labelled <span className="font-medium">DEMO_SYNTHETIC</span> and is not authoritative BIS
+            data. Every finding is grounded in the uploaded document or the system abstains.
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }

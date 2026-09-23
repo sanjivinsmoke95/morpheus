@@ -4,6 +4,9 @@ import { useAuth } from "@/lib/auth";
 import { Layout } from "@/components/Layout";
 import { LoginPage } from "@/pages/Login";
 import { DashboardPage } from "@/pages/Dashboard";
+import { AnalyticsPage } from "@/pages/Analytics";
+import { StandardsLibraryPage } from "@/pages/StandardsLibrary";
+import { RegulatoryUpdatesPage } from "@/pages/RegulatoryUpdates";
 import { NewAnalysisPage } from "@/pages/NewAnalysis";
 import { ProcessingPage } from "@/pages/Processing";
 import { OverviewPage } from "@/pages/Overview";
@@ -40,6 +43,9 @@ export function App() {
         <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
         <Route element={<RequireAuth><Layout /></RequireAuth>}>
           <Route index element={<DashboardPage />} />
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/standards" element={<StandardsLibraryPage />} />
+          <Route path="/regulatory-updates" element={<RegulatoryUpdatesPage />} />
           <Route path="/analyses/new" element={<NewAnalysisPage />} />
           <Route path="/analyses/:id/processing" element={<ProcessingPage />} />
           <Route path="/analyses/:id" element={<OverviewPage />} />

@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useEffect, useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 /* ── Card ──────────────────────────────────────────────────────────────── */
@@ -242,4 +242,231 @@ export function EmptyState({ children }: { children: ReactNode }) {
 /* ── Skeleton ──────────────────────────────────────────────────────────── */
 export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-lg bg-panel ${className}`} />;
+}
+
+/* ── StatTile — KPI card with optional trend ───────────────────────────── */
+export function StatTile({
+  value,
+  label,
+  hint,
+  trend,
+  tone = "neutral",
+}: {
+  value: ReactNode;
+  label: string;
+  hint?: string;
+  trend?: { dir: "up" | "down" | "flat"; text: string };
+  tone?: Tone;
+}) {
+  const accent =
+    tone === "success" ? "text-success" : tone === "warning" ? "text-warning"
+      : tone === "danger" ? "text-danger" : tone === "info" ? "text-primary" : "text-ink";
+  const tArrow = trend?.dir === "up" ? "↑" : trend?.dir === "down" ? "↓" : "→";
+  const tColor = trend?.dir === "up" ? "text-success" : trend?.dir === "down" ? "text-danger" : "text-muted";
+  return (
+    <div className="rounded-xl border border-line bg-surface p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <div className={`text-3xl font-semibold tabular-nums ${accent}`}>{value}</div>
+        {trend && <span className={`text-xs font-medium ${tColor}`}>{tArrow} {trend.text}</span>}
+      </div>
+      <div className="mt-1 flex items-center gap-1 text-xs font-medium text-muted">
+        {label}
+        {hint && <Tooltip text={hint} />}
+      </div>
+    </div>
+  );
+}
+
+/* ── Tooltip — plain-English help on hover (accessibility: focusable) ──── */
+export function Tooltip({ text, label = "?" }: { text: string; label?: string }) {
+  return (
+    <span className="group relative inline-flex">
+      <button
+        type="button"
+        aria-label={text}
+        className="grid h-4 w-4 place-items-center rounded-full border border-line bg-panel text-[10px] font-bold text-muted hover:border-primary hover:text-primary focus-visible:border-primary"
+      >
+        {label}
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 w-52 -translate-x-1/2 rounded-lg bg-ink px-2.5 py-1.5 text-[11px] font-normal leading-snug text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+      >
+        {text}
+      </span>
+    </span>
+  );
+}
+
+/* ── SeverityPill ──────────────────────────────────────────────────────── */
+export type Severity = "critical" | "high" | "medium" | "low";
+const SEV: Record<Severity, { cls: string; label: string }> = {
+  critical: { cls: "bg-danger-soft text-danger ring-1 ring-danger/30", label: "Critical" },
+  high: { cls: "bg-warning-soft text-warning ring-1 ring-warning/30", label: "High" },
+  medium: { cls: "bg-primary-soft text-primary ring-1 ring-primary/20", label: "Medium" },
+  low: { cls: "bg-panel text-muted", label: "Low" },
+};
+export function SeverityPill({ level, children }: { level: Severity; children?: ReactNode }) {
+  const s = SEV[level];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${s.cls}`}>
+      {children ?? s.label}
+    </span>
+  );
+}
+
+/* ── MatchBar — labelled relevance bar with score badge ────────────────── */
+export function MatchBar({ score, label }: { score: number; label?: string }) {
+  const pct = Math.max(0, Math.min(100, Math.round(score * 100)));
+  const tone = pct >= 70 ? "bg-success" : pct >= 45 ? "bg-warning" : "bg-muted";
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
+        <div className={`h-full rounded-full ${tone}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="w-14 text-right text-xs font-semibold tabular-nums text-ink">
+        {pct}%{label ? "" : ""}
+      </span>
+      {label && <span className="text-[11px] text-muted">{label}</span>}
+    </div>
+  );
+}
+
+/* ── FilterChip — toggleable pill ──────────────────────────────────────── */
+export function FilterChip({
+  active,
+  onClick,
+  children,
+  count,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+  count?: number;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+        active
+          ? "bg-primary text-white"
+          : "border border-line bg-surface text-muted hover:border-primary hover:text-primary"
+      }`}
+    >
+      {children}
+      {count != null && (
+        <span className={`rounded-full px-1.5 text-[10px] tabular-nums ${active ? "bg-white/20" : "bg-panel"}`}>
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
+/* ── SectionAccordion — collapsible (appendix, advanced detail) ────────── */
+export function SectionAccordion({
+  title,
+  defaultOpen = false,
+  children,
+  right,
+}: {
+  title: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+  right?: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="overflow-hidden rounded-xl border border-line bg-surface">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left hover:bg-panel"
+      >
+        <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+          <span className={`text-muted transition-transform ${open ? "rotate-90" : ""}`}>›</span>
+          {title}
+        </span>
+        {right}
+      </button>
+      {open && <div className="border-t border-line">{children}</div>}
+    </div>
+  );
+}
+
+/* ── DetailDrawer — right-side slide-over ──────────────────────────────── */
+export function DetailDrawer({
+  open,
+  onClose,
+  title,
+  subtitle,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-40" role="dialog" aria-modal="true">
+      <div className="absolute inset-0 bg-ink/30" onClick={onClose} aria-hidden />
+      <div className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-surface shadow-2xl">
+        <div className="flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+          <div className="min-w-0">
+            <div className="truncate text-base font-semibold text-ink">{title}</div>
+            {subtitle && <div className="mt-0.5 text-xs text-muted">{subtitle}</div>}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="grid h-8 w-8 flex-none place-items-center rounded-lg text-muted hover:bg-panel hover:text-ink"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Tabs — in-panel tab switcher ──────────────────────────────────────── */
+export function Tabs({
+  tabs,
+  active,
+  onChange,
+}: {
+  tabs: { key: string; label: string }[];
+  active: string;
+  onChange: (key: string) => void;
+}) {
+  return (
+    <div className="flex gap-1 border-b border-line">
+      {tabs.map((t) => (
+        <button
+          key={t.key}
+          type="button"
+          onClick={() => onChange(t.key)}
+          className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+            active === t.key
+              ? "border-primary text-primary"
+              : "border-transparent text-muted hover:text-ink"
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
 }

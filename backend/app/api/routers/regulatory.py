@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import (
-    CertificationRecord, QcoRecord, Recommendation, Standard, StandardAmendment, User,
+    Analysis, CertificationRecord, Document, QcoRecord, Recommendation, Standard, StandardAmendment, User,
 )
 
 router = APIRouter(tags=["regulatory"])
@@ -77,3 +77,56 @@ def amendment_impact(analysis_id: str, db: Session = Depends(get_db), _: User = 
             "data_origin": a.data_origin, "source_name": a.source_name,
         })
     return out
+
+
+@router.get("/regulatory/updates")
+def regulatory_updates(limit: int = 20, db: Session = Depends(get_db),
+                       _: User = Depends(get_current_user)) -> list[dict]:
+    """Global feed of recent amendments + QCO changes, newest first.
+
+    Cross-tender: shows which of the officer's analyses cite each changed standard.
+    """
+    std_by_id = {s.id: s for s in db.execute(select(Standard)).scalars()}
+    # Map standard_id -> set of analysis titles that cite it
+    cite_rows = db.execute(
+        select(Recommendation.standard_id, Analysis.id, Analysis.title, Document.filename)
+        .join(Analysis, Analysis.id == Recommendation.analysis_id)
+        .join(Document, Document.id == Analysis.document_id)
+        .where(Recommendation.excluded == False)  # noqa: E712
+    ).all()
+    cites: dict[str, list[dict]] = {}
+    for sid, aid, title, fname in cite_rows:
+        cites.setdefault(sid, [])
+        if not any(c["id"] == aid for c in cites[sid]):
+            cites[sid].append({"id": aid, "title": title or fname})
+
+    items: list[dict] = []
+    for a in db.execute(select(StandardAmendment)).scalars():
+        s = std_by_id.get(a.standard_id)
+        if not s:
+            continue
+        items.append({
+            "type": "AMENDMENT",
+            "is_number": s.is_number, "title": s.title,
+            "headline": f"{a.amendment_no} to {s.is_number}",
+            "detail": a.summary or f"Affects {', '.join(a.affected_clauses) or 'unspecified clauses'}.",
+            "date": a.amendment_date.isoformat() if a.amendment_date else None,
+            "affects_tenders": cites.get(s.id, []),
+            "data_origin": a.data_origin,
+        })
+    for q in db.execute(select(QcoRecord).where(QcoRecord.qco_status == "MANDATORY")).scalars():
+        s = std_by_id.get(q.standard_id)
+        if not s:
+            continue
+        items.append({
+            "type": "QCO",
+            "is_number": s.is_number, "title": s.title,
+            "headline": f"{s.is_number} is QCO-mandatory",
+            "detail": q.order_name or "Mandatory certification order in force.",
+            "date": q.effective_date.isoformat() if q.effective_date else None,
+            "affects_tenders": cites.get(s.id, []),
+            "data_origin": q.data_origin,
+        })
+
+    items.sort(key=lambda x: (x["date"] or ""), reverse=True)
+    return items[:limit]

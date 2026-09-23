@@ -386,3 +386,55 @@ export async function downloadReport(reportId: string, format: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+// ---- dashboard + analytics ----
+export interface DashboardSummary {
+  kpis: { active_tenders: number; compliance_rate: number; needs_action: number; avg_gaps: number };
+  recent: {
+    id: string; title: string; sector: string; status: string; created_at: string | null;
+    verdict: string; tone: string; compliance_pct: number | null;
+  }[];
+}
+export function useDashboard() {
+  return useQuery<DashboardSummary>({
+    queryKey: ["dashboard"],
+    queryFn: async () => (await api.get("/dashboard/summary")).data,
+  });
+}
+
+export interface AnalyticsSummary {
+  kpis: { total_analyses: number; compliance_rate: number; avg_gaps: number; standards_catalogue: number };
+  sector_breakdown: { sector: string; count: number; compliance_rate: number }[];
+  gap_categories: { category: string; gap_count: number }[];
+  top_standards: { is_number: string; title: string; citation_count: number }[];
+  trend: { week: string; analyses_count: number; compliance_rate: number }[];
+}
+export function useAnalytics() {
+  return useQuery<AnalyticsSummary>({
+    queryKey: ["analytics"],
+    queryFn: async () => (await api.get("/analytics/summary")).data,
+  });
+}
+
+export interface RegulatoryUpdate {
+  type: "AMENDMENT" | "QCO";
+  is_number: string; title: string; headline: string; detail: string;
+  date: string | null; affects_tenders: { id: string; title: string }[]; data_origin: string;
+}
+export function useRegulatoryUpdates() {
+  return useQuery<RegulatoryUpdate[]>({
+    queryKey: ["regulatory-updates"],
+    queryFn: async () => (await api.get("/regulatory/updates")).data,
+  });
+}
+
+export interface StandardSearchRow {
+  id: string; is_number: string; title: string; sector: string; status: string; data_origin: string;
+}
+export function useStandardsSearch(q: string, sector?: string) {
+  return useQuery<StandardSearchRow[]>({
+    queryKey: ["standards-search", q, sector ?? ""],
+    queryFn: async () =>
+      (await api.get("/standards", { params: { q: q || undefined, sector: sector || undefined, limit: 100 } })).data,
+  });
+}
