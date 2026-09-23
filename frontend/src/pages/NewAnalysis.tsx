@@ -25,8 +25,8 @@ export function NewAnalysisPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <PageHeader
-        title="New tender analysis"
-        subtitle="Upload a procurement specification (PDF, DOCX or TXT) to check it against Indian Standards."
+        title="Start a tender review"
+        subtitle="Upload the procurement specification and MORPHEUS will build an evidence-backed standards review."
       />
 
       <Card className="p-6">
@@ -35,7 +35,7 @@ export function NewAnalysisPage() {
           onDragLeave={() => setDragOver(false)}
           onDrop={(e) => { e.preventDefault(); setDragOver(false); setFile(e.dataTransfer.files[0] ?? null); }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors ${
+          className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${
             dragOver ? "border-primary bg-primary-soft" : "border-line hover:border-primary/50 hover:bg-panel"
           }`}
         >
@@ -53,13 +53,13 @@ export function NewAnalysisPage() {
             </div>
           ) : (
             <div className="text-sm text-muted">
-              <span className="font-medium text-ink">Drag a tender document here</span>, or click to browse
+              <span className="font-semibold text-ink">Drag a tender document here</span>, or click to browse
             </div>
           )}
         </div>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <label htmlFor="sector" className="text-sm font-medium text-muted">Sector</label>
+          <label htmlFor="sector" className="text-sm font-semibold text-muted">Sector</label>
           <select
             id="sector"
             value={sector}
