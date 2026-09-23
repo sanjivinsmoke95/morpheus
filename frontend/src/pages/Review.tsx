@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, PageHeader, StatusChip, type Tone } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, StatusChip, type Tone } from "@/components/ui";
 import {
   useAddStandard, useDecide, useDecisions, useRecommendations, useRequirements, type Recommendation,
 } from "@/lib/morpheus";
@@ -23,11 +23,7 @@ export function ReviewPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Decision log"
-        subtitle="Accept, reject, or flag each recommendation. Add a missing standard. Every decision is logged."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Decision log" />
 
       <div className="space-y-6">
         {[...byReq.entries()].map(([reqId, list]) => (

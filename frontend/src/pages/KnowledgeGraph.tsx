@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ReactFlow, { Background, Controls, type Edge, type Node } from "reactflow";
 import "reactflow/dist/style.css";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, PageHeader, StatusChip, type Tone } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, StatusChip, type Tone } from "@/components/ui";
 import { useEdgeDetail, useGraph, useVersionFindings } from "@/lib/morpheus";
 
 const DISC_TONE: Record<string, Tone> = {
@@ -45,11 +45,7 @@ export function KnowledgeGraphPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Knowledge graph"
-        subtitle="Recommended standards (blue) and their typed relationships. Click a node for details, an edge for evidence."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="How standards connect" />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
         <Card className="h-[460px] overflow-hidden">

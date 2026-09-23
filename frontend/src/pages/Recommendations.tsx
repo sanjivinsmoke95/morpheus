@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, EmptyState, PageHeader, Skeleton, StatusChip, type Tone } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, EmptyState, Skeleton, StatusChip, type Tone } from "@/components/ui";
 import { useDecide, useRecommendations, useRequirements, type Recommendation } from "@/lib/morpheus";
 
 const REL_TONE: Record<string, Tone> = { HIGH: "success", MEDIUM: "warning", LOW: "neutral" };
@@ -21,11 +21,7 @@ export function RecommendationsPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Match signals"
-        subtitle="Every candidate standard per requirement, with retrieval signals and evidence. Analyst view."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Why matched" />
 
       <label className="mb-4 flex items-center gap-2 text-sm text-muted">
         <input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} />

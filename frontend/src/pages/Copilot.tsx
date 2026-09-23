@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, PageHeader } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card } from "@/components/ui";
 import { useCopilot, useHistoryCompare } from "@/lib/morpheus";
 
 export function CopilotPage() {
@@ -10,11 +10,7 @@ export function CopilotPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Specification copilot"
-        subtitle="Draft suggestions from detected gaps. Nothing here changes the tender."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Copilot & history" />
 
       <div className="space-y-2">
         {!drafts?.length ? (

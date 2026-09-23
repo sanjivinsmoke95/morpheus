@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, PageHeader, StatusChip, type Tone } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, StatusChip, type Tone } from "@/components/ui";
 import { useConflicts, useCoverage, useGaps } from "@/lib/morpheus";
 
 const COV_TONE: Record<string, Tone> = {
@@ -16,11 +16,7 @@ export function AuditPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Coverage & findings"
-        subtitle="Requirement coverage, potential gaps, and conflicts — for your review."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Coverage detail" />
 
       <Section title={`Conflicts (${conflicts?.length ?? 0})`}>
         {!conflicts?.length ? <Empty text="No conflicting values detected." /> : conflicts.map((c) => (

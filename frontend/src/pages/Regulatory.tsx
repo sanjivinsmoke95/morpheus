@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import { Card, PageHeader, StatusChip, type Tone } from "@/components/ui";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, StatusChip, type Tone } from "@/components/ui";
 import { useAmendmentImpact, useCertification, useQco } from "@/lib/morpheus";
 
 const QCO_TONE: Record<string, Tone> = {
@@ -16,11 +16,7 @@ export function RegulatoryPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Certification & QCO"
-        subtitle="Regulatory status shown only from stored records, with source. Never inferred."
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Certification & QCO" />
 
       <Section title="Quality Control Orders (QCO)">
         {!qco?.length ? <Empty text="No QCO records for the identified standards." /> : qco.map((q, i) => (
