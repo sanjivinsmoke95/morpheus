@@ -43,7 +43,7 @@ function Row({ analysisId, req }: { analysisId: string; req: Requirement }) {
   return (
     <Card className="p-3">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 rounded bg-panel px-1.5 py-0.5 text-[11px] font-medium text-muted">{req.req_code}</span>
+        <span className="mt-0.5 rounded bg-panel px-1.5 py-0.5 text-[11px] font-semibold text-muted">{req.req_code}</span>
         <StatusChip tone="neutral">{req.requirement_type}</StatusChip>
         <div className="min-w-0 flex-1">
           {editing ? (
@@ -65,7 +65,7 @@ function Row({ analysisId, req }: { analysisId: string; req: Requirement }) {
           {req.attributes.length > 0 && (
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {req.attributes.map((a) => (
-                <span key={a.id} className="rounded bg-panel px-1.5 py-0.5 text-[11px] font-medium text-ink">
+                <span key={a.id} className="rounded bg-panel px-1.5 py-0.5 text-[11px] font-semibold text-ink">
                   {a.key} {a.comparator !== "=" ? a.comparator : ""} {a.raw_value}{a.unit && ` ${a.unit}`}
                   {a.normalized_value != null && ` → ${a.normalized_value} ${a.canonical_unit}`}
                 </span>
