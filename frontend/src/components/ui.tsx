@@ -441,6 +441,46 @@ export function DetailDrawer({
   );
 }
 
+/* ── Donut — CSS/SVG ring chart with a center label ────────────────────── */
+export function Donut({
+  segments,
+  centerValue,
+  centerLabel,
+  size = 150,
+}: {
+  segments: { label: string; value: number; color: string }[];
+  centerValue: ReactNode;
+  centerLabel?: string;
+  size?: number;
+}) {
+  const total = segments.reduce((s, x) => s + x.value, 0) || 1;
+  const r = 42;
+  const circ = 2 * Math.PI * r;
+  let offset = 0;
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} role="img">
+      <circle cx="50" cy="50" r={r} fill="none" stroke="var(--color-panel)" strokeWidth="14" />
+      {segments.map((s, i) => {
+        const frac = s.value / total;
+        const dash = frac * circ;
+        const el = (
+          <circle key={i} cx="50" cy="50" r={r} fill="none" stroke={s.color} strokeWidth="14"
+            strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={-offset}
+            transform="rotate(-90 50 50)" />
+        );
+        offset += dash;
+        return el;
+      })}
+      <text x="50" y="47" textAnchor="middle" className="fill-ink" style={{ fontSize: 15, fontWeight: 700 }}>
+        {centerValue}
+      </text>
+      {centerLabel && (
+        <text x="50" y="60" textAnchor="middle" className="fill-muted" style={{ fontSize: 7 }}>{centerLabel}</text>
+      )}
+    </svg>
+  );
+}
+
 /* ── Tabs — in-panel tab switcher ──────────────────────────────────────── */
 export function Tabs({
   tabs,

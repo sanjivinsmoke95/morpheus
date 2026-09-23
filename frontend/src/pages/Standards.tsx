@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
 import {
-  Button, Card, EmptyState, FilterChip, MatchBar, PageHeader, Skeleton, StatusChip, Tooltip,
+  Button, Card, EmptyState, FilterChip, MatchBar, Skeleton, StatusChip, Tooltip,
 } from "@/components/ui";
 import {
   useAnalysis, useDecide, useQco, useRecommendations, type Recommendation,
@@ -74,10 +74,7 @@ export function StandardsPage() {
 
   return (
     <div>
-      <PageHeader title="Standards Review"
-        subtitle="Applicable standards ranked by match strength. QCO-mandatory certification is flagged as a hard requirement."
-        actions={<Button variant="secondary" className="text-xs" onClick={exportCsv}>Export CSV</Button>} />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Standards Review" />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -87,6 +84,7 @@ export function StandardsPage() {
           <FilterChip active={filter === "accepted"} onClick={() => setFilter("accepted")} count={counts.accepted}>Accepted</FilterChip>
         </div>
         <div className="flex gap-2">
+          <Button variant="secondary" className="text-xs" onClick={exportCsv}>Export CSV</Button>
           <Button variant="secondary" className="text-xs" onClick={() => bulkAccept("qco")} disabled={counts.qco === 0}>Accept all QCO</Button>
           <Button variant="secondary" className="text-xs" onClick={() => bulkAccept("high")}>Accept all high-relevance</Button>
         </div>

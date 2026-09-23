@@ -555,3 +555,13 @@ export function useSetWorkflowStatus(analysisId: string) {
     },
   });
 }
+
+// ---- document (for analysis header: filename, page count) ----
+export interface DocumentInfo { id: string; filename: string; page_count: number; byte_size: number; is_scanned: boolean; }
+export function useDocument(documentId: string | undefined) {
+  return useQuery<DocumentInfo>({
+    queryKey: ["document", documentId],
+    queryFn: async () => (await api.get(`/documents/${documentId}`)).data,
+    enabled: !!documentId,
+  });
+}

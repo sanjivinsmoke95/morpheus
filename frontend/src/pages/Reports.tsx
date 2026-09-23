@@ -1,124 +1,189 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
+import { Card, EmptyState, Skeleton } from "@/components/ui";
 import {
-  Button, Card, EmptyState, PageHeader, SectionAccordion, Skeleton, StatTile, StatusBanner,
-  StatusChip, type Tone,
-} from "@/components/ui";
-import { downloadReport, useCreateReport, useReportSummary, type ReportSummary } from "@/lib/morpheus";
-import { MiiCard } from "@/components/MiiCard";
-
-const VERDICT_TONE: Record<string, Tone> = {
-  "READY TO TENDER": "success", "REVIEW RECOMMENDED": "warning",
-  "ACTION REQUIRED": "danger", "REVIEW REQUIRED": "neutral",
-};
+  downloadReport, useAnalysis, useCreateReport, useReportSummary, useCoverageByCategory,
+} from "@/lib/morpheus";
 
 export function ReportsPage() {
   const { id = "" } = useParams();
-  const { data: summary, isLoading } = useReportSummary(id);
+  const { data: analysis } = useAnalysis(id);
+  const { data: s, isLoading } = useReportSummary(id);
+  const { data: categories } = useCoverageByCategory(id);
   const create = useCreateReport();
+  const [busy, setBusy] = useState<string | null>(null);
 
   async function make(format: "PDF" | "DOCX") {
-    const report = await create.mutateAsync({ analysisId: id, format });
-    await downloadReport(report.id, format);
+    setBusy(format);
+    try {
+      const rep = await create.mutateAsync({ analysisId: id, format });
+      await downloadReport(rep.id, format);
+    } finally { setBusy(null); }
   }
+
+  const criticalIssues = (s?.conflicts ?? 0) + (s?.missing ?? 0);
 
   return (
     <div>
-      <PageHeader
-        title="Compliance report"
-        subtitle="A curated summary for the procurement file — the strongest matches and what to advise the agency."
-        actions={
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => make("PDF")} disabled={create.isPending}>
-              {create.isPending ? "Generating…" : "Download PDF (audit record)"}
-            </Button>
-            <Button variant="secondary" onClick={() => make("DOCX")} disabled={create.isPending}>DOCX</Button>
-          </div>
-        }
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Report" />
 
-      {isLoading || !summary ? (
+      {isLoading || !s ? (
         <Skeleton className="h-64" />
       ) : (
-        <div className="space-y-6">
-          <StatusBanner tone={VERDICT_TONE[summary.verdict] ?? "neutral"} title={summary.verdict} detail={summary.verdict_detail} />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="space-y-6">
+            {/* Hero banner */}
+            <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-6">
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 lg:block">
+                <img src="/brand/hero_india_government_building.png" alt="" className="h-full w-full object-cover object-right opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/70 to-transparent" />
+              </div>
+              <div className="relative">
+                <h1 className="font-display text-2xl font-bold text-primary">Standards-Aligned Procurement Report</h1>
+                <div className="font-display text-lg font-semibold text-ink">{analysis?.title}</div>
+                <div className="mt-1 text-sm text-muted">Compliant · Transparent · Future-Ready</div>
+              </div>
+            </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            <StatTile value={`${summary.compliance_pct}%`} label="Compliance"
-              tone={summary.compliance_pct >= 70 ? "success" : summary.compliance_pct >= 40 ? "warning" : "danger"} />
-            <StatTile value={summary.requirements_total} label="Requirements" />
-            <StatTile value={summary.covered} label="Fully covered" tone="success" />
-            <StatTile value={summary.partial} label="Partial" tone="warning" />
-            <StatTile value={summary.mandatory_count} label="QCO mandatory" tone={summary.mandatory_count > 0 ? "danger" : "neutral"} />
+            {/* 4 KPIs */}
+            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <RKpi icon="✓" tone="success" big={`${s.compliance_pct}%`} label="Overall Compliance" sub={`${s.covered} of ${s.requirements_total} aligned`} />
+              <RKpi icon="📗" tone="info" big={s.top_rows.length} label="Applicable Standards" sub={`${s.mandatory_count} mandatory`} />
+              <RKpi icon="⚠" tone="danger" big={criticalIssues} label="Critical Issues" sub="Require attention" />
+              <RKpi icon="◎" tone="info" big={s.actions.length} label="Recommendations" sub="To strengthen compliance" />
+            </div>
+
+            {/* Executive Summary */}
+            <Card className="p-5">
+              <div className="flex items-start gap-3">
+                <span className="grid h-9 w-9 flex-none place-items-center rounded-lg bg-primary-soft text-primary">📄</span>
+                <div>
+                  <h2 className="font-display text-base font-semibold text-ink">Executive Summary</h2>
+                  <p className="mt-1 text-sm text-muted">{s.verdict_detail}</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Key Findings + Recommended Actions */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="p-5">
+                <h2 className="mb-3 font-display text-base font-semibold text-ink">Key Findings</h2>
+                <div className="space-y-2.5 text-sm">
+                  <Finding icon="⚠" tone="danger" t={`${s.conflicts} specification conflict(s)`} d="Conflicting requirements" />
+                  <Finding icon="△" tone="warning" t={`${s.gaps} potential gap(s)`} d="Additional specifications may be needed" />
+                  <Finding icon="◷" tone="warning" t={`${s.mandatory_count} QCO-mandatory standard(s)`} d="Certification required before procurement" />
+                  <Finding icon="ⓘ" tone="info" t={`Overall compliance: ${s.compliance_pct}%`} d="Tender alignment with applicable standards" />
+                </div>
+              </Card>
+
+              <Card className="p-5">
+                <h2 className="mb-3 font-display text-base font-semibold text-ink">Recommended Actions</h2>
+                {s.actions.length === 0 ? <p className="text-sm text-muted">No blocking actions.</p> : (
+                  <ol className="space-y-2">
+                    {s.actions.map((a, i) => (
+                      <li key={i} className="flex gap-2.5 text-sm">
+                        <span className="grid h-5 w-5 flex-none place-items-center rounded-full bg-success-soft text-[10px] font-bold text-success">{i + 1}</span>
+                        <span className={a.startsWith("MANDATORY") ? "font-medium text-danger" : "text-ink"}>{a}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </Card>
+            </div>
+
+            {/* Compliance by category */}
+            <Card className="p-5">
+              <h2 className="mb-4 font-display text-base font-semibold text-ink">Compliance by Category</h2>
+              {!categories?.length ? <EmptyState>No coverage computed.</EmptyState> : (
+                <div className="space-y-2.5">
+                  {categories.map((c) => {
+                    const p = c.total ? Math.round((c.full + c.partial * 0.6) / c.total * 100) : 0;
+                    return (
+                      <div key={c.category} className="flex items-center gap-3">
+                        <span className="w-24 flex-none text-xs capitalize text-ink">{c.category.toLowerCase()}</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
+                          <div className={`h-full rounded-full ${p >= 90 ? "bg-success" : "bg-warning"}`} style={{ width: `${p}%` }} />
+                        </div>
+                        <span className="w-9 flex-none text-right text-xs font-semibold tabular-nums text-ink">{p}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
           </div>
 
-          {/* Advise the agency */}
-          <Card className="p-5">
-            <h2 className="mb-3 font-display text-lg font-semibold text-ink">Advise the procurement agency</h2>
-            {summary.actions.length === 0 ? (
-              <p className="text-sm text-muted">No blocking actions — the specification is ready to tender.</p>
-            ) : (
-              <ol className="space-y-2">
-                {summary.actions.map((a, i) => {
-                  const mandatory = a.startsWith("MANDATORY");
-                  return (
-                    <li key={i} className="flex gap-3">
-                      <span className={`grid h-6 w-6 flex-none place-items-center rounded-full text-xs font-bold text-white ${mandatory ? "bg-danger" : "bg-primary"}`}>{i + 1}</span>
-                      <span className={`text-sm ${mandatory ? "font-medium text-danger" : "text-ink"}`}>{a}</span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </Card>
-
-          <MiiCard analysisId={id} />
-
-          {/* Key standards */}
-          <Card>
-            <div className="border-b border-line px-5 py-3">
-              <h2 className="text-sm font-semibold text-ink">Key standards to require</h2>
-            </div>
-            {summary.top_rows.length === 0 ? (
-              <div className="p-5"><EmptyState>No strong matches.</EmptyState></div>
-            ) : (
-              <div className="divide-y divide-line">
-                {summary.top_rows.map((r) => <TopRow key={r.is_number} row={r} />)}
+          {/* Right column */}
+          <div className="space-y-6">
+            <Card className="p-5">
+              <h2 className="mb-3 font-display text-base font-semibold text-ink">Report Actions</h2>
+              <div className="space-y-2">
+                <button onClick={() => make("PDF")} disabled={!!busy}
+                  className="flex w-full items-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50">
+                  ⬇ {busy === "PDF" ? "Preparing…" : "Download Full Report (PDF)"}
+                </button>
+                <button onClick={() => make("DOCX")} disabled={!!busy}
+                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel disabled:opacity-50">
+                  📄 {busy === "DOCX" ? "Preparing…" : "Download Executive Summary (DOCX)"}
+                </button>
+                <button onClick={() => window.print()}
+                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">🖨 Print / Compliance Matrix</button>
+                <button className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">⇗ Share Report</button>
               </div>
-            )}
-          </Card>
+            </Card>
 
-          {summary.appendix_count > 0 && (
-            <SectionAccordion title={`Appendix — ${summary.appendix_count} additional partial matches`}>
-              <p className="px-4 py-3 text-sm text-muted">
-                {summary.appendix_count} lower-relevance partial match(es) are recorded in MORPHEUS and kept out of the
-                summary. Open the <span className="font-medium text-ink">Standards Review</span> tab to review them in full.
+            <Card className="p-5">
+              <h2 className="mb-3 font-display text-base font-semibold text-ink">Report Information</h2>
+              <dl className="space-y-2 text-xs">
+                <Info k="Generated On" v={analysis?.created_at ? new Date(analysis.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} />
+                <Info k="Document" v={analysis?.title ?? "—"} />
+                <Info k="Requirements" v={String(s.requirements_total)} />
+                <Info k="Analysis Version" v="v1.0.0" />
+                <Info k="Generated By" v="MORPHEUS AI" />
+                <Info k="Reviewed By" v="Procurement Officer" />
+              </dl>
+            </Card>
+
+            <Card className="border-saffron/30 bg-saffron-soft/40 p-4">
+              <div className="flex items-center gap-2"><span className="text-saffron">🌱</span><span className="text-sm font-semibold text-saffron">AI Insight</span></div>
+              <p className="mt-1 text-xs text-muted">
+                {criticalIssues > 0
+                  ? `Addressing the ${criticalIssues} critical issue(s) will ensure full compliance and reduce the risk of procurement delays.`
+                  : "This tender is well aligned with applicable standards and ready to proceed."}
               </p>
-            </SectionAccordion>
-          )}
+            </Card>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function TopRow({ row }: { row: ReportSummary["top_rows"][number] }) {
+function RKpi({ icon, tone, big, label, sub }: { icon: string; tone: string; big: React.ReactNode; label: string; sub: string }) {
+  const cls = tone === "success" ? "bg-success-soft text-success" : tone === "danger" ? "bg-danger-soft text-danger" : "bg-primary-soft text-primary";
   return (
-    <div className="flex flex-wrap items-start gap-3 px-5 py-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm font-semibold text-primary">{row.is_number}</span>
-          {row.mandatory && <span className="rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-white">⚠ QCO MANDATORY</span>}
-          {row.is_demo && <StatusChip tone="neutral">DEMO</StatusChip>}
-        </div>
-        <div className="mt-0.5 text-xs text-muted">{row.title}</div>
-        <div className="mt-1 text-sm text-ink">{row.advice}</div>
-      </div>
-      <div className="text-right">
-        <div className="text-sm font-semibold tabular-nums text-ink">{row.match_pct}%</div>
-        <div className="text-[11px] text-muted">{row.relevance}</div>
-      </div>
+    <Card className="p-4">
+      <span className={`grid h-9 w-9 place-items-center rounded-lg text-sm ${cls}`}>{icon}</span>
+      <div className="mt-2 text-2xl font-bold tabular-nums text-ink">{big}</div>
+      <div className="text-xs font-medium text-ink">{label}</div>
+      <div className="text-[11px] text-muted">{sub}</div>
+    </Card>
+  );
+}
+function Finding({ icon, tone, t, d }: { icon: string; tone: string; t: string; d: string }) {
+  const cls = tone === "danger" ? "bg-danger-soft text-danger" : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
+  return (
+    <div className="flex items-start gap-3">
+      <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg ${cls}`}>{icon}</span>
+      <div><div className="font-semibold text-ink">{t}</div><div className="text-xs text-muted">{d}</div></div>
+    </div>
+  );
+}
+function Info({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-line pb-1.5 last:border-b-0">
+      <dt className="text-muted">{k}</dt><dd className="text-right font-medium text-ink">{v}</dd>
     </div>
   );
 }

@@ -1,166 +1,173 @@
-import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { AnalysisTabs } from "@/components/AnalysisTabs";
-import {
-  Button, Card, EmptyState, PageHeader, SeverityPill, Skeleton, StatTile, StatusBanner, Tooltip,
-} from "@/components/ui";
-import {
-  downloadReport, useAnalysis, useCoverageByCategory, useCreateReport, useIssues, useReadiness,
-  useSetWorkflowStatus,
-} from "@/lib/morpheus";
-import { verdictFromReadiness } from "@/lib/verdict";
+import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { MiiCard } from "@/components/MiiCard";
+import { Card, EmptyState, Skeleton } from "@/components/ui";
+import { useCoverageByCategory, useReadiness } from "@/lib/morpheus";
 
-const WORKFLOW = ["DRAFT", "UNDER_REVIEW", "FINALIZED", "ISSUED"];
-const WORKFLOW_LABEL: Record<string, string> = {
-  DRAFT: "Draft", UNDER_REVIEW: "Under review", FINALIZED: "Finalized", ISSUED: "Tender issued",
-};
-
-const SEV_MAP: Record<string, "critical" | "high" | "medium" | "low"> = {
-  CRITICAL: "critical", HIGH: "high", MEDIUM: "medium", LOW: "low",
-};
+function assessment(pct: number) {
+  if (pct >= 90) return { label: "Fully Compliant", tone: "success" };
+  if (pct >= 65) return { label: "Mostly Compliant", tone: "success" };
+  if (pct >= 40) return { label: "Partially Compliant", tone: "warning" };
+  return { label: "Needs Attention", tone: "danger" };
+}
 
 export function OverviewPage() {
   const { id = "" } = useParams();
-  const { data: analysis } = useAnalysis(id);
-  const { data: readiness, isLoading } = useReadiness(id);
+  const { data: r, isLoading } = useReadiness(id);
   const { data: categories } = useCoverageByCategory(id);
-  const { data: issues } = useIssues(id);
-  const createReport = useCreateReport();
-  const setWorkflow = useSetWorkflowStatus(id);
-  const [busy, setBusy] = useState(false);
 
-  const verdict = verdictFromReadiness(readiness);
+  const total = r?.requirements_total ?? 0;
+  const covered = r?.requirements_covered ?? 0;
+  const withCoverage = covered + (r?.requirements_partial ?? 0);
+  const pct = total ? Math.round((covered / total) * 100) : 0;
+  const a = assessment(pct);
 
-  async function download() {
-    setBusy(true);
-    try {
-      const rep = await createReport.mutateAsync({ analysisId: id, format: "PDF" });
-      await downloadReport(rep.id, rep.format);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const findings = [
+    { icon: "⚠", tone: "danger", n: r?.conflicts ?? 0, t: "Specification conflicts", d: "Review conflicting requirements" },
+    { icon: "△", tone: "warning", n: r?.gaps ?? 0, t: "Potential gaps", d: "Additional specifications may be needed" },
+    { icon: "◷", tone: "warning", n: r?.outdated_references ?? 0, t: "Outdated reference", d: "A newer version of the standard exists" },
+    { icon: "ⓘ", tone: "info", n: r?.unresolved_references ?? 0, t: "Unresolved references", d: "All references could be mapped" },
+  ];
 
   return (
     <div>
-      <PageHeader
-        title={analysis?.title ?? "Analysis"}
-        subtitle={<>Tender compliance overview{analysis?.sector ? ` · ${analysis.sector}` : ""}</>}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <label className="flex items-center gap-1.5 text-xs text-muted">
-              Status
-              <select
-                value={analysis?.workflow_status ?? "DRAFT"}
-                onChange={(e) => setWorkflow.mutate(e.target.value)}
-                className="rounded-lg border border-line bg-surface px-2 py-1.5 text-xs font-medium text-ink outline-none focus:border-primary"
-              >
-                {WORKFLOW.map((w) => <option key={w} value={w}>{WORKFLOW_LABEL[w]}</option>)}
-              </select>
-            </label>
-            <Button variant="secondary" onClick={download} disabled={busy}>
-              {busy ? "Preparing…" : "Download report (PDF)"}
-            </Button>
-          </div>
-        }
-      />
-      <AnalysisTabs id={id} />
+      <AnalysisHeader id={id} section="Overview" />
 
-      {isLoading || !readiness ? (
-        <Skeleton className="h-24" />
+      {isLoading || !r ? (
+        <Skeleton className="h-64" />
       ) : (
         <div className="space-y-6">
-          <StatusBanner tone={verdict.tone} title={verdict.title} detail={verdict.detail} />
+          {/* Row 1: assessment + KPIs + doc preview */}
+          <div className="grid gap-4 lg:grid-cols-12">
+            {/* Overall Assessment */}
+            <Card className="p-5 lg:col-span-4">
+              <div className="flex items-start gap-3">
+                <span className={`grid h-11 w-11 flex-none place-items-center rounded-full text-white ${a.tone === "success" ? "bg-success" : a.tone === "warning" ? "bg-warning" : "bg-danger"}`}>✓</span>
+                <div>
+                  <div className="text-xs text-muted">Overall Assessment</div>
+                  <div className="font-display text-xl font-bold text-ink">{a.label}</div>
+                </div>
+              </div>
+              <p className="mt-3 text-sm text-muted">
+                {covered} of {total} requirements have identified standard coverage.
+                {pct < 100 ? " A few items require review for complete compliance." : ""}
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-panel">
+                  <div className={`h-full rounded-full ${a.tone === "success" ? "bg-success" : a.tone === "warning" ? "bg-warning" : "bg-danger"}`} style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-sm font-bold tabular-nums text-ink">{pct}%</span>
+              </div>
+            </Card>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile value={readiness.requirements_total} label="Requirements"
-              hint="Distinct requirements extracted from the specification." />
-            <StatTile value={readiness.standards_identified} label="Standards matched" tone="info" />
-            <StatTile value={readiness.gaps} label="Potential gaps"
-              tone={readiness.gaps > 0 ? "warning" : "success"}
-              hint="Applicable standards that may be missing from the spec." />
-            <StatTile value={readiness.conflicts} label="Conflicts"
-              tone={readiness.conflicts > 0 ? "danger" : "success"}
-              hint="Contradictory values found within the specification." />
+            {/* 6 KPI tiles */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:col-span-5">
+              <Kpi icon="📄" tone="neutral" value={total} label="Total Requirements" />
+              <Kpi icon="📗" tone="success" value={withCoverage} label="With Coverage" />
+              <Kpi icon="⚠" tone="warning" value={r.gaps} label="Potential Gaps" />
+              <Kpi icon="📄" tone="neutral" value={r.standards_identified} label="Standards Identified" />
+              <Kpi icon="⚠" tone="danger" value={r.conflicts} label="Conflicts" />
+              <Kpi icon="◷" tone="warning" value={r.outdated_references} label="Outdated Reference" />
+            </div>
+
+            {/* Document Preview */}
+            <Card className="p-4 lg:col-span-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-sm font-semibold text-ink">Document Preview</span>
+                <Link to={`/analyses/${id}/evidence`} className="text-[11px] font-medium text-primary hover:underline">View Full →</Link>
+              </div>
+              <div className="rounded-lg border border-line bg-canvas p-4 text-center">
+                <img src="/brand/government_emblem_dashboard.png" alt="" className="mx-auto h-8 w-auto opacity-80" />
+                <div className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted">Tender Document</div>
+                <div className="mx-auto mt-3 h-1 w-16 rounded bg-primary/30" />
+                <div className="mx-auto mt-1.5 h-1 w-24 rounded bg-line" />
+                <div className="mx-auto mt-1.5 h-1 w-20 rounded bg-line" />
+                <div className="mx-auto mt-1.5 h-1 w-24 rounded bg-line" />
+                <div className="mt-4 text-[10px] text-muted">Specification under analysis</div>
+              </div>
+            </Card>
           </div>
 
+          {/* Row 2: coverage + key findings */}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Coverage by category */}
             <Card className="p-5">
-              <div className="mb-4 flex items-center gap-1.5">
-                <h2 className="text-sm font-semibold text-ink">Coverage by requirement type</h2>
-                <Tooltip text="How well each type of requirement is covered by an applicable standard: full, partial, or none." />
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-display text-base font-semibold text-ink">Standards Coverage by Category</h2>
+                <Link to={`/analyses/${id}/standards`} className="text-xs font-medium text-primary hover:underline">View Details →</Link>
               </div>
-              {!categories?.length ? (
-                <EmptyState>No coverage computed.</EmptyState>
-              ) : (
-                <div className="space-y-3">
+              {!categories?.length ? <EmptyState>No coverage computed.</EmptyState> : (
+                <div className="space-y-2.5">
                   {categories.map((c) => {
-                    const fpct = c.total ? (c.full / c.total) * 100 : 0;
-                    const ppct = c.total ? (c.partial / c.total) * 100 : 0;
-                    const mpct = c.total ? (c.missing / c.total) * 100 : 0;
+                    const p = c.total ? Math.round((c.full + c.partial * 0.6) / c.total * 100) : 0;
                     return (
-                      <div key={c.category}>
-                        <div className="mb-1 flex items-baseline justify-between text-sm">
-                          <span className="font-medium capitalize text-ink">{c.category.toLowerCase()}</span>
-                          <span className="text-xs text-muted">{c.full}/{c.total} full</span>
+                      <div key={c.category} className="flex items-center gap-3">
+                        <span className="w-24 flex-none text-xs capitalize text-ink">{c.category.toLowerCase()}</span>
+                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
+                          <div className={`h-full rounded-full ${p >= 90 ? "bg-success" : "bg-warning"}`} style={{ width: `${p}%` }} />
                         </div>
-                        <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-panel">
-                          <div className="h-full bg-success" style={{ width: `${fpct}%` }} />
-                          <div className="h-full bg-warning" style={{ width: `${ppct}%` }} />
-                          <div className="h-full bg-danger" style={{ width: `${mpct}%` }} />
-                        </div>
+                        <span className="w-9 flex-none text-right text-xs font-semibold tabular-nums text-ink">{p}%</span>
                       </div>
                     );
                   })}
-                  <div className="flex gap-4 pt-1 text-[11px] text-muted">
-                    <span className="flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-full bg-success" /> Full</span>
-                    <span className="flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-full bg-warning" /> Partial</span>
-                    <span className="flex items-center gap-1"><i className="inline-block h-2 w-2 rounded-full bg-danger" /> None</span>
-                  </div>
                 </div>
               )}
             </Card>
 
-            {/* Key findings */}
             <Card className="p-5">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-ink">Key findings</h2>
-                <Link to={`/analyses/${id}/issues`} className="text-xs font-medium text-primary hover:underline">
-                  All issues →
-                </Link>
+                <h2 className="font-display text-base font-semibold text-ink">Key Findings</h2>
+                <Link to={`/analyses/${id}/issues`} className="text-xs font-medium text-primary hover:underline">View All →</Link>
               </div>
-              {!issues?.length ? (
-                <EmptyState>No issues found — the specification looks clean.</EmptyState>
-              ) : (
-                <div className="space-y-2">
-                  {issues.slice(0, 4).map((i) => (
-                    <div key={i.id} className="flex items-start gap-2.5 rounded-lg border border-line px-3 py-2">
-                      <SeverityPill level={SEV_MAP[i.severity] ?? "low"} />
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-ink">{i.title}</div>
-                        <div className="mt-0.5 text-xs text-muted">{i.recommended_action}</div>
-                      </div>
+              <div className="space-y-2.5">
+                {findings.map((f) => (
+                  <div key={f.t} className="flex items-start gap-3">
+                    <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg text-sm ${f.tone === "danger" ? "bg-danger-soft text-danger" : f.tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary"}`}>{f.icon}</span>
+                    <div>
+                      <div className="text-sm font-semibold text-ink">{f.n} {f.t}</div>
+                      <div className="text-xs text-muted">{f.d}</div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
 
           <MiiCard analysisId={id} />
 
-          {/* Next steps */}
+          {/* AI Insights + Next Steps */}
           <Card className="p-5">
-            <h2 className="mb-3 text-sm font-semibold text-ink">Next steps</h2>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <NextStep to={`/analyses/${id}/standards`} n={1} title="Review matched standards"
-                detail="Confirm the applicable standards, note QCO-mandatory certification." />
-              <NextStep to={`/analyses/${id}/issues`} n={2} title="Resolve issues & gaps"
-                detail="Address conflicts and missing standards before tendering." />
-              <NextStep to={`/analyses/${id}/reports`} n={3} title="Generate the report"
-                detail="Curated summary + actions to advise the procurement agency." />
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="text-saffron">💡</span>
+                  <h2 className="font-display text-base font-semibold text-saffron">AI Insights</h2>
+                </div>
+                <p className="text-sm text-muted">
+                  Your tender shows {pct >= 65 ? "strong" : "partial"} alignment with Indian Standards.
+                  {r.gaps > 0 ? ` Review the ${r.gaps} potential gap(s) to ensure complete compliance.` : ""}
+                  {r.outdated_references > 0 ? ` Consider updating ${r.outdated_references} outdated reference(s).` : ""}
+                </p>
+              </div>
+              <div>
+                <div className="mb-2 text-sm font-semibold text-ink">Recommended Next Steps</div>
+                <ol className="space-y-1.5">
+                  {[
+                    r.conflicts > 0 ? "Review specification conflicts" : null,
+                    r.gaps > 0 ? "Add details for potential gaps" : null,
+                    r.outdated_references > 0 ? "Update outdated standard references" : null,
+                    "Verify accepted standards and generate the report",
+                  ].filter(Boolean).map((s, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm text-ink">
+                      <span className="grid h-5 w-5 flex-none place-items-center rounded-full bg-success-soft text-[10px] font-bold text-success">{i + 1}</span>
+                      {s}
+                    </li>
+                  ))}
+                </ol>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <Link to={`/analyses/${id}/requirements`} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-dark">Go to Requirements →</Link>
+                  <Link to={`/analyses/${id}/reports`} className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-panel">Generate Report</Link>
+                </div>
+              </div>
             </div>
           </Card>
         </div>
@@ -169,12 +176,14 @@ export function OverviewPage() {
   );
 }
 
-function NextStep({ to, n, title, detail }: { to: string; n: number; title: string; detail: string }) {
+function Kpi({ icon, tone, value, label }: { icon: string; tone: string; value: number; label: string }) {
+  const cls = tone === "success" ? "bg-success-soft text-success" : tone === "danger" ? "bg-danger-soft text-danger"
+    : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
   return (
-    <Link to={to} className="group rounded-xl border border-line p-4 transition-colors hover:border-primary hover:bg-primary-soft/40">
-      <div className="mb-1.5 grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-white">{n}</div>
-      <div className="text-sm font-semibold text-ink group-hover:text-primary">{title}</div>
-      <div className="mt-0.5 text-xs text-muted">{detail}</div>
-    </Link>
+    <div className="rounded-xl border border-line bg-surface p-3">
+      <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${cls}`}>{icon}</span>
+      <div className="mt-2 text-2xl font-bold tabular-nums text-ink">{value}</div>
+      <div className="text-[11px] leading-tight text-muted">{label}</div>
+    </div>
   );
 }
