@@ -32,6 +32,7 @@ class AnalysisRead(BaseModel):
     title: str
     sector: str
     status: str
+    workflow_status: str = "DRAFT"
     stage_error: str | None
     created_at: datetime
 

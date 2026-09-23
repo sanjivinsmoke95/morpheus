@@ -1,6 +1,6 @@
 """Analyses: create (schedules the pipeline), list, get, rerun."""
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Body, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -50,6 +50,26 @@ def get_analysis(analysis_id: str, db: Session = Depends(get_db), _: User = Depe
     analysis = db.get(Analysis, analysis_id)
     if not analysis:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
+    return analysis
+
+
+_WORKFLOW = {"DRAFT", "UNDER_REVIEW", "FINALIZED", "ISSUED"}
+
+
+@router.patch("/{analysis_id}/workflow-status", response_model=AnalysisRead)
+def set_workflow_status(
+    analysis_id: str,
+    workflow_status: str = Body(..., embed=True),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> Analysis:
+    analysis = db.get(Analysis, analysis_id)
+    if not analysis:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
+    if workflow_status not in _WORKFLOW:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Invalid status. One of {sorted(_WORKFLOW)}.")
+    analysis.workflow_status = workflow_status
+    db.commit()
     return analysis
 
 

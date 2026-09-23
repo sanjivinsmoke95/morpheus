@@ -6,8 +6,15 @@ import {
 } from "@/components/ui";
 import {
   downloadReport, useAnalysis, useCoverageByCategory, useCreateReport, useIssues, useReadiness,
+  useSetWorkflowStatus,
 } from "@/lib/morpheus";
 import { verdictFromReadiness } from "@/lib/verdict";
+import { MiiCard } from "@/components/MiiCard";
+
+const WORKFLOW = ["DRAFT", "UNDER_REVIEW", "FINALIZED", "ISSUED"];
+const WORKFLOW_LABEL: Record<string, string> = {
+  DRAFT: "Draft", UNDER_REVIEW: "Under review", FINALIZED: "Finalized", ISSUED: "Tender issued",
+};
 
 const SEV_MAP: Record<string, "critical" | "high" | "medium" | "low"> = {
   CRITICAL: "critical", HIGH: "high", MEDIUM: "medium", LOW: "low",
@@ -20,6 +27,7 @@ export function OverviewPage() {
   const { data: categories } = useCoverageByCategory(id);
   const { data: issues } = useIssues(id);
   const createReport = useCreateReport();
+  const setWorkflow = useSetWorkflowStatus(id);
   const [busy, setBusy] = useState(false);
 
   const verdict = verdictFromReadiness(readiness);
@@ -40,9 +48,21 @@ export function OverviewPage() {
         title={analysis?.title ?? "Analysis"}
         subtitle={<>Tender compliance overview{analysis?.sector ? ` · ${analysis.sector}` : ""}</>}
         actions={
-          <Button variant="secondary" onClick={download} disabled={busy}>
-            {busy ? "Preparing…" : "Download report (PDF)"}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="flex items-center gap-1.5 text-xs text-muted">
+              Status
+              <select
+                value={analysis?.workflow_status ?? "DRAFT"}
+                onChange={(e) => setWorkflow.mutate(e.target.value)}
+                className="rounded-lg border border-line bg-surface px-2 py-1.5 text-xs font-medium text-ink outline-none focus:border-primary"
+              >
+                {WORKFLOW.map((w) => <option key={w} value={w}>{WORKFLOW_LABEL[w]}</option>)}
+              </select>
+            </label>
+            <Button variant="secondary" onClick={download} disabled={busy}>
+              {busy ? "Preparing…" : "Download report (PDF)"}
+            </Button>
+          </div>
         }
       />
       <AnalysisTabs id={id} />
@@ -128,6 +148,8 @@ export function OverviewPage() {
               )}
             </Card>
           </div>
+
+          <MiiCard analysisId={id} />
 
           {/* Next steps */}
           <Card className="p-5">

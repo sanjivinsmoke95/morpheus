@@ -18,5 +18,7 @@ class Analysis(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(300), default="")
     sector: Mapped[str] = mapped_column(String(48), default="")
     status: Mapped[str] = mapped_column(String(32), default=AnalysisStatus.QUEUED.value, nullable=False)
+    # Officer-managed lifecycle, distinct from the pipeline `status`.
+    workflow_status: Mapped[str] = mapped_column(String(24), default="DRAFT", nullable=False)
     stage_error: Mapped[str | None] = mapped_column(Text)
     options_json: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)

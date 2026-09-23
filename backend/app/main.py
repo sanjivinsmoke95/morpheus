@@ -17,7 +17,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers import (
     admin, advanced, analyses, assistant, audit, auth, dashboard, documents, evaluation, graph,
-    recommendations, regulatory, reports, requirements, reviews, standards,
+    insights, recommendations, regulatory, reports, requirements, reviews, standards,
 )
 from app.core.config import settings
 from app.core.logging import configure_logging
@@ -119,3 +119,4 @@ app.include_router(advanced.router, prefix=api)
 app.include_router(evaluation.router, prefix=api)
 app.include_router(dashboard.router, prefix=api)
 app.include_router(assistant.router, prefix=api)
+app.include_router(insights.router, prefix=api)

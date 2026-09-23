@@ -16,6 +16,7 @@ export interface Analysis {
   title: string;
   sector: string;
   status: string;
+  workflow_status?: string;
   stage_error: string | null;
   created_at: string;
 }
@@ -502,6 +503,46 @@ export function useAddRequirement(analysisId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requirements", analysisId] });
       qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
+    },
+  });
+}
+
+// ---- P7/P8: report summary, MII, workflow status ----
+export interface ReportSummary {
+  verdict: string; verdict_detail: string; compliance_pct: number; requirements_total: number;
+  covered: number; partial: number; missing: number; conflicts: number; gaps: number;
+  actions: string[]; appendix_count: number; mandatory_count: number;
+  top_rows: { is_number: string; title: string; relevance: string; match_pct: number;
+    applicability: string; mandatory: boolean; advice: string; is_demo: boolean }[];
+}
+export function useReportSummary(analysisId: string) {
+  return useQuery<ReportSummary>({
+    queryKey: ["report-summary", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/report-summary`)).data,
+  });
+}
+
+export interface MiiCheck {
+  available: boolean; status: string; has_preference_clause: boolean;
+  has_local_content_declaration: boolean; foreign_brand_terms: string[];
+  issues: { severity: string; text: string }[]; advisory: string;
+}
+export function useMii(analysisId: string) {
+  return useQuery<MiiCheck>({
+    queryKey: ["mii", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/mii`)).data,
+  });
+}
+
+export function useSetWorkflowStatus(analysisId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (workflow_status: string) =>
+      (await api.patch<Analysis>(`/analyses/${analysisId}/workflow-status`, { workflow_status })).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["analyses"] });
     },
   });
 }

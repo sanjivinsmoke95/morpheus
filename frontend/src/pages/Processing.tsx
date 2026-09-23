@@ -48,6 +48,13 @@ export function ProcessingPage() {
         </Card>
       ) : (
         <Card className="p-5">
+          <div className="mb-4 flex items-start gap-2 rounded-lg bg-primary-soft/60 px-3 py-2.5 text-xs text-ink">
+            <span className="text-primary">ⓘ</span>
+            <span>
+              This usually takes <span className="font-semibold">30–60 seconds</span>. You can leave this page —
+              the analysis keeps running and will appear in your dashboard when it's ready.
+            </span>
+          </div>
           <div className="space-y-2.5">
             {STAGES.map((s, i) => {
               const done = idx > i;
