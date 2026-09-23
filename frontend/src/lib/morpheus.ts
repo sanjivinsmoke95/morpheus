@@ -246,20 +246,67 @@ export function useVersionFindings(analysisId: string) {
 }
 
 // ---- audit (Phase 4) ----
+export interface Readiness {
+  standards_identified: number;
+  requirements_total: number;
+  requirements_covered: number;
+  requirements_partial: number;
+  requirements_missing: number;
+  conflicts: number;
+  gaps: number;
+  outdated_references: number;
+  unresolved_references: number;
+  pending_review_items: number;
+}
+export type CoverageLevel = "FULL" | "PARTIAL" | "MISSING";
+export interface CoverageRow {
+  id: string;
+  requirement_code: string | null;
+  requirement: string | null;
+  standard: string | null;
+  coverage: CoverageLevel;
+  explanation: string;
+  status: string;
+}
+export interface GapRow {
+  id: string;
+  gap_type: string;
+  description: string;
+  severity: string;
+  is_mandatory_claim: boolean;
+  related_standard: string | null;
+  status: string;
+  evidence: string | null;
+}
+export interface ConflictRow {
+  id: string;
+  conflict_type: string;
+  parameter: string;
+  value_a: string;
+  unit_a: string;
+  source_a: string;
+  value_b: string;
+  unit_b: string;
+  source_b: string;
+  severity: string;
+  explanation: string;
+  status: string;
+}
+
 export function useReadiness(analysisId: string) {
-  return useQuery<Record<string, number>>({
+  return useQuery<Readiness>({
     queryKey: ["readiness", analysisId],
     queryFn: async () => (await api.get(`/analyses/${analysisId}/readiness`)).data,
   });
 }
 export function useCoverage(analysisId: string) {
-  return useQuery<any[]>({ queryKey: ["coverage", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/coverage`)).data });
+  return useQuery<CoverageRow[]>({ queryKey: ["coverage", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/coverage`)).data });
 }
 export function useGaps(analysisId: string) {
-  return useQuery<any[]>({ queryKey: ["gaps", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/gaps`)).data });
+  return useQuery<GapRow[]>({ queryKey: ["gaps", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/gaps`)).data });
 }
 export function useConflicts(analysisId: string) {
-  return useQuery<any[]>({ queryKey: ["conflicts", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/conflicts`)).data });
+  return useQuery<ConflictRow[]>({ queryKey: ["conflicts", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/conflicts`)).data });
 }
 
 // ---- regulatory (Phase 5) ----

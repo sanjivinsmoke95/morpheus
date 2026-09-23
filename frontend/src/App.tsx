@@ -6,13 +6,14 @@ import { LoginPage } from "@/pages/Login";
 import { DashboardPage } from "@/pages/Dashboard";
 import { NewAnalysisPage } from "@/pages/NewAnalysis";
 import { ProcessingPage } from "@/pages/Processing";
+import { OverviewPage } from "@/pages/Overview";
+import { StandardsPage } from "@/pages/Standards";
 import { RequirementsPage } from "@/pages/Requirements";
 import { RecommendationsPage } from "@/pages/Recommendations";
 import { ReportsPage } from "@/pages/Reports";
 import { HistoryPage } from "@/pages/History";
 import { KnowledgeGraphPage } from "@/pages/KnowledgeGraph";
 import { StandardDetailPage } from "@/pages/StandardDetail";
-import { ReadinessPage } from "@/pages/Readiness";
 import { AuditPage } from "@/pages/Audit";
 import { RegulatoryPage } from "@/pages/Regulatory";
 import { CopilotPage } from "@/pages/Copilot";
@@ -23,7 +24,7 @@ import { FeedbackPage } from "@/pages/Feedback";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-zinc-400">Loading…</div>;
+  if (loading) return <div className="grid min-h-screen place-items-center text-sm text-muted">Loading…</div>;
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
@@ -41,12 +42,13 @@ export function App() {
           <Route index element={<DashboardPage />} />
           <Route path="/analyses/new" element={<NewAnalysisPage />} />
           <Route path="/analyses/:id/processing" element={<ProcessingPage />} />
+          <Route path="/analyses/:id" element={<OverviewPage />} />
+          <Route path="/analyses/:id/standards" element={<StandardsPage />} />
           <Route path="/analyses/:id/requirements" element={<RequirementsPage />} />
           <Route path="/analyses/:id/recommendations" element={<RecommendationsPage />} />
           <Route path="/analyses/:id/reports" element={<ReportsPage />} />
           <Route path="/analyses/:id/graph" element={<KnowledgeGraphPage />} />
           <Route path="/standards/:id" element={<StandardDetailPage />} />
-          <Route path="/analyses/:id/readiness" element={<ReadinessPage />} />
           <Route path="/analyses/:id/audit" element={<AuditPage />} />
           <Route path="/analyses/:id/regulatory" element={<RegulatoryPage />} />
           <Route path="/analyses/:id/copilot" element={<CopilotPage />} />

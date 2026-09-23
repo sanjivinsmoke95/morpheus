@@ -1,4 +1,6 @@
 import { useParams } from "react-router-dom";
+import { AnalysisTabs } from "@/components/AnalysisTabs";
+import { Button, Card, PageHeader } from "@/components/ui";
 import { downloadReport, useCreateReport } from "@/lib/morpheus";
 
 export function ReportsPage() {
@@ -11,23 +13,27 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-8">
-      <h1 className="text-xl font-semibold">Procurement report</h1>
-      <p className="mt-0.5 text-sm text-zinc-400">
-        Generate an audit report of extracted requirements, applicable standards, evidence, and your decisions.
-      </p>
+    <div>
+      <PageHeader
+        title="Compliance report"
+        subtitle="A full audit record: requirements, applicable standards, evidence, gaps, conflicts, and your decisions."
+      />
+      <AnalysisTabs id={id} />
 
-      <div className="mt-6 flex gap-3">
-        <button onClick={() => make("PDF")} disabled={create.isPending}
-          className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-black hover:bg-emerald-400 disabled:opacity-50">
-          {create.isPending ? "Generating…" : "Download PDF"}
-        </button>
-        <button onClick={() => make("DOCX")} disabled={create.isPending}
-          className="rounded-md bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20 disabled:opacity-50">
-          Download DOCX
-        </button>
-      </div>
-      {create.isError && <p className="mt-3 text-sm text-red-400">Could not generate the report.</p>}
+      <Card className="p-6">
+        <p className="text-sm text-muted">
+          Download a shareable report to attach to the tender file or send to a colleague for review.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button onClick={() => make("PDF")} disabled={create.isPending}>
+            {create.isPending ? "Generating…" : "Download PDF"}
+          </Button>
+          <Button variant="secondary" onClick={() => make("DOCX")} disabled={create.isPending}>
+            Download DOCX
+          </Button>
+        </div>
+        {create.isError && <p className="mt-3 text-sm text-danger">Could not generate the report.</p>}
+      </Card>
     </div>
   );
 }

@@ -1,98 +1,86 @@
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
-
-interface ComponentStatus {
-  status: string;
-  detail?: string;
-}
-interface Health {
-  status: string;
-  components: {
-    database: ComponentStatus;
-    neo4j: ComponentStatus;
-    object_store: ComponentStatus;
-    llm_provider: { name: string; available: boolean };
-    embedding_provider: { name: string; available: boolean; dim: number };
-  };
-}
-
-const DOT: Record<string, string> = {
-  ok: "bg-emerald-400",
-  not_configured: "bg-zinc-500",
-  unavailable: "bg-red-400",
-  degraded: "bg-amber-400",
-};
+import { Card, EmptyState, LinkButton, PageHeader, Skeleton, StatusChip } from "@/components/ui";
+import { useAnalyses, useReadiness, type Analysis } from "@/lib/morpheus";
+import { verdictFromReadiness } from "@/lib/verdict";
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const isAdmin = user?.role === "ADMIN";
-
-  const { data: health, isLoading, isError } = useQuery<Health>({
-    queryKey: ["health"],
-    enabled: isAdmin,
-    queryFn: async () => (await api.get<Health>("/admin/health")).data,
-  });
+  const { data: analyses, isLoading } = useAnalyses();
+  const recent = (analyses ?? []).slice(0, 8);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-8">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
-      <p className="mt-0.5 text-sm text-zinc-400">
-        Signed in as <span className="text-zinc-200">{user?.email}</span> · role{" "}
-        <span className="text-emerald-400">{user?.role}</span>
-      </p>
+    <div>
+      <PageHeader
+        title={`Welcome${user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}`}
+        subtitle="Upload a tender specification to check it against the Indian Standards ecosystem."
+      />
 
-      {/* Phase status */}
-      <div className="mt-6 rounded-xl border border-white/10 bg-black/20 p-5">
-        <div className="text-xs uppercase tracking-wide text-zinc-500">Build status</div>
-        <div className="mt-1 text-sm">
-          <span className="rounded bg-emerald-500/15 px-2 py-0.5 font-mono text-emerald-300">Phase 1 — Foundation</span>
-          <span className="ml-2 text-zinc-400">
-            auth, RBAC, database, migrations, health checks, provider abstraction.
-          </span>
-        </div>
-        <p className="mt-2 text-xs text-zinc-500">
-          Analysis pipeline (upload → requirements → recommendations → report) arrives in Phase 2.
-        </p>
-      </div>
-
-      {/* System health */}
-      <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-5">
-        <div className="mb-3 text-sm font-medium">System health</div>
-        {!isAdmin ? (
-          <p className="text-xs text-zinc-500">Component health is visible to administrators.</p>
-        ) : isLoading ? (
-          <div className="h-16 animate-pulse rounded-md bg-white/5" />
-        ) : isError ? (
-          <p className="text-sm text-red-400">Could not reach the API.</p>
-        ) : health ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            <HealthRow label="Database" status={health.components.database.status} />
-            <HealthRow label="Object store" status={health.components.object_store.status} />
-            <HealthRow label="Neo4j (graph)" status={health.components.neo4j.status} />
-            <HealthRow
-              label={`LLM provider (${health.components.llm_provider.name})`}
-              status={health.components.llm_provider.available ? "ok" : "not_configured"}
-              note={health.components.llm_provider.available ? "" : "stub — abstains until configured"}
-            />
-            <HealthRow
-              label={`Embeddings (${health.components.embedding_provider.name})`}
-              status={health.components.embedding_provider.available ? "ok" : "unavailable"}
-              note={`dim ${health.components.embedding_provider.dim}`}
-            />
+      {/* Hero CTA */}
+      <Card className="mb-8 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-4 bg-primary-soft p-6">
+          <div className="min-w-0">
+            <h2 className="text-lg font-semibold text-ink">Check a tender for compliance</h2>
+            <p className="mt-1 max-w-md text-sm text-muted">
+              MORPHEUS reads the specification, matches every requirement to applicable standards,
+              and tells you what to fix before you tender.
+            </p>
           </div>
-        ) : null}
+          <LinkButton to="/analyses/new">Upload a tender →</LinkButton>
+        </div>
+      </Card>
+
+      {/* Recent */}
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Recent analyses</h2>
+        <Link to="/history" className="text-sm font-medium text-primary hover:underline">
+          View all →
+        </Link>
       </div>
+
+      {isLoading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-14" />
+          <Skeleton className="h-14" />
+          <Skeleton className="h-14" />
+        </div>
+      ) : recent.length === 0 ? (
+        <EmptyState>No analyses yet. Upload your first tender to get started.</EmptyState>
+      ) : (
+        <Card>
+          {recent.map((a) => (
+            <AnalysisRow key={a.id} analysis={a} />
+          ))}
+        </Card>
+      )}
     </div>
   );
 }
 
-function HealthRow({ label, status, note }: { label: string; status: string; note?: string }) {
+function AnalysisRow({ analysis }: { analysis: Analysis }) {
+  const ready = analysis.status === "READY";
+  const to = ready ? `/analyses/${analysis.id}` : `/analyses/${analysis.id}/processing`;
   return (
-    <div className="flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-sm">
-      <span className={`h-2 w-2 flex-none rounded-full ${DOT[status] ?? "bg-zinc-500"}`} />
-      <span className="flex-1">{label}</span>
-      <span className="font-mono text-[11px] text-zinc-500">{note || status}</span>
-    </div>
+    <Link
+      to={to}
+      className="flex items-center gap-3 border-b border-line px-4 py-3 transition-colors last:border-b-0 hover:bg-panel"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-medium text-ink">{analysis.title}</span>
+        <span className="block text-xs text-muted">
+          {analysis.sector || "auto"} · {new Date(analysis.created_at).toLocaleDateString()}
+        </span>
+      </span>
+      {ready ? <VerdictChip id={analysis.id} /> : <StatusChip tone="info">Processing…</StatusChip>}
+      <span className="flex-none text-primary">→</span>
+    </Link>
   );
+}
+
+function VerdictChip({ id }: { id: string }) {
+  const { data, isLoading } = useReadiness(id);
+  if (isLoading) return <StatusChip tone="neutral">…</StatusChip>;
+  const v = verdictFromReadiness(data);
+  const label = v.kind === "READY" ? "Ready" : v.kind === "ATTENTION" ? "Review" : "Action needed";
+  return <StatusChip tone={v.tone}>{label}</StatusChip>;
 }

@@ -26,41 +26,41 @@ export function LoginPage() {
   }
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[#0b0f17] px-4 text-zinc-100">
+    <div className="grid min-h-screen place-items-center bg-canvas px-4 text-ink">
       <div className="w-full max-w-sm">
-        <div className="mb-6 flex items-center gap-2">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-emerald-500 font-bold text-black">M</div>
+        <div className="mb-6 flex items-center gap-2.5">
+          <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-lg font-bold text-white">M</div>
           <div>
             <div className="text-lg font-semibold tracking-wide">MORPHEUS</div>
-            <div className="font-mono text-[11px] text-zinc-500">procurement standards intelligence</div>
+            <div className="text-xs text-muted">Standards Compliance for Public Procurement</div>
           </div>
         </div>
-        <form onSubmit={submit} className="space-y-3 rounded-xl border border-white/10 bg-black/20 p-5">
+        <form onSubmit={submit} className="space-y-3 rounded-xl border border-line bg-surface p-6 shadow-sm">
           <div>
-            <label className="mb-1 block text-xs text-zinc-400">Email</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Email</label>
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               autoComplete="username"
-              className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs text-zinc-400">Password</label>
+            <label className="mb-1 block text-xs font-medium text-muted">Password</label>
             <input
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               autoComplete="current-password"
-              className="w-full rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm outline-none focus:border-emerald-500"
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary"
             />
           </div>
-          {error && <p className="text-sm text-red-400">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           <button
             type="submit"
             disabled={busy || !email}
-            className="w-full rounded-md bg-emerald-500 py-2 text-sm font-medium text-black hover:bg-emerald-400 disabled:opacity-50"
+            className="w-full rounded-lg bg-primary py-2 text-sm font-medium text-white transition-colors hover:bg-primary-dark disabled:opacity-50"
           >
             {busy ? "Signing in…" : "Sign in"}
           </button>
@@ -70,16 +70,18 @@ export function LoginPage() {
                 key={r}
                 type="button"
                 onClick={() => setEmail(`${r}@morpheus.example.com`)}
-                className={`rounded px-2 py-1 text-[11px] capitalize ${
-                  email === `${r}@morpheus.example.com` ? "bg-emerald-500/20 text-emerald-300" : "bg-white/5 text-zinc-400 hover:bg-white/10"
+                className={`rounded-md px-2.5 py-1 text-xs font-medium capitalize transition-colors ${
+                  email === `${r}@morpheus.example.com`
+                    ? "bg-primary-soft text-primary"
+                    : "bg-panel text-muted hover:bg-line/60"
                 }`}
               >
                 {r}
               </button>
             ))}
           </div>
-          <p className="text-center text-[11px] text-zinc-500">
-            Dev mode: any password works. Pick a role above and sign in.
+          <p className="text-center text-xs text-muted">
+            Demo mode: any password works. Pick a role above and sign in.
           </p>
         </form>
       </div>

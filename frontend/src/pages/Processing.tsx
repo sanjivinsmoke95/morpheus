@@ -1,10 +1,23 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Card, PageHeader } from "@/components/ui";
 import { useAnalysis } from "@/lib/morpheus";
 
 const STAGES = [
   "QUEUED", "EXTRACTING", "OCR", "EXTRACTING_REQUIREMENTS", "RETRIEVING", "RANKING", "CLASSIFYING", "AUDITING", "READY",
 ];
+
+const LABELS: Record<string, string> = {
+  QUEUED: "Queued",
+  EXTRACTING: "Reading the document",
+  OCR: "Recognising scanned text",
+  EXTRACTING_REQUIREMENTS: "Extracting requirements",
+  RETRIEVING: "Searching Indian Standards",
+  RANKING: "Ranking applicable standards",
+  CLASSIFYING: "Classifying applicability",
+  AUDITING: "Checking coverage, gaps & conflicts",
+  READY: "Complete",
+};
 
 export function ProcessingPage() {
   const { id = "" } = useParams();
@@ -13,7 +26,7 @@ export function ProcessingPage() {
 
   useEffect(() => {
     if (analysis?.status === "READY") {
-      const t = setTimeout(() => navigate(`/analyses/${id}/requirements`), 500);
+      const t = setTimeout(() => navigate(`/analyses/${id}`), 500);
       return () => clearTimeout(t);
     }
   }, [analysis?.status, id, navigate]);
@@ -23,36 +36,44 @@ export function ProcessingPage() {
   const idx = STAGES.indexOf(current);
 
   return (
-    <div className="mx-auto max-w-xl px-6 py-10">
-      <h1 className="text-xl font-semibold">Processing</h1>
-      <p className="mt-0.5 text-sm text-zinc-400">Extracting text, requirements, and matching standards…</p>
+    <div className="mx-auto max-w-xl">
+      <PageHeader
+        title="Analysing tender"
+        subtitle="Extracting requirements and matching them against the Indian Standards ecosystem."
+      />
 
       {failed ? (
-        <div className="mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+        <Card className="border-danger/30 bg-danger-soft p-4 text-sm text-danger">
           Analysis failed: {analysis?.stage_error || "unknown error"}.
-        </div>
+        </Card>
       ) : (
-        <div className="mt-6 space-y-1.5">
-          {STAGES.map((s, i) => {
-            const done = idx > i;
-            const active = idx === i;
-            return (
-              <div key={s} className="flex items-center gap-3 text-sm">
-                <span
-                  className={`grid h-5 w-5 place-items-center rounded-full text-[10px] ${
-                    done ? "bg-emerald-500 text-black" : active ? "bg-emerald-500/30 text-emerald-200" : "bg-white/5 text-zinc-500"
-                  }`}
-                >
-                  {done ? "✓" : i + 1}
-                </span>
-                <span className={done ? "text-zinc-400" : active ? "text-emerald-300" : "text-zinc-600"}>
-                  {s.replace(/_/g, " ").toLowerCase()}
-                  {active && s !== "READY" ? "…" : ""}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <Card className="p-5">
+          <div className="space-y-2.5">
+            {STAGES.map((s, i) => {
+              const done = idx > i;
+              const active = idx === i;
+              return (
+                <div key={s} className="flex items-center gap-3 text-sm">
+                  <span
+                    className={`grid h-6 w-6 flex-none place-items-center rounded-full text-xs font-semibold ${
+                      done
+                        ? "bg-success text-white"
+                        : active
+                          ? "bg-primary text-white"
+                          : "bg-panel text-muted"
+                    }`}
+                  >
+                    {done ? "✓" : i + 1}
+                  </span>
+                  <span className={done ? "text-muted" : active ? "font-medium text-ink" : "text-muted/60"}>
+                    {LABELS[s] ?? s}
+                    {active && s !== "READY" ? "…" : ""}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       )}
     </div>
   );

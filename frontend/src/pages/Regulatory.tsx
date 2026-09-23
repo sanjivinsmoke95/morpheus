@@ -1,9 +1,11 @@
 import type { ReactNode } from "react";
 import { useParams } from "react-router-dom";
+import { AnalysisTabs } from "@/components/AnalysisTabs";
+import { Card, PageHeader, StatusChip, type Tone } from "@/components/ui";
 import { useAmendmentImpact, useCertification, useQco } from "@/lib/morpheus";
 
-const QCO_COLOR: Record<string, string> = {
-  MANDATORY: "text-red-400", CONDITIONAL: "text-amber-400", VOLUNTARY: "text-emerald-400", UNKNOWN: "text-zinc-400",
+const QCO_TONE: Record<string, Tone> = {
+  MANDATORY: "danger", CONDITIONAL: "warning", VOLUNTARY: "success", UNKNOWN: "neutral",
 };
 
 export function RegulatoryPage() {
@@ -13,52 +15,55 @@ export function RegulatoryPage() {
   const { data: amends } = useAmendmentImpact(id);
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8">
-      <h1 className="text-xl font-semibold">Certification & QCO</h1>
-      <p className="mt-0.5 text-sm text-zinc-400">Regulatory status shown only from stored records, with source. Never inferred.</p>
+    <div>
+      <PageHeader
+        title="Certification & QCO"
+        subtitle="Regulatory status shown only from stored records, with source. Never inferred."
+      />
+      <AnalysisTabs id={id} />
 
       <Section title="Quality Control Orders (QCO)">
         {!qco?.length ? <Empty text="No QCO records for the identified standards." /> : qco.map((q, i) => (
-          <div key={i} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
+          <Card key={i} className="p-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="font-mono">{q.is_number}</span>
-              <span className={QCO_COLOR[q.qco_status]}>{q.qco_status}</span>
+              <span className="font-medium text-ink">{q.is_number}</span>
+              <StatusChip tone={QCO_TONE[q.qco_status] ?? "neutral"}>{q.qco_status}</StatusChip>
             </div>
-            <div className="mt-0.5 text-xs text-zinc-400">{q.order_name || q.product_description}</div>
-            <div className="mt-0.5 text-[11px] text-zinc-500">{q.notes}</div>
-            <div className="mt-1 text-[10px] text-zinc-600">
+            <div className="mt-0.5 text-xs text-muted">{q.order_name || q.product_description}</div>
+            <div className="mt-0.5 text-[11px] text-muted">{q.notes}</div>
+            <div className="mt-1 text-[10px] text-muted">
               {q.effective_date ? `effective ${q.effective_date} · ` : ""}source {q.source_name} · {q.data_origin}
             </div>
-          </div>
+          </Card>
         ))}
       </Section>
 
       <Section title="Certification schemes">
         {!cert?.length ? <Empty text="No certification records." /> : cert.map((c, i) => (
-          <div key={i} className="flex items-center gap-2 rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
-            <span className="rounded border border-white/15 px-1.5 py-0.5 text-[10px] uppercase text-zinc-400">{c.scheme}</span>
-            <span className="font-mono text-xs">{c.is_number}</span>
-            <span className="min-w-0 flex-1 truncate text-xs text-zinc-400">{c.requirement}</span>
-            <span className="text-[10px] text-zinc-600">{c.data_origin}</span>
-          </div>
+          <Card key={i} className="flex items-center gap-2 p-3 text-sm">
+            <StatusChip tone="info">{c.scheme}</StatusChip>
+            <span className="text-xs text-ink">{c.is_number}</span>
+            <span className="min-w-0 flex-1 truncate text-xs text-muted">{c.requirement}</span>
+            <span className="text-[10px] text-muted">{c.data_origin}</span>
+          </Card>
         ))}
       </Section>
 
       <Section title="Amendment impact (for review)">
         {!amends?.length ? <Empty text="No amendments on the directly-applicable standards." /> : amends.map((a, i) => (
-          <div key={i} className="rounded-lg border border-white/10 bg-black/20 p-3 text-sm">
+          <Card key={i} className="p-3 text-sm">
             <div className="flex items-center justify-between">
-              <span><span className="font-mono">{a.is_number}</span> · {a.amendment_no}</span>
-              <span className="text-[11px] text-amber-400">{a.confidence}</span>
+              <span className="text-ink"><span className="font-medium">{a.is_number}</span> · {a.amendment_no}</span>
+              <StatusChip tone="warning">{a.confidence}</StatusChip>
             </div>
-            <div className="mt-0.5 text-xs text-zinc-400">{a.summary}</div>
-            <div className="mt-0.5 text-[11px] text-zinc-500">{a.potential_impact}</div>
+            <div className="mt-0.5 text-xs text-muted">{a.summary}</div>
+            <div className="mt-0.5 text-[11px] text-muted">{a.potential_impact}</div>
             {a.affected_clauses?.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
-                {a.affected_clauses.map((cl: string) => <span key={cl} className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-400">{cl}</span>)}
+                {a.affected_clauses.map((cl: string) => <span key={cl} className="rounded bg-panel px-1.5 py-0.5 text-[10px] text-muted">{cl}</span>)}
               </div>
             )}
-          </div>
+          </Card>
         ))}
       </Section>
     </div>
@@ -66,8 +71,8 @@ export function RegulatoryPage() {
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
-  return <div className="mt-5"><div className="mb-2 text-sm font-medium">{title}</div><div className="space-y-2">{children}</div></div>;
+  return <div className="mt-6"><div className="mb-2 text-sm font-semibold text-ink">{title}</div><div className="space-y-2">{children}</div></div>;
 }
 function Empty({ text }: { text: string }) {
-  return <div className="text-xs text-zinc-500">{text}</div>;
+  return <div className="text-sm text-muted">{text}</div>;
 }
