@@ -23,7 +23,8 @@ _MEDIA = {"PDF": "application/pdf",
 def create_report(payload: ReportCreate, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     if not db.get(Analysis, payload.analysis_id):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
-    data = build_pdf(db, payload.analysis_id) if payload.format == "PDF" else build_docx(db, payload.analysis_id)
+    data = (build_pdf(db, payload.analysis_id, officer=user) if payload.format == "PDF"
+            else build_docx(db, payload.analysis_id, officer=user))
     checksum = hashlib.sha256(data).hexdigest()
     key = f"reports/{payload.analysis_id}-{checksum[:12]}.{payload.format.lower()}"
     get_object_store().put(key, data)
