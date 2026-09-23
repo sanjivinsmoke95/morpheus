@@ -15,7 +15,7 @@ export function ReportsPage() {
   return (
     <div>
       <PageHeader
-        title="Compliance report"
+        title="Final procurement report"
         subtitle="A full audit record: requirements, applicable standards, evidence, gaps, conflicts, and your decisions."
       />
       <AnalysisTabs id={id} />
