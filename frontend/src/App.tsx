@@ -7,6 +7,7 @@ import { DashboardPage } from "@/pages/Dashboard";
 import { AnalyticsPage } from "@/pages/Analytics";
 import { StandardsLibraryPage } from "@/pages/StandardsLibrary";
 import { RegulatoryUpdatesPage } from "@/pages/RegulatoryUpdates";
+import { HelpPage } from "@/pages/Help";
 import { NewAnalysisPage } from "@/pages/NewAnalysis";
 import { ProcessingPage } from "@/pages/Processing";
 import { OverviewPage } from "@/pages/Overview";
@@ -48,6 +49,7 @@ export function App() {
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/standards" element={<StandardsLibraryPage />} />
           <Route path="/regulatory-updates" element={<RegulatoryUpdatesPage />} />
+          <Route path="/help" element={<HelpPage />} />
           <Route path="/analyses/new" element={<NewAnalysisPage />} />
           <Route path="/analyses/:id/processing" element={<ProcessingPage />} />
           <Route path="/analyses/:id" element={<OverviewPage />} />

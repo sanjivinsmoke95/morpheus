@@ -72,18 +72,53 @@ def dashboard_summary(
     compliance_vals = [v["compliance_pct"] for v in verdicts.values() if v["requirements_total"] > 0]
     gap_vals = [v["gaps"] for v in verdicts.values()]
 
+    # This-month window for the KPI deltas.
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    this_month = [a for a in analyses if a.created_at and _aware(a.created_at) >= month_start]
+    this_month_ids = {a.id for a in this_month}
+
+    standards_mapped = db.execute(
+        select(func.count(func.distinct(Recommendation.standard_id)))
+        .where(Recommendation.excluded == False)  # noqa: E712
+    ).scalar_one()
+    issues_detected = sum(v["gaps"] + v["conflicts"] for v in verdicts.values())
+    issues_this_month = sum(
+        v["gaps"] + v["conflicts"] for aid, v in verdicts.items() if aid in this_month_ids)
+    pending_reviews = sum(1 for a in completed if a.workflow_status in ("DRAFT", "UNDER_REVIEW"))
+
     docs = {d.id: d for d in db.execute(select(Document)).scalars()}
     recent = []
     for a in analyses[:limit]:
         v = verdicts.get(a.id)
         recent.append({
             "id": a.id, "title": a.title or (docs.get(a.document_id).filename if docs.get(a.document_id) else "Untitled"),
+            "filename": docs.get(a.document_id).filename if docs.get(a.document_id) else "",
             "sector": a.sector or "—", "status": a.status,
+            "workflow_status": a.workflow_status,
             "created_at": a.created_at.isoformat() if a.created_at else None,
             "verdict": v["verdict"] if v else "PENDING",
             "tone": v["tone"] if v else "neutral",
             "compliance_pct": v["compliance_pct"] if v else None,
         })
+
+    # Standards coverage bars: aggregate coverage by requirement category, top 6.
+    from app.models import Requirement
+    reqs = {r.id: r for r in db.execute(select(Requirement)).scalars()}
+    cat: dict[str, dict] = {}
+    for c in db.execute(select(CoverageResult)).scalars():
+        req = reqs.get(c.requirement_id)
+        if not req or req.analysis_id not in {a.id for a in completed}:
+            continue
+        name = (req.requirement_type or "OTHER").title()
+        b = cat.setdefault(name, {"covered": 0, "total": 0})
+        if c.coverage in ("FULL", "PARTIAL"):
+            b["covered"] += 1 if c.coverage == "FULL" else 0.6
+        b["total"] += 1
+    coverage_bars = sorted(
+        [{"label": k, "pct": round(100 * v["covered"] / v["total"]) if v["total"] else 0}
+         for k, v in cat.items()],
+        key=lambda x: x["pct"], reverse=True)[:6]
 
     return {
         "kpis": {
@@ -92,7 +127,15 @@ def dashboard_summary(
             "needs_action": needs_action,
             "avg_gaps": round(sum(gap_vals) / len(gap_vals), 1) if gap_vals else 0,
         },
+        "metrics": {
+            "tenders_analyzed": {"value": len(analyses), "delta": len(this_month)},
+            "standards_mapped": {"value": standards_mapped, "delta": None},
+            "issues_detected": {"value": issues_detected, "delta": issues_this_month},
+            "pending_reviews": {"value": pending_reviews, "delta": None},
+        },
+        "coverage_bars": coverage_bars,
         "recent": recent,
+        "compliance_rate": round(sum(compliance_vals) / len(compliance_vals)) if compliance_vals else 0,
     }
 
 

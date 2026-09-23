@@ -392,8 +392,17 @@ export async function downloadReport(reportId: string, format: string) {
 // ---- dashboard + analytics ----
 export interface DashboardSummary {
   kpis: { active_tenders: number; compliance_rate: number; needs_action: number; avg_gaps: number };
+  metrics: {
+    tenders_analyzed: { value: number; delta: number | null };
+    standards_mapped: { value: number; delta: number | null };
+    issues_detected: { value: number; delta: number | null };
+    pending_reviews: { value: number; delta: number | null };
+  };
+  coverage_bars: { label: string; pct: number }[];
+  compliance_rate: number;
   recent: {
-    id: string; title: string; sector: string; status: string; created_at: string | null;
+    id: string; title: string; filename: string; sector: string; status: string;
+    workflow_status: string; created_at: string | null;
     verdict: string; tone: string; compliance_pct: number | null;
   }[];
 }
