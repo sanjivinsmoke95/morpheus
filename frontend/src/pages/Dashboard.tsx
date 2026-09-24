@@ -231,24 +231,47 @@ export function DashboardPage() {
   );
 }
 
+const METRIC_STYLE: Record<string, { tile: string; glow: string; ring: string; accent: string }> = {
+  success: { tile: "bg-success-soft text-success", glow: "rgba(22,163,74,0.28)", ring: "hover:border-success/50", accent: "bg-success" },
+  danger: { tile: "bg-danger-soft text-danger", glow: "rgba(220,38,38,0.28)", ring: "hover:border-danger/50", accent: "bg-danger" },
+  warning: { tile: "bg-warning-soft text-warning", glow: "rgba(245,158,11,0.30)", ring: "hover:border-warning/50", accent: "bg-warning" },
+  info: { tile: "bg-primary-soft text-primary", glow: "rgba(11,93,59,0.28)", ring: "hover:border-primary/50", accent: "bg-primary" },
+  neutral: { tile: "bg-primary-soft text-primary", glow: "rgba(11,93,59,0.22)", ring: "hover:border-primary/40", accent: "bg-primary" },
+};
+
 function Metric({ icon, tone, value, label, delta, deltaUp, deltaDown }: {
   icon: string; tone: Tone; value: number; label: string; delta: number | null; deltaUp?: boolean; deltaDown?: boolean;
 }) {
-  const tileCls = tone === "success" ? "bg-success-soft text-success" : tone === "danger" ? "bg-danger-soft text-danger"
-    : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
+  const s = METRIC_STYLE[tone] ?? METRIC_STYLE.neutral;
   return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between">
-        <span className={`grid h-10 w-10 place-items-center rounded-xl ${tileCls}`}><StepIcon name={icon} /></span>
+    <div
+      className={`group relative cursor-default overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-10px_var(--glow),0_0_0_1.5px_var(--glow)] ${s.ring}`}
+      style={{ "--glow": s.glow } as React.CSSProperties}
+      onMouseMove={(e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+      }}
+    >
+      {/* cursor-tracking sheen */}
+      <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: "radial-gradient(200px circle at var(--mx,50%) var(--my,0), var(--glow), transparent 60%)" }} />
+      {/* top accent bar grows on hover */}
+      <div className={`absolute left-0 top-0 h-1 w-0 ${s.accent} transition-all duration-300 group-hover:w-full`} />
+
+      <div className="relative">
+        <span className={`grid h-10 w-10 place-items-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${s.tile}`}>
+          <StepIcon name={icon} />
+        </span>
+        <div className="mt-3 text-3xl font-bold tabular-nums text-ink">{value}</div>
+        <div className="text-xs text-muted">{label}</div>
+        {delta != null && delta !== 0 && (
+          <div className={`mt-1 text-[11px] font-medium ${deltaDown ? "text-danger" : "text-success"}`}>
+            {deltaDown ? "↓" : "↑"} {deltaUp || !deltaDown ? "+" : "-"}{Math.abs(delta)} this month
+          </div>
+        )}
       </div>
-      <div className="mt-3 text-3xl font-bold tabular-nums text-ink">{value}</div>
-      <div className="text-xs text-muted">{label}</div>
-      {delta != null && delta !== 0 && (
-        <div className={`mt-1 text-[11px] font-medium ${deltaDown ? "text-danger" : "text-success"}`}>
-          {deltaDown ? "↓" : "↑"} {deltaUp || !deltaDown ? "+" : "-"}{Math.abs(delta)} this month
-        </div>
-      )}
-    </Card>
+    </div>
   );
 }
 
