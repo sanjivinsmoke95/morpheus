@@ -22,6 +22,17 @@ export function ReportsPage() {
     } finally { setBusy(null); }
   }
 
+  async function exportPackage() {
+    const { api } = await import("@/lib/api");
+    const res = await api.get(`/analyses/${id}/export`, { responseType: "blob" });
+    const url = URL.createObjectURL(res.data as Blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `morpheus-procurement-package-${id.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   const criticalIssues = (s?.conflicts ?? 0) + (s?.missing ?? 0);
 
   return (
@@ -129,7 +140,11 @@ export function ReportsPage() {
                 </button>
                 <button onClick={() => window.print()}
                   className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">🖨 Print / Compliance Matrix</button>
-                <button className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">⇗ Share Report</button>
+                <button onClick={exportPackage}
+                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">
+                  ⬇ Export Procurement Package (JSON)
+                </button>
+                <p className="px-1 text-[10px] leading-snug text-muted">GeM / CPPP integration-ready export — not a live integration.</p>
               </div>
             </Card>
 

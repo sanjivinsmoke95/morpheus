@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routers import (
-    admin, advanced, analyses, assistant, audit, auth, dashboard, documents, evaluation, graph,
+    admin, advanced, analyses, assistant, audit, auth, dashboard, documents, evaluation, export, graph,
     insights, recommendations, regulatory, reports, requirements, reviews, standards,
 )
 from app.core.config import settings
@@ -120,3 +120,4 @@ app.include_router(evaluation.router, prefix=api)
 app.include_router(dashboard.router, prefix=api)
 app.include_router(assistant.router, prefix=api)
 app.include_router(insights.router, prefix=api)
+app.include_router(export.router, prefix=api)
