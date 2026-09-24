@@ -56,7 +56,7 @@ export function Layout() {
   const sidebar = (
     <div
       className="flex h-full flex-col text-white"
-      style={{ background: "linear-gradient(180deg,#0d4d34 0%,#0a3626 55%,#07271b 100%)" }}
+      style={{ background: "linear-gradient(180deg,#1c4635 0%,#183d2d 45%,#16362d 100%)" }}
     >
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
@@ -81,15 +81,18 @@ export function Layout() {
         ))}
       </nav>
 
-      {/* Decorative footer */}
-      <div className="px-5 pb-5 pt-2">
-        <div className="mb-2 h-px w-full bg-gradient-to-r from-[#FF9933] via-white/60 to-[#138808]" />
-        <div className="text-[11px] font-semibold text-white/80">Transparent Procurement</div>
-        <div className="mb-2 text-[11px] font-semibold text-white/80">Stronger India</div>
-        <p className="text-[10px] italic leading-snug text-white/45">
-          “Good governance builds a stronger nation.”
-          <br />— Government of India
+      {/* Decorative footer (matches the design: monuments line-art + motto + quote) */}
+      <div className="px-4 pb-5 pt-2 text-center">
+        <img src="/brand/india_gate_lineart.png" alt="" className="mx-auto w-full max-w-[210px]" />
+        <div className="mt-1 text-[12px] font-semibold leading-tight text-white/85">
+          Transparent Procurement<br />Stronger India
+        </div>
+        <div className="mx-auto my-2.5 h-2 w-16 rounded-full"
+          style={{ background: "linear-gradient(90deg,#FF9933,#ffffff,#138808)", clipPath: "polygon(0 40%,100% 0,100% 60%,0 100%)" }} />
+        <p className="text-[11px] italic leading-snug text-white/55">
+          “Good governance<br />builds a stronger nation.”
         </p>
+        <p className="mt-0.5 text-[10px] text-white/45">— Government of India</p>
       </div>
     </div>
   );

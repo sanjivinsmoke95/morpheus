@@ -38,15 +38,17 @@ export function DashboardPage() {
         <div className="space-y-6">
           {/* Hero */}
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr]">
-              {/* clean building image on right */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] overflow-hidden rounded-r-2xl lg:block">
-                <img src="/brand/hero_building_clean.png" alt=""
-                  className="h-full w-full object-cover object-top" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface/85 via-transparent to-transparent" />
+            <div className="relative p-6 sm:p-8">
+              {/* polished hero graphic (chakra + dome + flag + quote + Viksit Bharat) on right */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] overflow-hidden rounded-r-2xl lg:block">
+                <img src="/brand/hero_v2.png" alt="Viksit Bharat — Standards build trust, trust builds a stronger nation"
+                  className="h-full w-full object-cover object-center" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/20 to-transparent" />
               </div>
 
-              <div className="relative z-10">
+              <div className="absolute right-6 top-4 z-10 hidden text-xs text-muted lg:block">{today}</div>
+
+              <div className="relative z-10 max-w-lg">
                 <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-primary">
                   AI-Powered · Standards-Driven · For a Stronger Bharat
                 </div>
@@ -66,15 +68,6 @@ export function DashboardPage() {
                     className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-semibold text-ink hover:bg-panel">
                     ▶ Watch How It Works
                   </Link>
-                </div>
-              </div>
-
-              {/* right visual text overlay: date + quote */}
-              <div className="relative z-10 hidden flex-col items-end text-right lg:flex">
-                <div className="text-xs text-muted">{today}</div>
-                <div className="mt-auto rounded-xl bg-surface/70 p-2 backdrop-blur-sm">
-                  <p className="font-display text-sm italic text-ink">"Standards build trust.<br />Trust builds a stronger nation."</p>
-                  <p className="mt-1 text-xs text-muted">— Government of India</p>
                 </div>
               </div>
             </div>
