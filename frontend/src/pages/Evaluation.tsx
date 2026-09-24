@@ -42,6 +42,7 @@ export function EvaluationPage() {
                     <th className="px-3 py-2">Method</th>
                     <th className="px-3 py-2 text-right">Precision@5</th>
                     <th className="px-3 py-2 text-right">Recall@5</th>
+                    <th className="px-3 py-2 text-right">nDCG@5</th>
                     <th className="px-3 py-2 text-right">MRR</th>
                     <th className="px-3 py-2 text-right">Evidence</th>
                   </tr>
@@ -52,6 +53,7 @@ export function EvaluationPage() {
                       <td className="px-3 py-2 font-medium text-ink">{METHOD_LABEL[m.method] ?? m.method}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-ink">{pct(m.precision_at_5)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-ink">{pct(m.recall_at_5)}</td>
+                      <td className="px-3 py-2 text-right tabular-nums text-ink">{pct(m.ndcg_at_5)}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-ink">{m.mrr?.toFixed(2) ?? "—"}</td>
                       <td className="px-3 py-2 text-right tabular-nums text-ink">{pct(m.evidence_precision)}</td>
                     </tr>

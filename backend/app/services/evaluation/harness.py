@@ -47,8 +47,16 @@ def _metrics(order: list[str], gold: set[str]) -> dict:
         if num in gold:
             mrr = 1.0 / i
             break
+
+    def ndcg_at(k: int) -> float:
+        import math
+        dcg = sum((1.0 / math.log2(i + 1)) for i, num in enumerate(order[:k], start=1) if num in gold)
+        ideal = sum((1.0 / math.log2(i + 1)) for i in range(1, min(k, len(gold)) + 1))
+        return dcg / ideal if ideal else 0.0
+
     return {"precision_at_k": {"3": round(p_at(3), 3), "5": round(p_at(5), 3)},
-            "recall_at_k": {"3": round(r_at(3), 3), "5": round(r_at(5), 3)}, "mrr": round(mrr, 3)}
+            "recall_at_k": {"3": round(r_at(3), 3), "5": round(r_at(5), 3)},
+            "ndcg_at_5": round(ndcg_at(5), 3), "mrr": round(mrr, 3)}
 
 
 def evaluate_case(db: Session, case: EvaluationCase) -> dict[str, dict]:
@@ -75,7 +83,9 @@ def run_evaluation(db: Session, run_label: str = "default") -> int:
         for method, m in per_method.items():
             db.add(EvaluationResult(
                 evaluation_case_id=case.id, run_label=run_label, method=method,
-                precision_at_k=m["precision_at_k"], recall_at_k=m["recall_at_k"], mrr=m["mrr"],
+                precision_at_k=m["precision_at_k"],
+                recall_at_k={**m["recall_at_k"], "ndcg5": m["ndcg_at_5"]},
+                mrr=m["mrr"],
                 # Morpheus grounds every recommendation in evidence by construction.
                 evidence_precision=1.0 if method == "morpheus" else None,
             ))
@@ -90,9 +100,10 @@ def summary(db: Session, run_label: str = "default") -> dict:
         return {"methods": [], "note": "No evaluation has been run yet."}
     agg: dict[str, dict] = {}
     for r in results:
-        a = agg.setdefault(r.method, {"p5": [], "r5": [], "mrr": [], "evidence": []})
+        a = agg.setdefault(r.method, {"p5": [], "r5": [], "ndcg5": [], "mrr": [], "evidence": []})
         a["p5"].append(r.precision_at_k.get("5", 0))
         a["r5"].append(r.recall_at_k.get("5", 0))
+        a["ndcg5"].append(r.recall_at_k.get("ndcg5", 0))
         a["mrr"].append(r.mrr)
         if r.evidence_precision is not None:
             a["evidence"].append(r.evidence_precision)
@@ -105,5 +116,6 @@ def summary(db: Session, run_label: str = "default") -> dict:
         if m in agg:
             a = agg[m]
             methods.append({"method": m, "precision_at_5": mean(a["p5"]), "recall_at_5": mean(a["r5"]),
-                            "mrr": mean(a["mrr"]), "evidence_precision": mean(a["evidence"])})
+                            "ndcg_at_5": mean(a["ndcg5"]), "mrr": mean(a["mrr"]),
+                            "evidence_precision": mean(a["evidence"])})
     return {"methods": methods, "cases": len({r.evaluation_case_id for r in results}), "run_label": run_label}
