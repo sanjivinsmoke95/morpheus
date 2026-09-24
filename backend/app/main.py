@@ -57,8 +57,10 @@ async def lifespan(_app: FastAPI):
             try:
                 from scripts.seed_showcase import main as seed_showcase
                 seed_showcase()  # idempotent pre-analysed demo tender; never blocks startup
+                from scripts.seed_scenarios import main as seed_scenarios
+                seed_scenarios()  # multilingual + other demo scenarios
             except Exception:  # noqa: BLE001
-                logger.exception("Showcase seed skipped")
+                logger.exception("Scenario seed skipped")
     yield
     logger.info("Shutting down")
 

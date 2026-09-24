@@ -17,6 +17,8 @@ logger = logging.getLogger(__name__)
 _ureg = UnitRegistry()
 # Common procurement synonyms pint doesn't know out of the box.
 _ureg.define("VA = volt * ampere")
+_ureg.define("Wp = watt")          # watt-peak (solar)
+_ureg.define("rpm = revolution / minute")
 
 # Canonical unit per physical dimension. Keyed on pint's dimensionality OBJECT
 # (a hashable UnitsContainer), computed at import — robust across pint versions,
@@ -39,6 +41,10 @@ _ALIASES = {
     "°c": "degC", "degc": "degC", "c": "degC", "k": "kelvin",
     "kg": "kilogram", "g": "gram", "t": "metric_ton", "ton": "metric_ton",
     "l": "liter", "ml": "milliliter",
+    "va": "VA", "kva": "kVA", "mva": "MVA",
+    "wp": "Wp", "kwp": "kWp",
+    "rpm": "rpm", "%": "percent", "percent": "percent",
+    "ah": "ampere_hour", "kwh": "kilowatt_hour",
 }
 
 

@@ -12,19 +12,21 @@ import re
 
 # Units we recognize (longest-first so 'mpa' matches before 'pa', 'kv' before 'v').
 _UNITS = [
+    "kva", "mva", "va", "kwp", "wp", "kwh",
     "kv", "mv", "v", "ka", "ma", "a", "khz", "mhz", "hz", "kw", "mw", "w",
     "mpa", "kpa", "pa", "mbar", "bar", "psi", "°c", "degc",
-    "mm", "cm", "km", "m", "kg", "g", "ml", "l", "va", "kva",
+    "mm", "cm", "km", "m", "kg", "g", "ml", "l",
+    "rpm", "ah", "%", "percent",
 ]
 _UNIT_RE = "|".join(sorted((re.escape(u) for u in _UNITS), key=len, reverse=True))
 _NUM = r"\d+(?:\.\d+)?"
 
 # value + unit, optional comparator words before it.
 _PARAM_RE = re.compile(
-    rf"(?P<num>{_NUM})\s*(?P<unit>{_UNIT_RE})\b",
+    rf"(?P<num>{_NUM})\s*(?P<unit>{_UNIT_RE})(?![a-z])",
     re.IGNORECASE,
 )
-_RANGE_RE = re.compile(rf"(?P<lo>{_NUM})\s*(?:to|-|–|—)\s*(?P<hi>{_NUM})\s*(?P<unit>{_UNIT_RE})\b", re.IGNORECASE)
+_RANGE_RE = re.compile(rf"(?P<lo>{_NUM})\s*(?:to|-|–|—)\s*(?P<hi>{_NUM})\s*(?P<unit>{_UNIT_RE})(?![a-z])", re.IGNORECASE)
 _IS_RE = re.compile(r"\bIS\s?(\d{2,5}(?:\s*[:/-]\s*\d{4})?(?:\s*\(?Part\s*\d+\)?)?)", re.IGNORECASE)
 _SECTION_RE = re.compile(r"^\s*(\d+(?:\.\d+){0,3})[\s.)]")
 
@@ -32,12 +34,14 @@ _UNIT_TO_KEY = {
     "v": "voltage", "kv": "voltage", "mv": "voltage",
     "a": "current", "ma": "current", "ka": "current",
     "hz": "frequency", "khz": "frequency", "mhz": "frequency",
-    "w": "power", "kw": "power", "mw": "power", "va": "power", "kva": "power",
+    "w": "power", "kw": "power", "mw": "power", "wp": "power", "kwp": "power",
+    "va": "capacity_rating", "kva": "capacity_rating", "mva": "capacity_rating",
     "bar": "pressure", "mbar": "pressure", "pa": "pressure", "kpa": "pressure",
     "mpa": "pressure", "psi": "pressure",
     "°c": "temperature", "degc": "temperature",
     "mm": "dimension", "cm": "dimension", "m": "dimension", "km": "dimension",
     "kg": "weight", "g": "weight", "l": "capacity", "ml": "capacity",
+    "rpm": "speed", "ah": "charge", "kwh": "energy", "%": "efficiency", "percent": "efficiency",
 }
 
 _MATERIALS = ["steel", "stainless steel", "cast iron", "copper", "aluminium", "aluminum",
