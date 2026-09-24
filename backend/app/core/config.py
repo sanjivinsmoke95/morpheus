@@ -36,8 +36,11 @@ class Settings(BaseSettings):
     embedding_provider: str = "stub"  # stub | openai_compatible | gemini
     embedding_dim: int = 768
     llm_api_key: str = ""
-    llm_base_url: str = ""
+    llm_base_url: str = ""             # OpenAI-compatible base, e.g. https://api.openai.com/v1
     llm_model: str = ""
+    embedding_api_key: str = ""
+    embedding_base_url: str = ""
+    embedding_model: str = ""
 
     # Object storage (uploaded documents, reports).
     object_store_dir: str = "./storage"

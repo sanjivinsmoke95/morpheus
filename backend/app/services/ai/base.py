@@ -35,6 +35,13 @@ class EmbeddingProvider(abc.ABC):
         ...
 
     @property
+    def is_semantic(self) -> bool:
+        """True only for a real learned embedding model. The deterministic hashing
+        stub returns False so the UI can honestly show OFFLINE DETERMINISTIC MODE
+        vs SEMANTIC AI MODE (mission Phase 5)."""
+        return False
+
+    @property
     @abc.abstractmethod
     def dim(self) -> int:
         ...

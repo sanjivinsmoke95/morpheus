@@ -122,6 +122,7 @@ def retrieve_for_requirement(db: Session, requirement, analysis_sector: str = ""
         signals = _signals(s, q_desc_low, param_keys, analysis_sector, q_tokens)
         raw.append(Candidate(standard=s, lexical=lex, semantic=best_sem, signals=signals, matched_chunk=best_chunk))
 
+    semantic_mode = get_embedder().is_semantic
     for c in raw:
         c.lexical = (c.lexical / lex_max) if lex_max else 0.0  # normalize lexical to [0,1]
         c.score = (
@@ -133,10 +134,19 @@ def retrieve_for_requirement(db: Session, requirement, analysis_sector: str = ""
             + WEIGHTS["material_match"] * c.signals["material_match"]
             + WEIGHTS["sector_match"] * c.signals["sector_match"]
         )
-        c.relevance = _band(c.score, c.semantic)
+        c.relevance = _band(c.score, c.semantic, c.signals, c.lexical, semantic_mode)
+        c.retrieval_method = "semantic+lexical" if semantic_mode else "deterministic"
 
     raw.sort(key=lambda c: c.score, reverse=True)
     return raw[:top_k]
+
+
+def _strong_deterministic(signals: dict, lexical: float) -> bool:
+    """A confident match from hard signals alone — used so good matches reach HIGH
+    even in offline mode instead of collapsing to MEDIUM. Not a probability."""
+    hard = signals.get("product_match", 0.0) + signals.get("parameter_match", 0.0)
+    return (hard >= 1.0 and signals.get("scope_match", 0.0) >= 0.3) or \
+           (signals.get("product_match", 0.0) >= 1.0 and lexical >= 0.6)
 
 
 def _signals(std: Standard, q_desc_low: str, param_keys: set[str], analysis_sector: str, q_tokens: list[str]) -> dict:
@@ -153,12 +163,18 @@ def _signals(std: Standard, q_desc_low: str, param_keys: set[str], analysis_sect
             "parameter_match": parameter_match, "graph_support": 0.0}
 
 
-def _band(score: float, semantic: float) -> str:
-    # Documented thresholds (search-ranking.md §5). HIGH also needs semantic
-    # support — with the stub embedder that is rarely met, which is honest: the
-    # system is less confident without a real embedding model.
-    if score >= 0.62 and semantic >= 0.55:
+def _band(score: float, semantic: float, signals: dict, lexical: float, semantic_mode: bool) -> str:
+    """Relevance band (search-ranking.md §5).
+
+    HIGH is reached either by real semantic support (when an embedding model is
+    enabled) OR by strong deterministic evidence (product+parameter+scope match).
+    This is honest: a keyword+signal match that hits the product category, a
+    parameter and the scope is genuinely a strong match, not a guessed probability.
+    Offline mode simply relies on the deterministic path.
+    """
+    strong = _strong_deterministic(signals, lexical)
+    if score >= 0.55 and (semantic >= 0.55 or strong):
         return "HIGH"
-    if score >= 0.40:
+    if score >= 0.34 or strong:
         return "MEDIUM"
     return "LOW"
