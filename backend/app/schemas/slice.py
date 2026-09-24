@@ -35,6 +35,9 @@ class AnalysisRead(BaseModel):
     workflow_status: str = "DRAFT"
     stage_error: str | None
     created_at: datetime
+    product_profile_json: dict | None = None
+    decision_trace_json: list | None = None
+    languages_json: list | None = None
 
 
 # ---- requirements ----

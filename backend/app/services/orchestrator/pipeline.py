@@ -41,14 +41,43 @@ def _set_status(db: Session, analysis: Analysis, status: AnalysisStatus, error: 
 
 def run_analysis(db: Session, analysis: Analysis) -> None:
     """Core pipeline over a given session (directly unit/E2E testable)."""
+    trace: list[dict] = []
     try:
-        _extract_requirements(db, analysis)
-        _recommend_all(db, analysis)
-        _audit(db, analysis)
+        _extract_requirements(db, analysis, trace)
+        _classify_product(db, analysis, trace)
+        _recommend_all(db, analysis, trace)
+        _audit(db, analysis, trace)
+        analysis.decision_trace_json = trace
         _set_status(db, analysis, AnalysisStatus.READY)
     except Exception as exc:  # noqa: BLE001 — record the failing stage, don't crash the worker
         logger.exception("pipeline failed for analysis %s", analysis.id)
         _set_status(db, analysis, AnalysisStatus.FAILED, error=str(exc)[:500])
+
+
+def _trace(trace: list[dict], step: str, detail: str) -> None:
+    trace.append({"n": len(trace) + 1, "step": step, "detail": detail})
+
+
+def _classify_product(db: Session, analysis: Analysis, trace: list[dict]) -> None:
+    """Derive the product/domain profile from the extracted requirements (Phase 1)."""
+    from app.services.classification.product import classify_product
+    reqs = db.execute(select(Requirement).where(Requirement.analysis_id == analysis.id)).scalars().all()
+    req_dicts = []
+    for r in reqs:
+        req_dicts.append({
+            "description": r.description, "requirement_type": r.requirement_type,
+            "attributes": _attrs_of(db, r),
+        })
+    profile = classify_product(req_dicts, analysis.sector)
+    analysis.product_profile_json = profile.to_dict()
+    # If the analysis had no sector, adopt the classifier's.
+    if not analysis.sector and profile.sector:
+        analysis.sector = profile.sector
+    db.commit()
+    _trace(trace, "Product classified",
+           f"{profile.product_category}"
+           + (f" · {profile.sub_category}" if profile.sub_category else "")
+           + (f" · {profile.sector}" if profile.sector else ""))
 
 
 def run_pipeline(analysis_id: str) -> None:
@@ -59,7 +88,7 @@ def run_pipeline(analysis_id: str) -> None:
             run_analysis(db, analysis)
 
 
-def _extract_requirements(db: Session, analysis: Analysis) -> None:
+def _extract_requirements(db: Session, analysis: Analysis, trace: list[dict]) -> None:
     _set_status(db, analysis, AnalysisStatus.EXTRACTING_REQUIREMENTS)
     pages = db.execute(
         select(DocumentPage).where(DocumentPage.document_id == analysis.document_id).order_by(DocumentPage.page_number)
@@ -68,7 +97,16 @@ def _extract_requirements(db: Session, analysis: Analysis) -> None:
     db.execute(delete(Requirement).where(Requirement.analysis_id == analysis.id))
     db.flush()
 
-    reqs = run_extraction([(p.page_number, p.text) for p in pages])
+    # Multilingual pre-pass (Phase 3): detect languages + produce canonical English text.
+    from app.services.extraction.multilingual import analyse_languages, canonicalize_pages
+    page_pairs = [(p.page_number, p.text) for p in pages]
+    langs = analyse_languages(page_pairs)
+    analysis.languages_json = langs
+    canonical_pages = canonicalize_pages(page_pairs)
+
+    reqs = run_extraction(canonical_pages)
+    lang_names = ", ".join(dict.fromkeys(l["language"] for l in langs)) or "English"
+    _trace(trace, "Language detected", lang_names)
     for r in reqs:
         req = Requirement(
             analysis_id=analysis.id, req_code=r["req_code"], requirement_type=r["requirement_type"],
@@ -86,28 +124,40 @@ def _extract_requirements(db: Session, analysis: Analysis) -> None:
                 value_high=_to_float(a.get("value_high")), confidence=r["confidence"],
             ))
     db.commit()
+    _trace(trace, "Requirements extracted", f"{len(reqs)} structured requirement(s) from {len(pages)} page(s)")
 
 
-def _recommend_all(db: Session, analysis: Analysis) -> None:
+def _recommend_all(db: Session, analysis: Analysis, trace: list[dict]) -> None:
     _set_status(db, analysis, AnalysisStatus.RETRIEVING)
     reqs = db.execute(select(Requirement).where(Requirement.analysis_id == analysis.id)).scalars().all()
+    total_recs = 0
     for req in reqs:
-        _recommend_for(db, analysis, req)
+        total_recs += _recommend_for(db, analysis, req)
     _set_status(db, analysis, AnalysisStatus.CLASSIFYING)
     db.commit()
+    _trace(trace, "Standards retrieved & ranked",
+           f"{total_recs} candidate standard(s) across {len(reqs)} requirement(s), applicability-gated")
 
 
-def _audit(db: Session, analysis: Analysis) -> None:
+def _audit(db: Session, analysis: Analysis, trace: list[dict]) -> None:
     _set_status(db, analysis, AnalysisStatus.AUDITING)
     from app.services.audit.conflicts import detect_conflicts
     from app.services.audit.coverage import run_coverage_and_gaps
 
-    detect_conflicts(db, analysis.id)
+    conflicts = detect_conflicts(db, analysis.id)
     run_coverage_and_gaps(db, analysis.id)
     # Snapshot for historical comparison of future tenders.
     from app.services.advanced.service import store_as_historical
     store_as_historical(db, analysis)
     db.commit()
+    from app.models import Conflict, Gap
+    from sqlalchemy import func as _func
+    n_conf = db.execute(select(_func.count()).select_from(Conflict).where(Conflict.analysis_id == analysis.id)).scalar_one()
+    n_gap = db.execute(select(_func.count()).select_from(Gap).where(Gap.analysis_id == analysis.id)).scalar_one()
+    _trace(trace, "Version & amendment checked", "Referenced editions compared to current on file")
+    _trace(trace, "QCO / certification checked", "Regulatory records matched to recommended standards")
+    _trace(trace, "Coverage, gaps & conflicts computed", f"{n_conf} conflict(s), {n_gap} potential gap(s)")
+    _trace(trace, "Officer review required", "Findings are grounded in evidence; the officer decides")
 
 
 def _attrs_of(db: Session, requirement: Requirement) -> list[dict]:
@@ -125,7 +175,7 @@ def _recommend_for(db: Session, analysis: Analysis, requirement: Requirement) ->
     query = _ReqQuery(description=requirement.description, attributes=_attrs_of(db, requirement))
     candidates = retrieve_for_requirement(db, query, analysis.sector, top_k=5)
     if not candidates:
-        return
+        return 0
 
     # Referenced-standard match?
     referenced = _referenced_norms(query.attributes)
@@ -155,6 +205,7 @@ def _recommend_for(db: Session, analysis: Analysis, requirement: Requirement) ->
     if best_included is not None:
         best_included.is_primary = True
     db.commit()
+    return len(candidates)
 
 
 def rerun_requirement(analysis_id: str, requirement_id: str) -> None:
