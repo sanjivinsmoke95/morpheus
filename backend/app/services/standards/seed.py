@@ -72,9 +72,40 @@ def seed_demo_standards(db: Session) -> int:
         created += 1
     if created:
         db.commit()
+    created += _seed_public_metadata(db, now)
     _seed_graph(db, now)
     if created:
-        logger.info("Seeded %d demo standards + graph.", created)
+        logger.info("Seeded %d standards (demo + public metadata) + graph.", created)
+    return created
+
+
+def _seed_public_metadata(db: Session, now: str) -> int:
+    """Seed real public IS metadata (number/title/sector only) — origin PUBLIC_METADATA."""
+    from app.data.public_standards import PUBLIC_STANDARDS
+    embedder = get_embedder()
+    created = 0
+    for std in PUBLIC_STANDARDS:
+        if db.execute(select(Standard).where(Standard.is_number == std["is_number"])).scalar_one_or_none():
+            continue
+        scope = std.get("title", "")  # functional summary; no copyrighted clause text
+        record = Standard(
+            is_number=std["is_number"], is_number_normalized=normalize_is_number(std["is_number"]),
+            title=std["title"], scope=scope, sector=std.get("sector", ""),
+            product_categories=std.get("product_categories", []), materials=std.get("materials", []),
+            keywords=std.get("keywords", []), status="ACTIVE", current_version=std["is_number"].split(":")[-1].strip(),
+            data_origin=DataOrigin.PUBLIC_METADATA.value, source_name="PUBLIC_METADATA",
+            source_url="", retrieved_at=now,
+        )
+        db.add(record)
+        db.flush()
+        chunks = _chunks_for({**std, "scope": scope})
+        vectors = embedder.embed([c for _, c in chunks])
+        for (ctype, content), vec in zip(chunks, vectors):
+            db.add(StandardChunk(standard_id=record.id, chunk_type=ctype, content=content,
+                                 embedding=vec, embedding_model=embedder.model))
+        created += 1
+    if created:
+        db.commit()
     return created
 
 

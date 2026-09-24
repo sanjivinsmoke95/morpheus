@@ -105,8 +105,11 @@ class QcoStatus(StrEnum):
 
 class DataOrigin(StrEnum):
     AUTHORITATIVE = "AUTHORITATIVE"
+    VERIFIED_RECORD = "VERIFIED_RECORD"      # human-verified authoritative record
+    PUBLIC_METADATA = "PUBLIC_METADATA"      # public IS number/title/sector, no copyrighted text
     CURATED = "CURATED"
     DEMO_SYNTHETIC = "DEMO_SYNTHETIC"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
 
 
 class AnalysisStatus(StrEnum):
