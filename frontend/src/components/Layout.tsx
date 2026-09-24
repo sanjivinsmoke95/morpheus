@@ -100,6 +100,9 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:flex">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">
+        Skip to content
+      </a>
       {/* Desktop sidebar */}
       <aside className="hidden w-64 flex-none lg:block">
         <div className="fixed inset-y-0 left-0 w-64">{sidebar}</div>
@@ -162,7 +165,7 @@ export function Layout() {
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+        <main id="main-content" role="main" tabIndex={-1} className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
           <Outlet />
         </main>
         <footer className="mx-auto max-w-[1400px] px-4 pb-8 sm:px-6 lg:px-8">
