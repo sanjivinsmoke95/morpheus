@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { MiiCard } from "@/components/MiiCard";
+import { GfrCard } from "@/components/GfrCard";
 import { Card, EmptyState, SectionAccordion, Skeleton, StatusChip } from "@/components/ui";
 import { useAnalysis, useCoverageByCategory, useReadiness } from "@/lib/morpheus";
 
@@ -167,6 +168,7 @@ export function OverviewPage() {
           )}
 
           <MiiCard analysisId={id} />
+          <GfrCard analysisId={id} />
 
           {/* AI decision trace */}
           {trace.length > 0 && (

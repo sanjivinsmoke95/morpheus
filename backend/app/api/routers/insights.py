@@ -90,6 +90,13 @@ def make_in_india(analysis_id: str, db: Session = Depends(get_db), _: User = Dep
     }
 
 
+@router.get("/analyses/{analysis_id}/gfr")
+def gfr(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> dict:
+    """GFR 2017 advisory procurement-review flags (Phase 16)."""
+    from app.services.audit.gfr import gfr_review
+    return gfr_review(db, analysis_id)
+
+
 @router.get("/analyses/{analysis_id}/report-summary")
 def report_summary(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> dict:
     """The same curated content the PDF shows, as JSON for the on-screen report."""

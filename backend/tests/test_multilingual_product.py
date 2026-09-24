@@ -65,3 +65,26 @@ def test_product_classification_uncategorised_is_honest():
     p = classify_product([{"description": "xyz abc nothing here", "requirement_type": "PARAMETER", "attributes": []}], "")
     assert p.product_category == "Uncategorised"
     assert p.confidence == "LOW"
+
+
+def test_gfr_flags_brand_without_equivalent(tmp_path):
+    # Unit-level: the rule engine over raw text (no DB) via a light shim.
+    from app.services.audit import gfr as gfr_mod
+
+    class _P:
+        def __init__(self, t): self.text = t
+    class _Doc: document_id = "d1"
+    # monkeypatch _text to return our sample
+    sample = "the switchgear shall be of siemens make. supply of panel boards."
+    orig = gfr_mod._text
+    gfr_mod._text = lambda db, a: sample  # type: ignore
+    try:
+        class _A: id="a1"; document_id="d1"
+        class _DB:
+            def get(self, *_): return _A()
+        r = gfr_mod.gfr_review(_DB(), "a1")
+    finally:
+        gfr_mod._text = orig
+    rules = {f["rule"] for f in r["flags"]}
+    assert "Rule 173" in rules  # brand without 'or equivalent'
+    assert r["status"] == "REVIEW"

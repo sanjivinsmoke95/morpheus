@@ -578,3 +578,13 @@ export function useDocument(documentId: string | undefined) {
     enabled: !!documentId,
   });
 }
+
+// ---- Phase 16: GFR procurement review ----
+export interface GfrFlag { rule: string; severity: string; title: string; detail: string; action: string; }
+export interface GfrReview { available: boolean; status: string; flag_count: number; flags: GfrFlag[]; disclaimer: string; }
+export function useGfr(analysisId: string) {
+  return useQuery<GfrReview>({
+    queryKey: ["gfr", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/gfr`)).data,
+  });
+}
