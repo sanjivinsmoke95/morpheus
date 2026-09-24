@@ -38,14 +38,12 @@ export function DashboardPage() {
         <div className="space-y-6">
           {/* Hero */}
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-            <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-2">
-              {/* building image bg on right */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] lg:block">
-                <img src="/brand/hero_india_government_building.png" alt=""
-                  className="h-full w-full object-cover object-right opacity-95" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/85 to-transparent" />
-                <img src="/brand/ashoka_chakra_motif.png" alt=""
-                  className="absolute right-10 top-6 h-24 w-24 opacity-15" />
+            <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr]">
+              {/* clean building image on right */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[42%] overflow-hidden rounded-r-2xl lg:block">
+                <img src="/brand/hero_building_clean.png" alt=""
+                  className="h-full w-full object-cover object-top" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/25 to-transparent" />
               </div>
 
               <div className="relative z-10">
@@ -71,10 +69,10 @@ export function DashboardPage() {
                 </div>
               </div>
 
-              {/* right visual text overlay */}
-              <div className="relative z-10 hidden flex-col items-end justify-between text-right lg:flex">
+              {/* right visual text overlay: date + quote */}
+              <div className="relative z-10 hidden flex-col items-end text-right lg:flex">
                 <div className="text-xs text-muted">{today}</div>
-                <div>
+                <div className="mt-auto rounded-xl bg-surface/70 p-2 backdrop-blur-sm">
                   <p className="font-display text-sm italic text-ink">"Standards build trust.<br />Trust builds a stronger nation."</p>
                   <p className="mt-1 text-xs text-muted">— Government of India</p>
                 </div>
@@ -193,17 +191,13 @@ export function DashboardPage() {
             </div>
           </Card>
 
-          {/* Mountain card */}
+          {/* Mountain card — text is baked into the asset; only add the button */}
           <div className="relative overflow-hidden rounded-2xl">
-            <img src="/brand/mountain_procurement_card.png" alt="" className="h-40 w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/10" />
-            <div className="absolute inset-0 flex flex-col justify-center p-5 text-white">
-              <div className="font-display text-lg font-semibold leading-tight">Efficient Procurement<br />Stronger Nation</div>
-              <button onClick={() => navigate("/analytics")}
-                className="mt-3 inline-flex w-fit items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-white">
-                Learn More →
-              </button>
-            </div>
+            <img src="/brand/mountain_card_clean.png" alt="Efficient Procurement, Stronger Nation" className="w-full object-cover" />
+            <button onClick={() => navigate("/analytics")}
+              className="absolute bottom-4 left-4 inline-flex w-fit items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-primary shadow hover:bg-white">
+              Learn More →
+            </button>
           </div>
 
           <Card className="p-5">

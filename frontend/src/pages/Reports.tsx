@@ -35,9 +35,9 @@ export function ReportsPage() {
           <div className="space-y-6">
             {/* Hero banner */}
             <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-6">
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 lg:block">
-                <img src="/brand/hero_india_government_building.png" alt="" className="h-full w-full object-cover object-right opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/70 to-transparent" />
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/4 overflow-hidden rounded-r-2xl lg:block">
+                <img src="/brand/hero_building_clean.png" alt="" className="h-full w-full object-cover object-top" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/30 to-transparent" />
               </div>
               <div className="relative">
                 <h1 className="font-display text-2xl font-bold text-primary">Standards-Aligned Procurement Report</h1>
