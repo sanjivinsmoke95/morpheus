@@ -77,8 +77,6 @@ PUBLIC_STANDARDS: list[dict] = [
     {"is_number": "IS 16077 : 2013", "title": "Photovoltaic systems — charge controllers",
      "sector": "electrical", "product_categories": ["charge controller", "solar"], "keywords": ["solar", "charge controller", "mppt", "pv"]},
     # ── mechanical / water ──
-    {"is_number": "IS 1520 : 1980", "title": "Horizontal centrifugal pumps for clear cold fresh water",
-     "sector": "mechanical", "product_categories": ["centrifugal pump", "pump"], "keywords": ["pump", "centrifugal", "water", "head", "discharge"]},
     {"is_number": "IS 9137 : 1978", "title": "Code for acceptance tests for centrifugal, mixed and axial flow pumps",
      "sector": "mechanical", "product_categories": ["pump", "pump test"], "keywords": ["pump", "test", "acceptance", "performance"]},
     {"is_number": "IS 554 : 1999", "title": "Dimensions for pipe threads for fastening purposes",

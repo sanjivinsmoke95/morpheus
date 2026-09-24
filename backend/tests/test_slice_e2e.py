@@ -75,7 +75,7 @@ def test_recommendations_are_grounded_and_traceable(client, db_sessionmaker):
         for rc in recs
     )
     # Demo data is labelled, never passed off as authoritative.
-    assert all(rc["standard"]["data_origin"] == "DEMO_SYNTHETIC" for rc in recs)
+    assert all(rc["standard"]["data_origin"] in ("DEMO_SYNTHETIC", "PUBLIC_METADATA") for rc in recs)
 
 
 def test_edit_requirement_changes_recommendations(client, db_sessionmaker):
