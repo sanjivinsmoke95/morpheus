@@ -1,8 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { MiiCard } from "@/components/MiiCard";
-import { Card, EmptyState, Skeleton } from "@/components/ui";
-import { useCoverageByCategory, useReadiness } from "@/lib/morpheus";
+import { Card, EmptyState, SectionAccordion, Skeleton, StatusChip } from "@/components/ui";
+import { useAnalysis, useCoverageByCategory, useReadiness } from "@/lib/morpheus";
 
 function assessment(pct: number) {
   if (pct >= 90) return { label: "Fully Compliant", tone: "success" };
@@ -13,8 +13,14 @@ function assessment(pct: number) {
 
 export function OverviewPage() {
   const { id = "" } = useParams();
+  const { data: analysis } = useAnalysis(id);
   const { data: r, isLoading } = useReadiness(id);
   const { data: categories } = useCoverageByCategory(id);
+  const profile = analysis?.product_profile_json;
+  const languages = analysis?.languages_json ?? [];
+  const trace = analysis?.decision_trace_json ?? [];
+  const allLangs = [...new Set(languages.flatMap((l) => l.languages))];
+  const multilingual = allLangs.length > 1 || languages.some((l) => l.mixed);
 
   const total = r?.requirements_total ?? 0;
   const covered = r?.requirements_covered ?? 0;
@@ -132,7 +138,55 @@ export function OverviewPage() {
             </Card>
           </div>
 
+          {/* Product profile + languages */}
+          {profile && profile.product_category && (
+            <Card className="p-5">
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-base font-semibold text-ink">Product / Domain</h2>
+                <StatusChip tone={profile.confidence === "HIGH" ? "success" : profile.confidence === "MEDIUM" ? "warning" : "neutral"}>
+                  {profile.confidence} confidence
+                </StatusChip>
+                <span className="rounded-md bg-panel px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted">{profile.method.replace("_", " ")}</span>
+                {allLangs.length > 0 && (
+                  <span className="ml-auto flex items-center gap-1.5 text-xs text-muted">
+                    Language:
+                    <span className="font-medium text-ink">{allLangs.join(" + ")}</span>
+                    {multilingual && <StatusChip tone="info">Multilingual extraction</StatusChip>}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <ProfileChip label="Category" value={profile.product_category} strong />
+                {profile.sub_category && <ProfileChip label="Sub-category" value={profile.sub_category} />}
+                {profile.sector && <ProfileChip label="Sector" value={profile.sector} />}
+                {profile.installation && <ProfileChip label="Installation" value={profile.installation} />}
+                {profile.phases != null && <ProfileChip label="Phases" value={String(profile.phases)} />}
+                {Object.entries(profile.parameters).map(([k, v]) => <ProfileChip key={k} label={k} value={v} />)}
+              </div>
+            </Card>
+          )}
+
           <MiiCard analysisId={id} />
+
+          {/* AI decision trace */}
+          {trace.length > 0 && (
+            <SectionAccordion title={`AI Decision Trace (${trace.length} steps)`}>
+              <ol className="divide-y divide-line">
+                {trace.map((s) => (
+                  <li key={s.n} className="flex items-start gap-3 px-4 py-2.5">
+                    <span className="grid h-6 w-6 flex-none place-items-center rounded-full bg-primary-soft text-[11px] font-bold text-primary">{String(s.n).padStart(2, "0")}</span>
+                    <div>
+                      <div className="text-sm font-medium text-ink">{s.step}</div>
+                      <div className="text-xs text-muted">{s.detail}</div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+              <p className="border-t border-line px-4 py-2 text-[11px] text-muted">
+                Concise, user-facing decision factors — not hidden model reasoning. Every step maps to a real system stage.
+              </p>
+            </SectionAccordion>
+          )}
 
           {/* AI Insights + Next Steps */}
           <Card className="p-5">
@@ -173,6 +227,15 @@ export function OverviewPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function ProfileChip({ label, value, strong }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm ${strong ? "border-primary/30 bg-primary-soft" : "border-line bg-surface"}`}>
+      <span className="text-[10px] uppercase tracking-wide text-muted">{label.replace(/_/g, " ")}</span>
+      <span className={`font-semibold capitalize ${strong ? "text-primary" : "text-ink"}`}>{value}</span>
+    </span>
   );
 }
 

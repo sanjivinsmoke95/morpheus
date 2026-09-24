@@ -10,6 +10,14 @@ export interface DocumentRead {
   is_scanned: boolean;
 }
 
+export interface ProductProfile {
+  product_category: string; sub_category: string; sector: string; installation: string;
+  phases: number | null; parameters: Record<string, string>; method: string;
+  matched_keywords: string[]; confidence: string;
+}
+export interface LanguageInfo { page: number; language: string; script: string; mixed: boolean; languages: string[]; }
+export interface TraceStep { n: number; step: string; detail: string; }
+
 export interface Analysis {
   id: string;
   document_id: string;
@@ -19,6 +27,9 @@ export interface Analysis {
   workflow_status?: string;
   stage_error: string | null;
   created_at: string;
+  product_profile_json?: ProductProfile | null;
+  decision_trace_json?: TraceStep[] | null;
+  languages_json?: LanguageInfo[] | null;
 }
 
 export interface ReqAttribute {
