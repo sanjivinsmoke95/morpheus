@@ -8,6 +8,7 @@ from app.api.deps import get_current_user
 from app.db import get_db
 from app.models import Evidence, Recommendation, RecommendationEvidence, Standard, User
 from app.schemas.slice import EvidenceRead, RecommendationRead, StandardMini
+from app.services.classification.explain import build_why, build_why_not
 
 router = APIRouter(tags=["recommendations"])
 
@@ -17,6 +18,7 @@ def _read(db: Session, rec: Recommendation) -> RecommendationRead:
     ev_ids = [re.evidence_id for re in db.execute(
         select(RecommendationEvidence).where(RecommendationEvidence.recommendation_id == rec.id)).scalars()]
     evidence = list(db.execute(select(Evidence).where(Evidence.id.in_(ev_ids))).scalars()) if ev_ids else []
+    version_status = (std.status if std and std.status in ("OUTDATED", "SUPERSEDED") else "CURRENT")
     return RecommendationRead(
         id=rec.id, requirement_id=rec.requirement_id, standard=StandardMini.model_validate(std),
         applicability_class=rec.applicability_class, relevance=rec.relevance, relevance_score=rec.relevance_score,
@@ -24,6 +26,8 @@ def _read(db: Session, rec: Recommendation) -> RecommendationRead:
         confidence=rec.confidence, final_rank=rec.final_rank, is_primary=rec.is_primary,
         review_status=rec.review_status, excluded=rec.excluded, exclusion_reason=rec.exclusion_reason,
         evidence=[EvidenceRead.model_validate(e) for e in evidence],
+        why=build_why(rec.signals_json, rec.applicability_class, rec.relevance, version_status),
+        why_not=build_why_not(rec.signals_json, rec.exclusion_reason, version_status) if rec.excluded else [],
     )
 
 

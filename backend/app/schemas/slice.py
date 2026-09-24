@@ -113,6 +113,8 @@ class RecommendationRead(BaseModel):
     excluded: bool
     exclusion_reason: str
     evidence: list[EvidenceRead] = []
+    why: list[dict] = []
+    why_not: list[dict] = []
 
 
 # ---- reviews ----

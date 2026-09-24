@@ -131,10 +131,22 @@ function StandardCard({ rec, mandatory, onDecide }: {
           <div className="mt-0.5 text-sm text-ink">{rec.standard.title}</div>
           {rec.rationale && <div className="mt-1 text-xs text-muted">{rec.rationale}</div>}
 
+          {/* Why this applies (Phase 7) */}
+          {rec.why && rec.why.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
+              {rec.why.map((w, i) => (
+                <span key={i} className="inline-flex items-center gap-1 text-[11px] text-ink" title={w.detail}>
+                  <span className="text-success">✓</span> {w.factor}
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <div className="w-48"><MatchBar score={rec.relevance_score} /></div>
             <StatusChip tone="info">{rec.applicability_class.replace(/_/g, " ")}</StatusChip>
             <StatusChip tone="neutral">{rec.relevance} relevance</StatusChip>
+            <StatusChip tone="neutral">{rec.retrieval_method === "semantic+lexical" ? "Semantic AI" : "Deterministic"}</StatusChip>
           </div>
         </div>
       </div>

@@ -85,6 +85,8 @@ export interface Recommendation {
   excluded: boolean;
   exclusion_reason: string;
   evidence: Evidence[];
+  why?: { factor: string; detail: string }[];
+  why_not?: { reason: string; detail: string }[];
 }
 
 export interface Decision {
