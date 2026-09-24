@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_roles
-from app.core.security import create_access_token, hash_password
+from app.core.config import settings
+from app.core.security import create_access_token, hash_password, verify_password
 from app.db import get_db
 from app.models import User
 from app.models.enums import Role
@@ -16,14 +17,17 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
-    # DEV MODE: password check is intentionally disabled — any password logs in
-    # the user with the given email. Re-enable verify_password() before any real
-    # deployment.
+    # AUTH_DEV_MODE (Phase 21): in dev the password is not checked so the seeded
+    # demo users log in with one click. In production AUTH_DEV_MODE=false enforces
+    # verify_password(). Production also rejects the insecure default SECRET_KEY.
+    dev_mode = settings.auth_dev_mode and settings.environment != "production"
     user = db.execute(select(User).where(User.email == payload.email.lower())).scalar_one_or_none()
     if not user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "No account for that email")
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Account is inactive")
+    if not dev_mode and not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid email or password")
     token = create_access_token(subject=user.id, role=user.role)
     return TokenResponse(access_token=token, user=UserRead.model_validate(user))
 

@@ -80,3 +80,22 @@ generation, CSV imports. Review decisions additionally snapshot AI + evidence
 - Graceful degradation: AI/embedding/DB/Neo4j failures return typed errors
   (`UPSTREAM_AI_ERROR`, etc.), mark affected items `REVIEW_REQUIRED`, and never
   fabricate a result to fill the gap.
+
+## Authentication & hardening (Phase 21)
+
+- **AUTH_DEV_MODE** (default `true` in dev): the seeded demo users log in with any
+  password (one-click role switch). Set `AUTH_DEV_MODE=false` for production — then
+  `verify_password()` (bcrypt) is enforced on `/auth/login`.
+- **Production boot gates** (`app/main.py` lifespan): the app refuses to start in
+  `ENVIRONMENT=production` if `SECRET_KEY` is the insecure default or `AUTH_DEV_MODE`
+  is still true.
+- **Security headers** (middleware): `X-Content-Type-Options: nosniff`, `X-Frame-Options:
+  DENY`, `Referrer-Policy: no-referrer`, `X-XSS-Protection`, `Permissions-Policy`; and
+  `Strict-Transport-Security` in production.
+- **Uploads**: MIME allow-list (PDF/DOCX/TXT), size limit (`MAX_UPLOAD_MB`), empty-file
+  and corrupt-file rejection (→ 422); stored under an object-store key, never by raw
+  client filename (no path traversal).
+- **Secrets**: `SECRET_KEY`, DB URL, and provider API keys are environment-only; `.env`,
+  `dev.db`, `_pytest.db`, `.venv/` are gitignored. No secret is ever sent to the frontend.
+- **Audit trail**: officer/reviewer decisions are persisted with immutable AI + evidence
+  snapshots (`ReviewDecision.ai_snapshot_json` / `evidence_snapshot_json`).

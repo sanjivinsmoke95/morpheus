@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     secret_key: str = "dev-insecure-secret-change-me"
     access_token_expire_minutes: int = 60 * 12
     jwt_algorithm: str = "HS256"
+    # Dev convenience: any password logs in the seeded demo users. MUST be False in
+    # production, where verify_password() is enforced (mission Phase 21).
+    auth_dev_mode: bool = True
 
     # Database — default Postgres (docker-compose); local dev overrides with SQLite.
     database_url: str = "postgresql+psycopg2://morpheus:morpheus@localhost:5432/morpheus"

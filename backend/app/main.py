@@ -36,6 +36,13 @@ _CODE_BY_STATUS = {
 async def lifespan(_app: FastAPI):
     configure_logging()
     logger.info("Starting %s (%s)", settings.app_name, settings.environment)
+    # Production safety gates (Phase 21): never boot prod with the insecure default
+    # secret or with the demo-login bypass enabled.
+    if settings.environment == "production":
+        if settings.secret_key == "dev-insecure-secret-change-me":
+            raise RuntimeError("SECRET_KEY must be set to a strong value in production.")
+        if settings.auth_dev_mode:
+            raise RuntimeError("AUTH_DEV_MODE must be false in production.")
     if settings.environment in ("development", "test"):
         Base.metadata.create_all(bind=engine)
         if settings.environment == "development":
@@ -70,6 +77,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """Baseline security headers (Phase 21)."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+    if settings.environment == "production":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    return response
 
 
 def _error(status_code: int, message: str, details: dict | None = None) -> JSONResponse:
