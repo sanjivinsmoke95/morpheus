@@ -29,12 +29,26 @@ def qco(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_c
         return []
     rows = db.execute(select(QcoRecord).where(QcoRecord.standard_id.in_(ids))).scalars().all()
     std = {s.id: s for s in db.execute(select(Standard).where(Standard.id.in_(ids))).scalars()}
-    return [{"is_number": std.get(q.standard_id).is_number if std.get(q.standard_id) else None,
-             "qco_status": q.qco_status, "product_description": q.product_description,
-             "order_name": q.order_name,
-             "effective_date": q.effective_date.isoformat() if q.effective_date else None,
-             "notes": q.notes, "source_name": q.source_name, "source_url": q.source_url,
-             "retrieved_at": q.retrieved_at, "data_origin": q.data_origin} for q in rows]
+    out = [{"is_number": std.get(q.standard_id).is_number if std.get(q.standard_id) else None,
+            "qco_status": q.qco_status, "product_description": q.product_description,
+            "order_name": q.order_name,
+            "effective_date": q.effective_date.isoformat() if q.effective_date else None,
+            "notes": q.notes, "source_name": q.source_name, "source_url": q.source_url,
+            "retrieved_at": q.retrieved_at, "data_origin": q.data_origin} for q in rows]
+    # Phase 15: standards with NO QCO record on file → explicit REVIEW_REQUIRED, never
+    # silently assumed voluntary. Provenance is clear; status is never fabricated.
+    with_record = {q.standard_id for q in rows}
+    for sid in ids - with_record:
+        s = std.get(sid)
+        if s:
+            out.append({"is_number": s.is_number, "qco_status": "REVIEW_REQUIRED",
+                        "product_description": s.title, "order_name": "",
+                        "effective_date": None, "notes": "No QCO record on file — verify with BIS.",
+                        "source_name": "", "source_url": "", "retrieved_at": "",
+                        "data_origin": "REVIEW_REQUIRED"})
+    order = {"MANDATORY": 0, "VOLUNTARY": 1, "UNKNOWN": 2, "REVIEW_REQUIRED": 3}
+    out.sort(key=lambda x: order.get(x["qco_status"], 4))
+    return out
 
 
 @router.get("/analyses/{analysis_id}/certification")

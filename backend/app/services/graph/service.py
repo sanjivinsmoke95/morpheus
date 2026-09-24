@@ -60,8 +60,34 @@ def analysis_graph(db: Session, analysis_id: str) -> dict:
     node_ids = rec_std_ids | neighbours
 
     standards = db.execute(select(Standard).where(Standard.id.in_(node_ids))).scalars().all()
-    nodes = [{**_node(s), "recommended": s.id in rec_std_ids} for s in standards]
+    nodes = [{**_node(s), "node_type": "STANDARD", "recommended": s.id in rec_std_ids} for s in standards]
     edges = [_edge(r) for r in _relationships_within(db, node_ids)]
+
+    # Phase 10: enrich with a PRODUCT node (why a standard applies) + QCO nodes.
+    from app.models import Analysis, QcoRecord
+    analysis = db.get(Analysis, analysis_id)
+    profile = (analysis.product_profile_json or {}) if analysis else {}
+    category = profile.get("product_category")
+    if category and category != "Uncategorised":
+        pid = "product::" + analysis_id
+        nodes.append({"id": pid, "is_number": "PRODUCT", "title": category,
+                      "status": "ACTIVE", "sector": profile.get("sector", ""),
+                      "data_origin": "DERIVED", "node_type": "PRODUCT", "recommended": False})
+        for sid in rec_std_ids:
+            edges.append({"id": f"applies::{sid}", "from": pid, "to": sid,
+                          "relationship_type": "APPLIES_TO", "relationship_confidence": "MEDIUM",
+                          "source_name": "DERIVED", "data_origin": "DERIVED", "evidence_id": None})
+
+    for q in db.execute(select(QcoRecord).where(
+            QcoRecord.standard_id.in_(rec_std_ids), QcoRecord.qco_status == "MANDATORY")).scalars():
+        qid = "qco::" + q.id
+        std = next((s for s in standards if s.id == q.standard_id), None)
+        nodes.append({"id": qid, "is_number": "QCO", "title": (std.is_number + " — QCO mandatory") if std else "QCO",
+                      "status": "MANDATORY", "sector": "", "data_origin": q.data_origin,
+                      "node_type": "QCO", "recommended": False})
+        edges.append({"id": f"subjqco::{q.id}", "from": q.standard_id, "to": qid,
+                      "relationship_type": "SUBJECT_TO_QCO", "relationship_confidence": "HIGH",
+                      "source_name": q.source_name, "data_origin": q.data_origin, "evidence_id": None})
     return {"nodes": nodes, "edges": edges}
 
 
