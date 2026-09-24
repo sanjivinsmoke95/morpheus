@@ -16,11 +16,11 @@ const VERDICT: Record<string, { label: string; cls: string }> = {
 };
 
 const STEPS = [
-  { n: 1, icon: "doc", title: "Understand", desc: "Extract requirements from your document" },
-  { n: 2, icon: "book", title: "Map Standards", desc: "Find applicable Indian Standards" },
-  { n: 3, icon: "warn", title: "Validate", desc: "Detect gaps, conflicts and outdated references" },
-  { n: 4, icon: "explain", title: "Explain", desc: "Get evidence and rationale for every match" },
-  { n: 5, icon: "report", title: "Report", desc: "Generate a comprehensive review report" },
+  { n: 1, icon: "doc", tone: "bg-success-soft text-success", title: "Understand", desc: "Extract requirements from your document" },
+  { n: 2, icon: "book", tone: "bg-success-soft text-success", title: "Map Standards", desc: "Find applicable Indian Standards" },
+  { n: 3, icon: "warn", tone: "bg-danger-soft text-danger", title: "Validate", desc: "Detect gaps, conflicts and outdated references" },
+  { n: 4, icon: "explain", tone: "bg-primary-soft text-primary", title: "Explain", desc: "Get evidence and rationale for every match" },
+  { n: 5, icon: "report", tone: "bg-warning-soft text-warning", title: "Report", desc: "Generate a comprehensive review report" },
 ];
 
 export function DashboardPage() {
@@ -75,11 +75,13 @@ export function DashboardPage() {
             {/* Process strip */}
             <div className="grid grid-cols-2 gap-px border-t border-line bg-line sm:grid-cols-3 lg:grid-cols-5">
               {STEPS.map((s) => (
-                <div key={s.n} className="flex items-start gap-2.5 bg-surface p-4">
-                  <StepIcon name={s.icon} />
+                <div key={s.n} className="group flex items-start gap-2.5 bg-surface p-4 transition-colors hover:bg-panel/50">
+                  <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg transition-transform duration-200 group-hover:scale-110 ${s.tone}`}>
+                    <StepIcon name={s.icon} small />
+                  </span>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-bold text-muted">{s.n}</span>
+                      <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-white">{s.n}</span>
                       <span className="text-xs font-semibold text-ink">{s.title}</span>
                     </div>
                     <div className="mt-0.5 text-[11px] leading-snug text-muted">{s.desc}</div>
