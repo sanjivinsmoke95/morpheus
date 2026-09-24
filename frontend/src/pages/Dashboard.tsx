@@ -40,10 +40,10 @@ export function DashboardPage() {
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
             <div className="relative grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.15fr_1fr]">
               {/* clean building image on right */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[42%] overflow-hidden rounded-r-2xl lg:block">
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[46%] overflow-hidden rounded-r-2xl lg:block">
                 <img src="/brand/hero_building_clean.png" alt=""
                   className="h-full w-full object-cover object-top" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/25 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface/85 via-transparent to-transparent" />
               </div>
 
               <div className="relative z-10">
