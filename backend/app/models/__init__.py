@@ -6,7 +6,7 @@ from app.models.standard import Standard, StandardChunk
 from app.models.relationship import StandardAmendment, StandardRelationship, StandardVersion
 from app.models.evidence import Evidence
 from app.models.recommendation import Recommendation, RecommendationEvidence
-from app.models.review import Review, ReviewDecision
+from app.models.review import AnalysisComment, Review, ReviewDecision
 from app.models.report import Report
 from app.models.audit import Conflict, CoverageResult, Gap
 from app.models.regulatory import CertificationRecord, QcoRecord
@@ -31,6 +31,7 @@ __all__ = [
     "RecommendationEvidence",
     "Review",
     "ReviewDecision",
+    "AnalysisComment",
     "Report",
     "CoverageResult",
     "Gap",

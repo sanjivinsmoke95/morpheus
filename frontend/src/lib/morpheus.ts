@@ -588,3 +588,23 @@ export function useGfr(analysisId: string) {
     queryFn: async () => (await api.get(`/analyses/${analysisId}/gfr`)).data,
   });
 }
+
+// ---- Phase 17: collaboration (comments + sign-off) ----
+export interface AnalysisComment { id: string; kind: string; body: string; author: string | null; role: string | null; created_at: string | null; }
+export function useComments(analysisId: string) {
+  return useQuery<AnalysisComment[]>({
+    queryKey: ["comments", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/comments`)).data,
+  });
+}
+export function useAddComment(analysisId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { body: string; kind?: string }) =>
+      (await api.post(`/analyses/${analysisId}/comments`, payload)).data,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["comments", analysisId] });
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+    },
+  });
+}

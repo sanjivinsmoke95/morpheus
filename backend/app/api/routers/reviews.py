@@ -128,3 +128,35 @@ def list_decisions(analysis_id: str, db: Session = Depends(get_db), _: User = De
     return list(db.execute(
         select(ReviewDecision).where(ReviewDecision.review_id.in_(ids)).order_by(ReviewDecision.created_at)
     ).scalars())
+
+
+@router.get("/analyses/{analysis_id}/comments")
+def list_comments(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> list[dict]:
+    from app.models import AnalysisComment
+    rows = db.execute(select(AnalysisComment).where(
+        AnalysisComment.analysis_id == analysis_id).order_by(AnalysisComment.created_at)).scalars().all()
+    authors = {u.id: u for u in db.execute(select(User)).scalars()}
+    return [{"id": c.id, "kind": c.kind, "body": c.body,
+             "author": authors[c.author_id].full_name if c.author_id in authors else None,
+             "role": authors[c.author_id].role if c.author_id in authors else None,
+             "created_at": c.created_at.isoformat() if c.created_at else None} for c in rows]
+
+
+@router.post("/analyses/{analysis_id}/comments", status_code=status.HTTP_201_CREATED)
+def add_comment(analysis_id: str, body: str = Body(..., embed=True), kind: str = Body(default="comment", embed=True),
+                db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> dict:
+    from app.models import AnalysisComment
+    if not db.get(Analysis, analysis_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
+    c = AnalysisComment(analysis_id=analysis_id, author_id=user.id,
+                        kind=kind if kind in ("comment", "signoff", "return") else "comment", body=body.strip())
+    db.add(c)
+    # Reviewer sign-off / return transitions the workflow (Phase 17).
+    a = db.get(Analysis, analysis_id)
+    if kind == "signoff":
+        a.workflow_status = "FINALIZED"
+    elif kind == "return":
+        a.workflow_status = "UNDER_REVIEW"
+    db.commit()
+    return {"id": c.id, "kind": c.kind, "body": c.body, "author": user.full_name,
+            "role": user.role, "created_at": c.created_at.isoformat() if c.created_at else None}

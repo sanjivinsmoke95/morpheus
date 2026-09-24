@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Card, StatusChip, type Tone } from "@/components/ui";
+import { useAuth } from "@/lib/auth";
+import { Button, Card, EmptyState, StatusChip, type Tone } from "@/components/ui";
 import {
-  useAddStandard, useDecide, useDecisions, useRecommendations, useRequirements, type Recommendation,
+  useAddComment, useAddStandard, useAnalysis, useComments, useDecide, useDecisions,
+  useRecommendations, useRequirements, type Recommendation,
 } from "@/lib/morpheus";
 
 const STATUS_TONE: Record<string, Tone> = {
@@ -24,6 +26,8 @@ export function ReviewPage() {
   return (
     <div>
       <AnalysisHeader id={id} section="Decision log" />
+
+      <CollaborationPanel id={id} />
 
       <div className="space-y-6">
         {[...byReq.entries()].map(([reqId, list]) => (
@@ -84,5 +88,63 @@ function AddStandard({ analysisId, requirementId }: { analysisId: string; requir
       <button onClick={() => setOpen(false)} className="rounded bg-panel px-2 py-1 text-[11px]">Cancel</button>
       {add.isError && <span className="text-[11px] text-danger">not in DB</span>}
     </div>
+  );
+}
+
+const WF_LABEL: Record<string, string> = {
+  DRAFT: "Draft", UNDER_REVIEW: "Under Review", FINALIZED: "Finalized", ISSUED: "Tender Issued",
+};
+
+function CollaborationPanel({ id }: { id: string }) {
+  const { user } = useAuth();
+  const { data: analysis } = useAnalysis(id);
+  const { data: comments } = useComments(id);
+  const add = useAddComment(id);
+  const [text, setText] = useState("");
+  const isReviewer = user?.role === "REVIEWER" || user?.role === "ADMIN";
+
+  return (
+    <Card className="mb-6 p-5">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <h2 className="font-display text-base font-semibold text-ink">Review & Collaboration</h2>
+        <StatusChip tone={analysis?.workflow_status === "FINALIZED" ? "success" : "warning"}>
+          {WF_LABEL[analysis?.workflow_status ?? "DRAFT"] ?? analysis?.workflow_status}
+        </StatusChip>
+        {isReviewer && (
+          <div className="ml-auto flex gap-2">
+            <Button className="px-3 py-1.5 text-xs" disabled={add.isPending}
+              onClick={() => add.mutate({ body: text.trim() || "Signed off — compliant for tendering.", kind: "signoff" }, { onSuccess: () => setText("") })}>
+              ✓ Sign off (Approve)
+            </Button>
+            <Button variant="danger" className="px-3 py-1.5 text-xs" disabled={add.isPending || !text.trim()}
+              onClick={() => add.mutate({ body: text.trim(), kind: "return" }, { onSuccess: () => setText("") })}>
+              ↩ Return for revision
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <div className="mb-3 space-y-2">
+        {!comments?.length ? (
+          <EmptyState>No comments yet. Officers and reviewers can discuss the analysis here.</EmptyState>
+        ) : comments.map((c) => (
+          <div key={c.id} className={`rounded-lg border-l-4 px-3 py-2 ${c.kind === "signoff" ? "border-l-success bg-success-soft/40" : c.kind === "return" ? "border-l-danger bg-danger-soft/40" : "border-l-line bg-panel/40"}`}>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-semibold text-ink">{c.author ?? "User"}</span>
+              <span className="rounded bg-panel px-1.5 text-[10px] text-muted">{c.role}</span>
+              {c.kind !== "comment" && <StatusChip tone={c.kind === "signoff" ? "success" : "danger"}>{c.kind === "signoff" ? "Sign-off" : "Returned"}</StatusChip>}
+              <span className="ml-auto text-[10px] text-muted">{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</span>
+            </div>
+            <div className="mt-1 text-sm text-ink">{c.body}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-2">
+        <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Add a comment for the officer / reviewer…"
+          className="flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary" />
+        <Button disabled={!text.trim() || add.isPending} onClick={() => add.mutate({ body: text.trim(), kind: "comment" }, { onSuccess: () => setText("") })}>Comment</Button>
+      </div>
+    </Card>
   );
 }
