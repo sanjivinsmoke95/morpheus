@@ -56,7 +56,7 @@ export function Layout() {
   const sidebar = (
     <div
       className="flex h-full flex-col text-white"
-      style={{ background: "linear-gradient(180deg,#1c4635 0%,#183d2d 45%,#16362d 100%)" }}
+      style={{ background: "#16362d" }}
     >
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
@@ -83,7 +83,8 @@ export function Layout() {
 
       {/* Decorative footer (matches the design: monuments line-art + motto + quote) */}
       <div className="px-4 pb-5 pt-2 text-center">
-        <img src="/brand/india_gate_lineart.png" alt="" className="mx-auto w-full max-w-[210px]" />
+        <img src="/brand/india_gate_lineart.png" alt="" className="mx-auto w-full max-w-[210px]"
+          style={{ mixBlendMode: "lighten" }} />
         <div className="mt-1 text-[12px] font-semibold leading-tight text-white/85">
           Transparent Procurement<br />Stronger India
         </div>
