@@ -4,7 +4,7 @@ import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { useAuth } from "@/lib/auth";
 import { Button, Card, EmptyState, StatusChip, type Tone } from "@/components/ui";
 import {
-  useAddComment, useAddStandard, useAnalysis, useComments, useDecide, useDecisions,
+  useAddComment, useAddStandard, useAnalysis, useComments, useDecide, useDecisionLog,
   useRecommendations, useRequirements, type Recommendation,
 } from "@/lib/morpheus";
 
@@ -16,7 +16,7 @@ export function ReviewPage() {
   const { id = "" } = useParams();
   const { data: recs } = useRecommendations(id);
   const { data: reqs } = useRequirements(id);
-  const { data: decisions } = useDecisions(id);
+  const { data: decisions } = useDecisionLog(id);
   const decide = useDecide(id);
 
   const reqLabel = new Map((reqs ?? []).map((r) => [r.id, `${r.req_code} — ${r.description}`]));
@@ -61,10 +61,13 @@ export function ReviewPage() {
           <div className="mb-2 text-sm font-semibold text-ink">Decision log</div>
           <Card>
             {decisions.map((d) => (
-              <div key={d.id} className="flex items-center gap-3 border-b border-line px-3 py-2 text-xs last:border-b-0">
-                <StatusChip tone="neutral">{d.decision.replace(/_/g, " ")}</StatusChip>
+              <div key={d.id} className="flex flex-wrap items-center gap-2 border-b border-line px-3 py-2 text-xs last:border-b-0">
+                <StatusChip tone={d.action === "ACCEPT" ? "success" : d.action === "REJECT" ? "danger" : "neutral"}>{d.action.replace(/_/g, " ")}</StatusChip>
+                {d.standard && <span className="font-medium text-primary">{d.standard}</span>}
+                {d.requirement && <span className="text-muted">({d.requirement})</span>}
                 <span className="min-w-0 flex-1 truncate text-muted">{d.reason || "—"}</span>
-                <span className="text-muted">{new Date(d.created_at).toLocaleTimeString()}</span>
+                {d.user && <span className="text-muted">{d.user} · {d.role}</span>}
+                <span className="text-muted">{d.timestamp ? new Date(d.timestamp).toLocaleString() : ""}</span>
               </div>
             ))}
           </Card>

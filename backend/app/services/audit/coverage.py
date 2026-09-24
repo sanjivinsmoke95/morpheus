@@ -41,8 +41,9 @@ def run_coverage_and_gaps(db: Session, analysis_id: str) -> tuple[int, int]:
     for r in recs:
         recs_by_req.setdefault(r.requirement_id, []).append(r)
 
-    # --- per-requirement coverage ---
+    # --- per-requirement coverage + distinct gap types (Phase 14) ---
     cov = 0
+    unmapped_gaps = 0
     for req in reqs:
         rlist = recs_by_req.get(req.id, [])
         if any(r.applicability_class in _STRONG for r in rlist):
@@ -55,6 +56,15 @@ def run_coverage_and_gaps(db: Session, analysis_id: str) -> tuple[int, int]:
         db.add(CoverageResult(analysis_id=analysis_id, requirement_id=req.id, standard_id=best,
                               coverage=coverage, explanation=expl, status="PENDING"))
         cov += 1
+        # An unmapped requirement is a distinct gap kind from a completeness gap.
+        if coverage == "MISSING":
+            db.add(Gap(
+                analysis_id=analysis_id, gap_type="unmapped_requirement",
+                description=f"{req.req_code} ({req.requirement_type.lower()}) has no applicable standard mapped.",
+                related_standard_id=None, severity="high", is_mandatory_claim=False,
+                evidence_id=None, status="POTENTIAL",
+            ))
+            unmapped_gaps += 1
 
     # --- completeness gaps ---
     present_types = {req.requirement_type for req in reqs}
@@ -85,7 +95,7 @@ def run_coverage_and_gaps(db: Session, analysis_id: str) -> tuple[int, int]:
         ))
         gaps += 1
     db.flush()
-    return cov, gaps
+    return cov, gaps + unmapped_gaps
 
 
 def _standard_engaging(db: Session, standards, rel_type: str) -> Standard | None:

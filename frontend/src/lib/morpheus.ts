@@ -608,3 +608,29 @@ export function useAddComment(analysisId: string) {
     },
   });
 }
+
+// ---- Phase 11/12/18: coverage matrix, amendment impact, decision log ----
+export interface CoverageMatrix {
+  rows: { requirement_code: string; requirement: string; requirement_type: string; standard: string | null; coverage: string; evidence_count: number; status: string }[];
+  summary: { FULL: number; PARTIAL: number; MISSING: number; total: number; compliance_pct: number };
+}
+export function useCoverageMatrix(analysisId: string) {
+  return useQuery<CoverageMatrix>({ queryKey: ["coverage-matrix", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/coverage-matrix`)).data });
+}
+
+export interface AmendmentImpact {
+  is_number: string; title: string; status: string; update_detected: boolean;
+  amendments: { no: string; date: string | null; summary: string; affected_clauses: string[]; provenance: string }[];
+  affected_requirements: string[]; action: string;
+}
+export function useAmendmentImpactFeed(analysisId: string) {
+  return useQuery<AmendmentImpact[]>({ queryKey: ["amendment-impact", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/amendment-impact`)).data });
+}
+
+export interface DecisionLogEntry {
+  id: string; action: string; target_type: string; requirement: string | null; standard: string | null;
+  reason: string; user: string | null; role: string | null; timestamp: string | null;
+}
+export function useDecisionLog(analysisId: string) {
+  return useQuery<DecisionLogEntry[]>({ queryKey: ["decision-log", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/decision-log`)).data });
+}

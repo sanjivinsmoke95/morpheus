@@ -160,3 +160,35 @@ def add_comment(analysis_id: str, body: str = Body(..., embed=True), kind: str =
     db.commit()
     return {"id": c.id, "kind": c.kind, "body": c.body, "author": user.full_name,
             "role": user.role, "created_at": c.created_at.isoformat() if c.created_at else None}
+
+
+@router.get("/analyses/{analysis_id}/decision-log")
+def decision_log(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> list[dict]:
+    """Enriched, auditable decision log (Phase 18): user · action · requirement ·
+    standard · reason · timestamp — for CAG/CVC defensibility."""
+    reviews = db.execute(select(Review).where(Review.analysis_id == analysis_id)).scalars().all()
+    ids = [r.id for r in reviews]
+    if not ids:
+        return []
+    decisions = db.execute(select(ReviewDecision).where(
+        ReviewDecision.review_id.in_(ids)).order_by(ReviewDecision.created_at.desc())).scalars().all()
+    users = {u.id: u for u in db.execute(select(User)).scalars()}
+    std_by_id = {s.id: s for s in db.execute(select(Standard)).scalars()}
+    out = []
+    for d in decisions:
+        std_num, req_code = None, None
+        if d.target_type == "recommendation":
+            rec = db.get(Recommendation, d.target_id)
+            if rec:
+                s = std_by_id.get(rec.standard_id)
+                std_num = s.is_number if s else None
+                req = db.get(Requirement, rec.requirement_id)
+                req_code = req.req_code if req else None
+        out.append({
+            "id": d.id, "action": d.decision, "target_type": d.target_type,
+            "requirement": req_code, "standard": std_num, "reason": d.reason,
+            "user": users[d.decided_by].full_name if d.decided_by in users else None,
+            "role": users[d.decided_by].role if d.decided_by in users else None,
+            "timestamp": d.created_at.isoformat() if d.created_at else None,
+        })
+    return out
