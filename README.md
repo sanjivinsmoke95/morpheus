@@ -32,7 +32,16 @@ provider abstraction to upgrade quality.
 | Audit | conflicts (unit-normalized), coverage matrix, gaps (never "mandatory"), readiness |
 | Regulatory | QCO + certification (records-only), amendment impact (review-only) |
 | Advanced | HS classify, multilingual detect, historical comparison, spec copilot (draft-only), feedback |
-| Evaluation | gold set + harness comparing keyword/vector/hybrid/Morpheus |
+| Evaluation | gold set + harness comparing keyword/vector/hybrid/Morpheus (P@K, R@K, **nDCG@5**, MRR) |
+| Product classification | derives product/domain profile (category, parameters, sector, installation) |
+| Multilingual | Hindi/Bengali/Tamil/Telugu/Kannada/Marathi → numeral+unit+term normalization → English pipeline |
+| Explainability | **why / why-not** per recommendation + an **AI decision trace** (concise pipeline steps) |
+| GFR review | GFR 2017 advisory flags (Rules 149/161/173, sustainability) — never a legal verdict |
+| Collaboration | analysis comments + reviewer sign-off / return-for-revision |
+| Export | structured procurement JSON package (GeM/CPPP integration-ready) + audit PDF |
+| AI providers | OpenAI-compatible + Gemini behind the abstraction; offline stub is the keyless default |
+| Provenance | DEMO_SYNTHETIC / PUBLIC_METADATA / VERIFIED_RECORD / REVIEW_REQUIRED, never blurred |
+| Security | `AUTH_DEV_MODE` (prod enforces password), security headers, prod boot gates |
 | Admin | standards CRUD + CSV import + validate + relationship/QCO/cert curation |
 
 ## Tech stack
@@ -109,8 +118,8 @@ gitignored.
 ## Architecture & design docs
 
 See [`docs/`](docs/): `architecture`, `database-schema`, `api-contracts`,
-`ai-pipeline`, `knowledge-graph`, `search-ranking`, `evidence-model`, `security`,
-`testing-strategy`, `implementation-plan`.
+`ai-pipeline`, `ai-providers`, `multilingual`, `procurement-export`, `knowledge-graph`,
+`search-ranking`, `evidence-model`, `security`, `testing-strategy`, `implementation-plan`.
 
 ## Honest limitations
 
