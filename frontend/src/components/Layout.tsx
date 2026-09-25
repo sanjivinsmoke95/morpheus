@@ -60,7 +60,7 @@ export function Layout() {
     >
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
-        <img src="/brand/government_emblem_left.png" alt="" className="h-9 w-auto brightness-0 invert" />
+        <img src="/brand/emblem_light.png" alt="" className="h-9 w-auto opacity-90" />
         <div className="leading-tight">
           <div className="font-display text-lg font-semibold tracking-wide">MORPHEUS</div>
           <div className="text-[10px] leading-tight text-white/55">Standards Intelligence<br />for Public Procurement</div>
