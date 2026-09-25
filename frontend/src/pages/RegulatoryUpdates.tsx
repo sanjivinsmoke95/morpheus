@@ -23,7 +23,7 @@ export function RegulatoryUpdatesPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <StatusChip tone={u.type === "QCO" ? "danger" : "warning"}>{u.type}</StatusChip>
                 <span className="text-sm font-semibold text-ink">{u.headline}</span>
-                <span className="ml-auto text-xs text-muted">{u.date ?? "date unknown"}</span>
+                <span className="ml-auto font-tech text-xs text-muted">{u.date ?? "date unknown"}</span>
               </div>
               <p className="mt-1.5 text-sm text-muted">{u.detail}</p>
               {u.affects_tenders.length > 0 && (

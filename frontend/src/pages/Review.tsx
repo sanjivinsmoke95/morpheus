@@ -37,7 +37,7 @@ export function ReviewPage() {
               {list.map((r) => (
                 <Card key={r.id} className="p-3 text-sm">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-ink">{r.standard.is_number}</span>
+                    <span className="font-tech font-semibold text-ink">{r.standard.is_number}</span>
                     <StatusChip tone="info">{r.applicability_class.replace(/_/g, " ")}</StatusChip>
                     <span className="ml-auto"><StatusChip tone={STATUS_TONE[r.review_status] ?? "neutral"}>{r.review_status}</StatusChip></span>
                   </div>
@@ -67,7 +67,7 @@ export function ReviewPage() {
                 {d.requirement && <span className="text-muted">({d.requirement})</span>}
                 <span className="min-w-0 flex-1 truncate text-muted">{d.reason || "—"}</span>
                 {d.user && <span className="text-muted">{d.user} · {d.role}</span>}
-                <span className="text-muted">{d.timestamp ? new Date(d.timestamp).toLocaleString() : ""}</span>
+                <span className="font-tech text-muted">{d.timestamp ? new Date(d.timestamp).toLocaleString() : ""}</span>
               </div>
             ))}
           </Card>
@@ -136,7 +136,7 @@ function CollaborationPanel({ id }: { id: string }) {
               <span className="font-semibold text-ink">{c.author ?? "User"}</span>
               <span className="rounded bg-panel px-1.5 text-[10px] text-muted">{c.role}</span>
               {c.kind !== "comment" && <StatusChip tone={c.kind === "signoff" ? "success" : "danger"}>{c.kind === "signoff" ? "Sign-off" : "Returned"}</StatusChip>}
-              <span className="ml-auto text-[10px] text-muted">{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</span>
+              <span className="ml-auto font-tech text-[10px] text-muted">{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</span>
             </div>
             <div className="mt-1 text-sm text-ink">{c.body}</div>
           </div>

@@ -116,7 +116,7 @@ function StandardCard({ rec, mandatory, onDecide }: {
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <Link to={`/standards/${rec.standard.id}`} className="text-sm font-semibold text-primary hover:underline">
+            <Link to={`/standards/${rec.standard.id}`} className="font-tech text-sm font-semibold text-primary hover:underline">
               {rec.standard.is_number}
             </Link>
             {mandatory && (

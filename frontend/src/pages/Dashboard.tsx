@@ -91,6 +91,14 @@ export function DashboardPage() {
             </div>
           </div>
 
+          {/* Attention + Continue review */}
+          {data && (data.attention.total > 0 || data.continue_review) && (
+            <div className="grid gap-4 lg:grid-cols-2">
+              <AttentionSummary a={data.attention} />
+              {data.continue_review && <ContinueReview cr={data.continue_review} />}
+            </div>
+          )}
+
           {/* KPI metrics */}
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {isLoading || !m ? (
@@ -208,7 +216,7 @@ export function DashboardPage() {
                     <span className="block text-xs font-semibold text-ink">{u.headline}</span>
                     <span className="block truncate text-[11px] text-muted">{u.detail}</span>
                   </span>
-                  <span className="flex-none text-[10px] text-muted">{u.date ? new Date(u.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}</span>
+                  <span className="flex-none font-tech text-[10px] text-muted">{u.date ? new Date(u.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : ""}</span>
                 </Link>
               ))}
               {!updates?.length && <p className="text-xs text-muted">No updates on file.</p>}
@@ -305,5 +313,52 @@ function StepIcon({ name, small }: { name: string; small?: boolean }) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className={c}>
       <path d={paths[name] ?? paths.doc} />
     </svg>
+  );
+}
+
+function AttentionSummary({ a }: { a: { conflicts: number; gaps: number; outdated: number; total: number } }) {
+  const rows = [
+    { n: a.conflicts, label: "specification conflicts", dot: "bg-danger", to: "/history" },
+    { n: a.gaps, label: "potential gaps", dot: "bg-warning", to: "/history" },
+    { n: a.outdated, label: "outdated references", dot: "bg-amber-400", to: "/history" },
+  ].filter((r) => r.n > 0);
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-line bg-surface p-6 shadow-sm"
+      style={{ boxShadow: "0 1px 2px rgba(16,24,40,.04), 0 0 0 4px rgba(220,38,38,.03)" }}>
+      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">Needs your attention</div>
+      <div className="font-display text-3xl font-bold tabular-nums text-ink">{a.total}<span className="ml-2 text-base font-medium text-muted">item{a.total === 1 ? "" : "s"}</span></div>
+      <div className="mt-4 space-y-2">
+        {rows.length === 0 ? (
+          <div className="text-sm text-muted">Nothing needs attention right now.</div>
+        ) : rows.map((r) => (
+          <Link key={r.label} to={r.to} className="flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-panel">
+            <span className={`h-2.5 w-2.5 flex-none rounded-full ${r.dot}`} />
+            <span className="text-lg font-semibold tabular-nums text-ink">{r.n}</span>
+            <span className="text-sm text-muted">{r.label}</span>
+            <span className="ml-auto text-muted">→</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContinueReview({ cr }: { cr: NonNullable<import("@/lib/morpheus").DashboardSummary["continue_review"]> }) {
+  return (
+    <Link to={`/analyses/${cr.id}`}
+      className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-line bg-surface p-6 shadow-sm transition-shadow hover:shadow-md"
+      style={{ boxShadow: "0 1px 2px rgba(16,24,40,.04), 0 0 0 4px rgba(11,93,59,.03)" }}>
+      <div>
+        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted">Continue review</div>
+        <div className="font-display text-lg font-semibold text-ink">{cr.title}</div>
+        <div className="mt-0.5 text-xs capitalize text-muted">{cr.sector} · {cr.workflow_status.replace("_", " ").toLowerCase()}</div>
+      </div>
+      <div className="mt-4 flex items-center gap-4 text-sm">
+        <span><span className="font-semibold tabular-nums text-ink">{cr.requirements_total ?? "—"}</span> <span className="text-muted">requirements</span></span>
+        <span><span className="font-semibold tabular-nums text-ink">{cr.open_issues}</span> <span className="text-muted">open issues</span></span>
+        {cr.compliance_pct != null && <span><span className="font-semibold tabular-nums text-ink">{cr.compliance_pct}%</span> <span className="text-muted">covered</span></span>}
+        <span className="ml-auto font-medium text-primary group-hover:underline">Continue →</span>
+      </div>
+    </Link>
   );
 }

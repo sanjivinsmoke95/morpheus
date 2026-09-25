@@ -58,8 +58,8 @@ export function AuditPage() {
               <tbody>
                 {(coverage ?? []).map((c) => (
                   <tr key={c.id} className="border-t border-line">
-                    <td className="px-3 py-2 text-ink"><span className="text-xs text-muted">{c.requirement_code}</span> {c.requirement?.slice(0, 50)}</td>
-                    <td className="px-3 py-2 text-xs text-ink">{c.standard ?? "—"}</td>
+                    <td className="px-3 py-2 text-ink"><span className="font-tech text-xs text-muted">{c.requirement_code}</span> {c.requirement?.slice(0, 50)}</td>
+                    <td className="px-3 py-2 font-tech text-xs text-ink">{c.standard ?? "—"}</td>
                     <td className="px-3 py-2"><StatusChip tone={COV_TONE[c.coverage] ?? "neutral"}>{c.coverage}</StatusChip></td>
                   </tr>
                 ))}

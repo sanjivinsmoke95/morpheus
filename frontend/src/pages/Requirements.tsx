@@ -115,11 +115,11 @@ export function RequirementsPage() {
                   return (
                     <button key={req.id} onClick={() => setSelectedId(req.id)}
                       className={`grid w-full grid-cols-[3rem_1fr_5rem_5rem] items-center gap-2 border-b border-line px-3 py-2.5 text-left text-sm last:border-b-0 sm:grid-cols-[3rem_1fr_6rem_6rem_4rem_6rem] ${active ? "bg-primary-soft/60 ring-1 ring-inset ring-primary/30" : "hover:bg-panel"}`}>
-                      <span className="text-xs font-semibold text-muted">{req.req_code}</span>
+                      <span className="font-tech text-xs font-semibold text-muted">{req.req_code}</span>
                       <span className="min-w-0 truncate text-ink">{req.description}</span>
                       <span className="hidden sm:block"><span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${CAT_PILL[req.requirement_type] ?? "bg-panel text-muted"}`}>{req.requirement_type.replace(/_/g, " ")}</span></span>
                       <span className="hidden truncate text-xs text-muted sm:block">{valueOf(req)}</span>
-                      <span className="hidden text-xs text-muted sm:block">{req.source_page ? `Page ${req.source_page}` : "—"}</span>
+                      <span className="hidden font-tech text-xs text-muted sm:block">{req.source_page ? `Page ${req.source_page}` : "—"}</span>
                       <span><StatusChip tone={st.tone}>{st.label}</StatusChip></span>
                     </button>
                   );
@@ -190,8 +190,8 @@ function RequirementPanel({ analysisId, req, onPrev, onNext }: { analysisId: str
                       <div className="text-sm font-medium text-ink">{a.comparator} {a.raw_value} {a.unit}</div>
                     </div>
                   ))}
-                  <div className="rounded-lg border border-line px-2.5 py-1.5"><div className="text-[10px] uppercase text-muted">Source</div><div className="text-sm font-medium text-ink">{req.source_page ? `Page ${req.source_page}` : "—"}</div></div>
-                  <div className="rounded-lg border border-line px-2.5 py-1.5"><div className="text-[10px] uppercase text-muted">Requirement ID</div><div className="text-sm font-medium text-ink">{req.req_code}</div></div>
+                  <div className="rounded-lg border border-line px-2.5 py-1.5"><div className="text-[10px] uppercase text-muted">Source</div><div className="font-tech text-sm font-medium text-ink">{req.source_page ? `Page ${req.source_page}` : "—"}</div></div>
+                  <div className="rounded-lg border border-line px-2.5 py-1.5"><div className="text-[10px] uppercase text-muted">Requirement ID</div><div className="font-tech text-sm font-medium text-ink">{req.req_code}</div></div>
                 </div>
               </div>
             )}
@@ -212,7 +212,7 @@ function RequirementPanel({ analysisId, req, onPrev, onNext }: { analysisId: str
               {mine.map((rec) => (
                 <div key={rec.id} className="rounded-lg border border-line p-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-primary">{rec.standard.is_number}</span>
+                    <span className="font-tech text-sm font-semibold text-primary">{rec.standard.is_number}</span>
                     {rec.is_primary && <StatusChip tone="info">Primary</StatusChip>}
                     <span className="ml-auto text-xs font-semibold text-ink">{Math.round(rec.relevance_score * 100)}%</span>
                   </div>
@@ -237,7 +237,7 @@ function NotesTab({ req }: { req: Requirement }) {
       {(notes ?? []).map((n) => (
         <div key={n.id} className="rounded-lg bg-panel px-3 py-2 text-sm">
           <div className="text-ink">{n.body}</div>
-          <div className="mt-1 text-[11px] text-muted">{n.author ?? "You"} · {n.created_at ? new Date(n.created_at).toLocaleString() : ""}</div>
+          <div className="mt-1 text-[11px] text-muted">{n.author ?? "You"} · <span className="font-tech">{n.created_at ? new Date(n.created_at).toLocaleString() : ""}</span></div>
         </div>
       ))}
       {!notes?.length && <p className="text-sm text-muted">No notes yet.</p>}

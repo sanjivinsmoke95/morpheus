@@ -405,6 +405,11 @@ export async function downloadReport(reportId: string, format: string) {
 // ---- dashboard + analytics ----
 export interface DashboardSummary {
   kpis: { active_tenders: number; compliance_rate: number; needs_action: number; avg_gaps: number };
+  attention: { conflicts: number; gaps: number; outdated: number; total: number };
+  continue_review: {
+    id: string; title: string; sector: string; workflow_status: string;
+    compliance_pct: number | null; requirements_total: number | null; open_issues: number;
+  } | null;
   metrics: {
     tenders_analyzed: { value: number; delta: number | null };
     standards_mapped: { value: number; delta: number | null };

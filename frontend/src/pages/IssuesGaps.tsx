@@ -138,7 +138,7 @@ function IssueCard({ issue }: { issue: Issue }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-ink">{m.label}</span>
             <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${m.pill}`}>{sev}</span>
-            {issue.standard_is_number && <span className="ml-auto text-[11px] font-medium text-primary">{issue.standard_is_number}</span>}
+            {issue.standard_is_number && <span className="ml-auto font-tech text-[11px] font-medium text-primary">{issue.standard_is_number}</span>}
           </div>
           <div className="mt-1 text-sm font-semibold text-ink">{issue.title}</div>
           <div className="mt-0.5 text-sm text-muted">{issue.description}</div>
@@ -173,8 +173,8 @@ function CoverageMatrix({ id }: { id: string }) {
           <tbody>
             {data.rows.map((row, i) => (
               <tr key={i} className="border-b border-line last:border-b-0">
-                <td className="px-3 py-2"><span className="font-medium text-ink">{row.requirement_code}</span> <span className="text-muted">— {row.requirement?.slice(0, 46)}</span></td>
-                <td className="px-3 py-2 text-primary">{row.standard ?? "—"}</td>
+                <td className="px-3 py-2"><span className="font-tech font-medium text-ink">{row.requirement_code}</span> <span className="text-muted">— {row.requirement?.slice(0, 46)}</span></td>
+                <td className="px-3 py-2 font-tech text-primary">{row.standard ?? "—"}</td>
                 <td className="px-3 py-2 text-center tabular-nums text-muted">{row.evidence_count}</td>
                 <td className="px-3 py-2"><StatusChip tone={COV_TONE[row.coverage] ?? "neutral"}>{row.coverage}</StatusChip></td>
                 <td className="px-3 py-2 text-xs text-muted">{row.status}</td>
@@ -200,7 +200,7 @@ function AmendmentImpact({ id }: { id: string }) {
         {data.map((a, i) => (
           <div key={i} className="rounded-lg border border-line p-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-primary">{a.is_number}</span>
+              <span className="font-tech text-sm font-semibold text-primary">{a.is_number}</span>
               <StatusChip tone={a.status === "OUTDATED" || a.status === "SUPERSEDED" ? "danger" : "warning"}>{a.status}</StatusChip>
               {a.amendments.length > 0 && <span className="text-xs text-muted">{a.amendments.length} amendment(s)</span>}
             </div>

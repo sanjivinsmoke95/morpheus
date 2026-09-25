@@ -120,6 +120,28 @@ def dashboard_summary(
          for k, v in cat.items()],
         key=lambda x: x["pct"], reverse=True)[:6]
 
+    # Attention aggregate across completed analyses (real per-analysis audit data).
+    from app.services.audit.versions import version_findings
+    total_conflicts = sum(v["conflicts"] for v in verdicts.values())
+    total_gaps = sum(v["gaps"] for v in verdicts.values())
+    total_outdated = 0
+    for a in completed:
+        total_outdated += sum(
+            1 for vf in version_findings(db, a.id) if vf["discrepancy_type"] in ("OUTDATED", "SUPERSEDED"))
+
+    # Continue-review: most recent completed analysis not yet finalized/issued.
+    continue_review = None
+    for a in analyses:
+        if a.status == AnalysisStatus.READY.value and a.workflow_status in ("DRAFT", "UNDER_REVIEW"):
+            v = verdicts.get(a.id, {})
+            continue_review = {
+                "id": a.id, "title": a.title or (docs.get(a.document_id).filename if docs.get(a.document_id) else "Untitled"),
+                "sector": a.sector or "—", "workflow_status": a.workflow_status,
+                "compliance_pct": v.get("compliance_pct"), "requirements_total": v.get("requirements_total"),
+                "open_issues": v.get("conflicts", 0) + v.get("gaps", 0),
+            }
+            break
+
     return {
         "kpis": {
             "active_tenders": len(analyses),
@@ -127,6 +149,11 @@ def dashboard_summary(
             "needs_action": needs_action,
             "avg_gaps": round(sum(gap_vals) / len(gap_vals), 1) if gap_vals else 0,
         },
+        "attention": {
+            "conflicts": total_conflicts, "gaps": total_gaps, "outdated": total_outdated,
+            "total": total_conflicts + total_gaps + total_outdated,
+        },
+        "continue_review": continue_review,
         "metrics": {
             "tenders_analyzed": {"value": len(analyses), "delta": len(this_month)},
             "standards_mapped": {"value": standards_mapped, "delta": None},

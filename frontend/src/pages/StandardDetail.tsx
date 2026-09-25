@@ -20,7 +20,7 @@ export function StandardDetailPage() {
       </button>
 
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{s.is_number}</h1>
+        <h1 className="font-tech text-2xl font-semibold tracking-tight text-ink">{s.is_number}</h1>
         <StatusChip tone={s.status === "ACTIVE" ? "success" : "neutral"}>{s.status}</StatusChip>
         {s.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
       </div>
@@ -87,7 +87,7 @@ export function StandardDetailPage() {
             <div key={r.id} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
               <StatusChip tone="info">{r.relationship_type.replace(/_/g, " ")}</StatusChip>
               <span className="text-muted">{r.direction === "out" ? "→" : "←"}</span>
-              <span className="font-medium text-ink">{r.target_is_number}</span>
+              <span className="font-tech font-medium text-ink">{r.target_is_number}</span>
               <span className="min-w-0 flex-1 truncate text-muted">{r.target_title}</span>
             </div>
           ))

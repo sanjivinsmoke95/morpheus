@@ -66,7 +66,7 @@ export function HistoryPage() {
                 <span className="hidden sm:block">
                   {a.sector ? <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize ${SECTOR_PILL[sector] ?? "bg-panel text-muted"}`}>{a.sector}</span> : <span className="text-xs text-muted">—</span>}
                 </span>
-                <span className="text-xs text-muted">{new Date(a.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                <span className="font-tech text-xs text-muted">{new Date(a.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
                 <StatusChip tone={a.status === "READY" ? w.tone : "warning"}>{a.status === "READY" ? w.label : "Processing"}</StatusChip>
               </Link>
             );

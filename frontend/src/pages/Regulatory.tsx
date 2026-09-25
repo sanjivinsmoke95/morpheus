@@ -22,7 +22,7 @@ export function RegulatoryPage() {
         {!qco?.length ? <Empty text="No QCO records for the identified standards." /> : qco.map((q, i) => (
           <Card key={i} className="p-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-ink">{q.is_number}</span>
+              <span className="font-tech font-medium text-ink">{q.is_number}</span>
               <StatusChip tone={QCO_TONE[q.qco_status] ?? "neutral"}>{q.qco_status}</StatusChip>
             </div>
             <div className="mt-0.5 text-xs text-muted">{q.order_name || q.product_description}</div>
@@ -38,7 +38,7 @@ export function RegulatoryPage() {
         {!cert?.length ? <Empty text="No certification records." /> : cert.map((c, i) => (
           <Card key={i} className="flex items-center gap-2 p-3 text-sm">
             <StatusChip tone="info">{c.scheme}</StatusChip>
-            <span className="text-xs text-ink">{c.is_number}</span>
+            <span className="font-tech text-xs text-ink">{c.is_number}</span>
             <span className="min-w-0 flex-1 truncate text-xs text-muted">{c.requirement}</span>
             <span className="text-[10px] text-muted">{c.data_origin}</span>
           </Card>
@@ -49,7 +49,7 @@ export function RegulatoryPage() {
         {!amends?.length ? <Empty text="No amendments on the directly-applicable standards." /> : amends.map((a, i) => (
           <Card key={i} className="p-3 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-ink"><span className="font-medium">{a.is_number}</span> · {a.amendment_no}</span>
+              <span className="font-tech text-ink"><span className="font-medium">{a.is_number}</span> · {a.amendment_no}</span>
               <StatusChip tone="warning">{a.confidence}</StatusChip>
             </div>
             <div className="mt-0.5 text-xs text-muted">{a.summary}</div>

@@ -26,13 +26,13 @@ export function EvidencePage() {
                 {pages.map((p, i) => (
                   <button key={p.page_number} onClick={() => setActivePage(i)}
                     className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm ${i === activePage ? "border-primary bg-primary-soft text-primary" : "border-line hover:bg-panel"}`}>
-                    <span>Page {p.page_number}</span>
+                    <span className="font-tech">Page {p.page_number}</span>
                     {p.standards.length > 0 && <span className="rounded-full bg-primary/10 px-1.5 text-[10px] font-semibold text-primary">{p.standards.length}</span>}
                   </button>
                 ))}
               </div>
               {page && (
-                <div className="mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-panel/50 p-3 text-[11px] leading-relaxed text-ink">
+                <div className="font-evidence mt-3 max-h-64 overflow-y-auto whitespace-pre-wrap rounded-lg bg-panel/50 p-3 text-[11px] leading-relaxed text-ink">
                   {page.text_excerpt || "No text on this page."}
                 </div>
               )}
@@ -57,12 +57,12 @@ export function EvidencePage() {
                         <div className="flex items-center gap-2">
                           <span className={`grid h-5 w-5 place-items-center rounded text-[11px] text-white ${matched ? "bg-success" : "bg-warning"}`}>{matched ? "✓" : "≈"}</span>
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${matched ? "bg-success-soft text-success" : "bg-warning-soft text-warning"}`}>{matched ? "Matched" : "Partial Match"}</span>
-                          <span className="ml-auto text-[10px] text-muted">Page {page.page_number}</span>
+                          <span className="ml-auto font-tech text-[10px] text-muted">Page {page.page_number}</span>
                         </div>
-                        <div className="mt-2 text-xs text-ink">{s.evidence_text}</div>
+                        <div className="font-evidence mt-2 text-xs text-ink">{s.evidence_text}</div>
                         <div className="mt-2 flex items-center justify-between rounded-lg bg-panel/50 px-2.5 py-1.5">
                           <div className="min-w-0">
-                            <div className="text-xs font-semibold text-primary">{s.is_number}</div>
+                            <div className="font-tech text-xs font-semibold text-primary">{s.is_number}</div>
                             <div className="truncate text-[10px] text-muted">{s.title}</div>
                           </div>
                         </div>
@@ -132,7 +132,7 @@ function AskPanel({ analysisId }: { analysisId: string }) {
               {h.a.abstained && <span className="mr-1 font-semibold text-warning">Abstained:</span>}{h.a.answer}
               {h.a.citations.map((c, j) => (
                 <div key={j} className="mt-1.5 rounded border border-line bg-surface px-2 py-1 text-[11px]">
-                  <span className="font-semibold text-primary">{c.is_number}</span> — {c.text}
+                  <span className="font-tech font-semibold text-primary">{c.is_number}</span> <span className="font-evidence">— {c.text}</span>
                 </div>
               ))}
             </div>

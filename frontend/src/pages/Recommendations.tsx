@@ -62,7 +62,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-ink">{rec.standard.is_number}</span>
+            <span className="font-tech text-sm font-semibold text-ink">{rec.standard.is_number}</span>
             {rec.is_primary && <StatusChip tone="success">primary</StatusChip>}
             <StatusChip tone="info">{rec.applicability_class.replace(/_/g, " ")}</StatusChip>
             <span className="text-[11px] text-muted">

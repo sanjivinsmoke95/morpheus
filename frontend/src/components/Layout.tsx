@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
+import { CommandPalette } from "@/components/CommandPalette";
 
 type NavItem = { to: string; label: string; icon: string; end?: boolean; roles?: string[] };
 
@@ -49,9 +50,17 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Layout() {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setPaletteOpen(true); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const sidebar = (
     <div
@@ -133,15 +142,17 @@ export function Layout() {
                 <circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" strokeLinecap="round" />
               </svg>
             </span>
-            <input placeholder="Search tenders, standards, keywords…"
-              className="w-full rounded-xl border border-line bg-canvas py-2 pl-9 pr-14 text-sm text-ink outline-none focus:border-primary"
-              onKeyDown={(e) => { if (e.key === "Enter") navigate("/standards"); }} />
+            <input placeholder="Search tenders, standards, keywords…" readOnly
+              onFocus={() => setPaletteOpen(true)} onClick={() => setPaletteOpen(true)}
+              aria-label="Open command palette"
+              className="w-full cursor-pointer rounded-xl border border-line bg-canvas py-2 pl-9 pr-14 text-sm text-ink outline-none focus:border-primary" />
             <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] text-muted sm:block">⌘K</kbd>
           </div>
-          <button className="relative grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel" aria-label="Notifications">
+          <NavLink to="/regulatory-updates" aria-label="Regulatory updates and alerts"
+            className="relative grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" /></svg>
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
-          </button>
+          </NavLink>
           <div className="relative flex-none">
             <button onClick={() => setUserMenu((v) => !v)} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-panel">
               <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-white">
@@ -175,6 +186,8 @@ export function Layout() {
           </p>
         </footer>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 }

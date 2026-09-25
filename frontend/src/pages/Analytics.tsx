@@ -104,7 +104,7 @@ export function AnalyticsPage() {
             <div className="space-y-1.5">
               {data.top_standards.map((s) => (
                 <div key={s.is_number} className="flex items-center gap-3 border-b border-line py-1.5 last:border-b-0">
-                  <span className="w-24 flex-none text-xs font-semibold tabular-nums text-primary">{s.is_number}</span>
+                  <span className="w-24 flex-none font-tech text-xs font-semibold text-primary">{s.is_number}</span>
                   <span className="min-w-0 flex-1 truncate text-xs text-muted">{s.title}</span>
                   <span className="flex-none text-xs font-semibold tabular-nums text-ink">×{s.citation_count}</span>
                 </div>

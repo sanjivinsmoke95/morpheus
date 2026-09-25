@@ -44,7 +44,7 @@ export function StandardsLibraryPage() {
           {data.map((s) => (
             <Link key={s.id} to={`/standards/${s.id}`}
               className="flex items-center gap-3 border-b border-line px-4 py-3 transition-colors last:border-b-0 hover:bg-panel">
-              <span className="w-28 flex-none text-sm font-semibold tabular-nums text-primary">{s.is_number}</span>
+              <span className="w-28 flex-none font-tech text-sm font-semibold text-primary">{s.is_number}</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm text-ink">{s.title}</span>
                 <span className="text-xs capitalize text-muted">{s.sector}</span>

@@ -4,10 +4,10 @@
    Registered with Tailwind v4 @theme → utilities bg-surface, text-ink,
    bg-primary, text-saffron, border-line, etc. */
 @theme {
-  --color-canvas: #f8fafc;      /* page background (warm off-white) */
-  --color-surface: #ffffff;     /* cards */
-  --color-panel: #f1f5f2;       /* subtle green-tinted fill */
-  --color-line: #e5e7eb;        /* borders / dividers */
+  --color-canvas: #faf8f3;      /* warm cream application background */
+  --color-surface: #fffdfc;     /* near-white warm card surface */
+  --color-panel: #f4f1ea;       /* warm subtle fill (level-3 chips/rows) */
+  --color-line: #eae4d8;        /* soft warm border */
 
   --color-primary: #0b5d3b;     /* deep government green */
   --color-primary-dark: #064e2e;
@@ -15,10 +15,13 @@
 
   --color-saffron: #ff9933;     /* India saffron accent */
   --color-saffron-soft: #fff2e2;
+  --color-gold: #c99a2e;        /* muted gold (reports) */
   --color-indiablue: #2563eb;   /* Ashoka blue accent */
+  --color-violet: #7c3aed;      /* evidence accent */
+  --color-violet-soft: #f0eafe;
 
-  --color-ink: #111827;         /* primary text */
-  --color-muted: #6b7280;       /* secondary text */
+  --color-ink: #1a1a17;         /* warm near-black text */
+  --color-muted: #6b6a63;       /* warm secondary text */
 
   --color-success: #16a34a;
   --color-success-soft: #e7f6ed;
@@ -27,8 +30,13 @@
   --color-danger: #dc2626;
   --color-danger-soft: #fbeaea;
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Lora", Georgia, "Times New Roman", serif;
+  /* Type system — a specialised procurement-intelligence workstation.
+     Manrope carries the interface; IBM Plex Mono marks technical identifiers
+     (IS numbers, requirement codes, clause/page refs, timestamps); Source Serif 4
+     is reserved for document excerpts and evidence reading areas. */
+  --font-sans: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
 
 :root {
@@ -45,13 +53,32 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 16px;
+  font-weight: 400;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-/* Editorial display headings use the serif face. */
+/* Section & major headings — Manrope, sentence case, optically tightened.
+   Weight is carried by the existing font-semibold/bold utilities per heading;
+   the negative tracking keeps large Manrope headings compact, not oversized. */
 .font-display {
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+}
+
+/* Technical identifiers — IS numbers, requirement codes, clause & page refs,
+   timestamps, system IDs. IBM Plex Mono, slightly condensed tracking. */
+.font-tech {
+  font-family: var(--font-mono);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Document excerpts, quotations and evidence reading areas — Source Serif 4. */
+.font-evidence {
   font-family: var(--font-serif);
+  letter-spacing: 0;
 }
 
 /* Accessible focus ring for keyboard users. */
