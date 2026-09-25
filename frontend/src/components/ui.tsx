@@ -12,7 +12,7 @@ export function Card({
   as?: "div" | "section" | "article";
 }) {
   return (
-    <As className={`rounded-2xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.08),0_1px_2px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-10px_rgba(16,24,40,0.18)] ${className}`}>
+    <As className={`rounded-[22px] border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.08),0_1px_2px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-10px_rgba(16,24,40,0.18)] ${className}`}>
       {children}
     </As>
   );
@@ -56,7 +56,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${BTN[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${BTN[variant]} ${className}`}
       {...rest}
     >
       {children}
@@ -78,7 +78,7 @@ export function LinkButton({
   return (
     <Link
       to={to}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${BTN[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${BTN[variant]} ${className}`}
     >
       {children}
     </Link>
@@ -136,7 +136,7 @@ export function StatusBanner({
 }) {
   const c = BANNER[tone];
   return (
-    <div className={`flex items-stretch overflow-hidden rounded-xl border border-line ${c.bg}`}>
+    <div className={`flex items-stretch overflow-hidden rounded-[20px] border border-line ${c.bg}`}>
       <div className={`w-1.5 flex-none ${c.bar}`} aria-hidden />
       <div className="flex flex-1 flex-wrap items-center justify-between gap-4 p-5">
         <div className="min-w-0">
@@ -199,7 +199,7 @@ export function Stat({
             ? "text-primary"
             : "text-ink";
   return (
-    <div className="rounded-xl border border-line bg-surface p-4">
+    <div className="rounded-[18px] border border-line bg-surface p-4">
       <div className={`text-2xl font-semibold tabular-nums ${text}`}>{value}</div>
       <div className="mt-0.5 text-xs text-muted">{label}</div>
     </div>
@@ -233,7 +233,7 @@ export function ActionItem({
 /* ── EmptyState ────────────────────────────────────────────────────────── */
 export function EmptyState({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-line bg-surface px-6 py-10 text-center text-sm text-muted">
+    <div className="rounded-[18px] border border-dashed border-line bg-surface px-6 py-10 text-center text-sm text-muted">
       {children}
     </div>
   );
@@ -271,7 +271,7 @@ export function StatTile({
   const tColor = trend?.dir === "up" ? "text-success" : trend?.dir === "down" ? "text-danger" : "text-muted";
   return (
     <div
-      className="group relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-12px_var(--glow),0_0_0_1.5px_var(--glow)]"
+      className="group relative overflow-hidden rounded-[22px] border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-12px_var(--glow),0_0_0_1.5px_var(--glow)]"
       style={{ "--glow": glow } as CSSProperties}
     >
       <div className={`absolute left-0 top-0 h-1 w-0 ${accentBar} transition-all duration-300 group-hover:w-full`} />
@@ -390,7 +390,7 @@ export function SectionAccordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-surface">
+    <div className="overflow-hidden rounded-[18px] border border-line bg-surface">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
