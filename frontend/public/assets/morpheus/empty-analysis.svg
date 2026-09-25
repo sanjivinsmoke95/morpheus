@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 340">
+<rect width="520" height="340" rx="28" fill="#FAF8F3"/>
+<rect x="116" y="54" width="180" height="230" rx="16" fill="#FFFDFC" stroke="#EAE4D8" stroke-width="4"/>
+<path d="M250 54v58h46" fill="#FAF8F3"/>
+<path d="M250 54l46 58h-46z" fill="#EAE4D8"/>
+<rect x="144" y="140" width="112" height="10" rx="5" fill="#0B5D3B"/>
+<rect x="144" y="166" width="124" height="8" rx="4" fill="#EAE4D8"/>
+<rect x="144" y="190" width="98" height="8" rx="4" fill="#EAE4D8"/>
+<circle cx="330" cy="230" r="42" fill="#FF9933"/>
+<path d="M312 230h36M330 212v36" stroke="#FFFDFC" stroke-width="6" stroke-linecap="round"/>
+<text x="260" y="315" text-anchor="middle" font-family="Manrope,Arial,sans-serif" font-size="16" font-weight="800" fill="#0B5D3B">Start with a tender</text>
+</svg>

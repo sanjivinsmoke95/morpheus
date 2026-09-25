@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Card, Skeleton, type Tone } from "@/components/ui";
 import { useDashboard, useRegulatoryUpdates } from "@/lib/morpheus";
 
@@ -23,8 +23,12 @@ const STEPS = [
   { n: 5, icon: "report", tone: "bg-warning-soft text-warning", title: "Report", desc: "Generate a comprehensive review report" },
 ];
 
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+}
+
 export function DashboardPage() {
-  const navigate = useNavigate();
   const { data, isLoading } = useDashboard();
   const { data: updates } = useRegulatoryUpdates();
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -39,34 +43,29 @@ export function DashboardPage() {
           {/* Hero */}
           <div className="overflow-hidden rounded-2xl border border-line bg-surface">
             <div className="relative p-6 sm:p-8">
-              {/* polished hero graphic (chakra + dome + flag + quote + Viksit Bharat) on right */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[52%] overflow-hidden rounded-r-2xl lg:block">
-                <img src="/brand/hero_v2.png" alt="Viksit Bharat — Standards build trust, trust builds a stronger nation"
-                  className="h-full w-full object-cover object-center" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/20 to-transparent" />
+              {/* subtle procurement illustration on the right (supplied asset) */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[44%] items-center justify-end overflow-hidden rounded-r-2xl lg:flex">
+                <img src="/assets/morpheus/hero-procurement.svg" alt="" className="h-[112%] w-auto object-contain opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/50 to-transparent" />
               </div>
 
-              <div className="absolute right-6 top-4 z-10 hidden text-xs text-muted lg:block">{today}</div>
-
-              <div className="relative z-10 max-w-lg">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.15em] text-primary">
-                  AI-Powered · Standards-Driven · For a Stronger Bharat
-                </div>
-                <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-ink sm:text-4xl">
-                  Smarter Procurement<br />for a Stronger <span className="text-saffron">Ind</span><span className="text-[#138808]">ia</span>
+              <div className="relative z-10 max-w-xl">
+                <div className="text-xs font-medium text-muted">{greeting()} · <span className="font-tech">{today}</span></div>
+                <h1 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-tight text-ink sm:text-3xl">
+                  Procurement intelligence, without the guesswork.
                 </h1>
-                <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
-                  Upload a tender specification and MORPHEUS maps it to the relevant Indian Standards, surfaces the
-                  evidence behind each match, flags gaps and conflicts, and helps you make better, more transparent procurement decisions.
+                <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
+                  Upload a tender and MORPHEUS identifies applicable standards, maps requirements, and surfaces the
+                  issues that need review.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link to="/analyses/new"
                     className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark">
-                    ⬆ Upload a Tender →
+                    Analyze New Tender
                   </Link>
-                  <Link to="/help"
+                  <Link to="/history"
                     className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-semibold text-ink hover:bg-panel">
-                    ▶ Watch How It Works
+                    My Analyses
                   </Link>
                 </div>
               </div>
@@ -113,100 +112,40 @@ export function DashboardPage() {
             )}
           </div>
 
-          {/* Recent + Coverage */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="font-display text-base font-semibold text-ink">Recent Analyses</h2>
-                <Link to="/history" className="text-xs font-medium text-primary hover:underline">View All →</Link>
+          {/* Recent analyses — the dominant working section */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-base font-semibold text-ink">Recent analyses</h2>
+              <Link to="/history" className="text-xs font-medium text-primary hover:underline">View all →</Link>
+            </div>
+            {isLoading ? (
+              <div className="space-y-2"><Skeleton className="h-16" /><Skeleton className="h-16" /><Skeleton className="h-16" /></div>
+            ) : !(data?.recent ?? []).length ? (
+              <EmptyAnalyses />
+            ) : (
+              <div className="space-y-2">
+                {(data?.recent ?? []).slice(0, 6).map((a) => <AnalysisCard key={a.id} a={a} />)}
               </div>
-              {isLoading ? <Skeleton className="h-48" /> : (
-                <div className="space-y-1">
-                  {(data?.recent ?? []).slice(0, 5).map((a) => {
-                    const v = VERDICT[a.verdict] ?? VERDICT.PENDING;
-                    const sector = (a.sector || "").toLowerCase();
-                    return (
-                      <Link key={a.id} to={a.status === "READY" ? `/analyses/${a.id}` : `/analyses/${a.id}/processing`}
-                        className="flex items-center gap-2.5 rounded-lg px-2 py-2 hover:bg-panel">
-                        <span className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-primary-soft text-primary">
-                          <StepIcon name="doc" small />
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-medium text-ink">{a.title}</span>
-                          <span className="block truncate text-[11px] text-muted">{a.filename || a.sector}</span>
-                        </span>
-                        {a.sector && a.sector !== "—" && (
-                          <span className={`hidden rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize sm:inline ${SECTOR_PILL[sector] ?? "bg-panel text-muted"}`}>{a.sector}</span>
-                        )}
-                        <span className="hidden text-[11px] text-muted md:inline">
-                          {a.created_at ? new Date(a.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}
-                        </span>
-                        <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${v.cls}`}>{v.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
-
-            <Card className="p-5">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="font-display text-base font-semibold text-ink">Standards Coverage</h2>
-                <Link to="/analytics" className="text-xs font-medium text-primary hover:underline">View Details →</Link>
-              </div>
-              <div className="space-y-2.5">
-                {(data?.coverage_bars ?? []).map((c) => (
-                  <div key={c.label} className="flex items-center gap-3">
-                    <span className="w-24 flex-none text-xs text-ink">{c.label}</span>
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
-                      <div className={`h-full rounded-full ${c.pct >= 90 ? "bg-success" : "bg-warning"}`} style={{ width: `${c.pct}%` }} />
-                    </div>
-                    <span className="w-9 flex-none text-right text-xs font-semibold tabular-nums text-ink">{c.pct}%</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex items-start gap-2 rounded-xl bg-saffron-soft/60 p-3">
-                <span className="text-saffron">💡</span>
-                <div>
-                  <div className="text-xs font-semibold text-ink">Key Insight</div>
-                  <div className="mt-0.5 text-[11px] leading-snug text-muted">
-                    Your recent tenders show {data?.compliance_rate ?? 0}% average coverage.
-                    {(data?.kpis.needs_action ?? 0) > 0 ? ` ${data?.kpis.needs_action} specification(s) need review for better alignment.` : " All specifications are well aligned."}
-                  </div>
-                </div>
-              </div>
-            </Card>
+            )}
           </div>
         </div>
 
         {/* RIGHT COLUMN */}
         <div className="space-y-6">
           <Card className="p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <span className="text-saffron">⚡</span>
-              <h2 className="font-display text-base font-semibold text-ink">Quick Actions</h2>
-            </div>
+            <h2 className="mb-3 font-display text-base font-semibold text-ink">Quick actions</h2>
             <div className="space-y-2">
-              <QuickAction to="/analyses/new" icon="doc" tone="bg-primary-soft text-primary" title="Upload New Tender" sub="Analyze a new document" />
-              <QuickAction to="/standards" icon="book" tone="bg-saffron-soft text-saffron" title="Explore Standards Library" sub="Browse Indian Standards" />
-              <QuickAction to="/regulatory-updates" icon="chat" tone="bg-success-soft text-success" title="Regulatory Updates" sub="Latest amendments & QCO" />
-              <QuickAction to="/help" icon="book" tone="bg-blue-100 text-blue-700" title="View User Guide" sub="Learn how to use the platform" />
+              <QuickAction to="/analyses/new" icon="doc" tone="bg-primary-soft text-primary" title="Analyze new tender" sub="Upload a document to review" />
+              <QuickAction to="/standards" icon="book" tone="bg-saffron-soft text-saffron" title="Explore standards" sub="Search the Indian Standards catalogue" />
+              <QuickAction to="/regulatory-updates" icon="chat" tone="bg-success-soft text-success" title="Regulatory updates" sub="Latest amendments & QCO" />
+              <QuickAction to="/help" icon="book" tone="bg-blue-100 text-blue-700" title="User guide" sub="Learn how MORPHEUS works" />
             </div>
           </Card>
 
-          {/* Mountain card — text is baked into the asset; only add the button */}
-          <div className="relative overflow-hidden rounded-2xl">
-            <img src="/brand/mountain_card_clean.png" alt="Efficient Procurement, Stronger Nation" className="w-full object-cover" />
-            <button onClick={() => navigate("/analytics")}
-              className="absolute bottom-4 left-4 inline-flex w-fit items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-primary shadow hover:bg-white">
-              Learn More →
-            </button>
-          </div>
-
           <Card className="p-5">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-display text-base font-semibold text-ink">Latest Regulatory Updates</h2>
-              <Link to="/regulatory-updates" className="text-xs font-medium text-primary hover:underline">View All →</Link>
+              <h2 className="font-display text-base font-semibold text-ink">Latest regulatory updates</h2>
+              <Link to="/regulatory-updates" className="text-xs font-medium text-primary hover:underline">View all →</Link>
             </div>
             <div className="space-y-3">
               {(updates ?? []).slice(0, 3).map((u, i) => (
@@ -222,19 +161,6 @@ export function DashboardPage() {
               {!updates?.length && <p className="text-xs text-muted">No updates on file.</p>}
             </div>
           </Card>
-        </div>
-      </div>
-
-      {/* Footer badge strip */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-6 py-4">
-        <p className="max-w-md text-sm italic text-muted">
-          "Leveraging technology for transparent, efficient and standards-driven governance." <span className="not-italic text-xs">— Government of India</span>
-        </p>
-        <div className="flex items-center gap-5 text-xs font-medium text-muted">
-          <span className="flex items-center gap-1.5"><span className="text-success">🛡</span> Safer Procurements</span>
-          <span className="flex items-center gap-1.5"><span className="text-primary">⚙</span> Efficient Governance</span>
-          <span className="flex items-center gap-1.5"><span className="text-saffron">📊</span> Stronger India</span>
-          <span className="h-6 w-10 rounded" style={{ background: "linear-gradient(90deg,#FF9933 33%,#fff 33% 66%,#138808 66%)" }} />
         </div>
       </div>
     </div>
@@ -339,6 +265,50 @@ function AttentionSummary({ a }: { a: { conflicts: number; gaps: number; outdate
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+type RecentRow = import("@/lib/morpheus").DashboardSummary["recent"][number];
+
+function AnalysisCard({ a }: { a: RecentRow }) {
+  const v = VERDICT[a.verdict] ?? VERDICT.PENDING;
+  const sector = (a.sector || "").toLowerCase();
+  const to = a.status === "READY" ? `/analyses/${a.id}` : `/analyses/${a.id}/processing`;
+  return (
+    <Link to={to}
+      className="group flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 transition-colors hover:border-primary/40 hover:bg-panel/40">
+      <span className="grid h-10 w-10 flex-none place-items-center rounded-lg bg-primary-soft text-primary">
+        <StepIcon name="doc" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-ink">{a.title}</div>
+        <div className="truncate text-[11px] text-muted">{a.filename || "—"}</div>
+      </div>
+      {a.sector && a.sector !== "—" && (
+        <span className={`hidden rounded-md px-2 py-0.5 text-[10px] font-semibold capitalize sm:inline ${SECTOR_PILL[sector] ?? "bg-panel text-muted"}`}>{a.sector}</span>
+      )}
+      {a.compliance_pct != null && (
+        <span className="hidden text-xs text-muted md:inline"><span className="font-semibold tabular-nums text-ink">{a.compliance_pct}%</span> covered</span>
+      )}
+      <span className="hidden font-tech text-[11px] text-muted lg:inline">
+        {a.created_at ? new Date(a.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}
+      </span>
+      <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${v.cls}`}>{v.label}</span>
+      <span className="text-muted transition-transform group-hover:translate-x-0.5" aria-hidden>→</span>
+    </Link>
+  );
+}
+
+function EmptyAnalyses() {
+  return (
+    <div className="flex flex-col items-center rounded-2xl border border-dashed border-line bg-surface px-6 py-10 text-center">
+      <img src="/assets/morpheus/empty-analysis.svg" alt="" className="h-28 w-auto opacity-90" />
+      <div className="mt-4 text-sm font-semibold text-ink">No analyses yet</div>
+      <p className="mt-1 max-w-sm text-sm text-muted">Upload a tender specification to identify applicable standards, map requirements, and surface issues for review.</p>
+      <Link to="/analyses/new" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark">
+        Analyze New Tender
+      </Link>
     </div>
   );
 }

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 260">
+<rect width="1100" height="260" rx="28" fill="#FFFDFC"/>
+<g font-family="Manrope,Arial,sans-serif" text-anchor="middle">
+  <g transform="translate(80 52)">
+    <rect width="170" height="120" rx="18" fill="#FAF8F3" stroke="#EAE4D8" stroke-width="3"/>
+    <text x="85" y="48" font-size="18" font-weight="800" fill="#0B5D3B">Tender clause</text>
+    <text x="85" y="78" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6B746D">§ 3.2 · p. 4</text>
+  </g>
+  <g transform="translate(310 52)">
+    <rect width="170" height="120" rx="18" fill="#FAF8F3" stroke="#EAE4D8" stroke-width="3"/>
+    <text x="85" y="48" font-size="18" font-weight="800" fill="#0B5D3B">Requirement</text>
+    <text x="85" y="78" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6B746D">REQ-014</text>
+  </g>
+  <g transform="translate(540 52)">
+    <rect width="170" height="120" rx="18" fill="#FAF8F3" stroke="#EAE4D8" stroke-width="3"/>
+    <text x="85" y="48" font-size="18" font-weight="800" fill="#0B5D3B">Standard</text>
+    <text x="85" y="78" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6B746D">IS 1234</text>
+  </g>
+  <g transform="translate(770 52)">
+    <rect width="170" height="120" rx="18" fill="#FAF8F3" stroke="#EAE4D8" stroke-width="3"/>
+    <text x="85" y="48" font-size="18" font-weight="800" fill="#0B5D3B">Evidence</text>
+    <text x="85" y="78" font-family="IBM Plex Mono,monospace" font-size="12" fill="#6B746D">Source linked</text>
+  </g>
+</g>
+<g stroke="#FF9933" stroke-width="5" stroke-linecap="round" fill="none">
+<path d="M250 112h45"/><path d="M480 112h45"/><path d="M710 112h45"/>
+</g>
+</svg>

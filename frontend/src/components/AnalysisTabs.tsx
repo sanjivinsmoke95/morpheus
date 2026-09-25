@@ -2,97 +2,70 @@ import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 
 type Tab = { to: string; label: string; end?: boolean };
-type Group = { no: string; name: string; tabs: Tab[] };
 
-/** Analysis workflow, grouped into the conceptual stages a procurement officer
- *  moves through. Routes are unchanged — grouping is presentation only, so every
- *  existing deep link still resolves. */
-const groups = (id: string): Group[] => [
-  {
-    no: "01",
-    name: "Understand",
-    tabs: [
-      { to: `/analyses/${id}`, label: "Overview", end: true },
-      { to: `/analyses/${id}/requirements`, label: "Requirements" },
-      { to: `/analyses/${id}/standards`, label: "Standards" },
-    ],
-  },
-  {
-    no: "02",
-    name: "Verify",
-    tabs: [
-      { to: `/analyses/${id}/issues`, label: "Issues & Gaps" },
-      { to: `/analyses/${id}/evidence`, label: "Evidence" },
-      { to: `/analyses/${id}/recommendations`, label: "Why matched" },
-    ],
-  },
-  {
-    no: "03",
-    name: "Decide",
-    tabs: [
-      { to: `/analyses/${id}/review`, label: "Review" },
-      { to: `/analyses/${id}/audit`, label: "Coverage detail" },
-    ],
-  },
-  {
-    no: "04",
-    name: "Output",
-    tabs: [{ to: `/analyses/${id}/reports`, label: "Report" }],
-  },
+// Primary analysis workflow — one simple row, read left to right.
+const primary = (id: string): Tab[] => [
+  { to: `/analyses/${id}`, label: "Overview", end: true },
+  { to: `/analyses/${id}/requirements`, label: "Requirements" },
+  { to: `/analyses/${id}/standards`, label: "Standards" },
+  { to: `/analyses/${id}/issues`, label: "Issues & Gaps" },
+  { to: `/analyses/${id}/evidence`, label: "Evidence" },
+  { to: `/analyses/${id}/review`, label: "Review" },
+  { to: `/analyses/${id}/reports`, label: "Report" },
 ];
 
-const explore = (id: string): Tab[] => [
+// Secondary / analyst tools — available, not competing for attention.
+const advanced = (id: string): Tab[] => [
+  { to: `/analyses/${id}/recommendations`, label: "Why matched" },
+  { to: `/analyses/${id}/copilot`, label: "Copilot" },
+  { to: `/analyses/${id}/graph`, label: "Knowledge graph" },
+  { to: `/analyses/${id}/audit`, label: "Coverage detail" },
   { to: `/analyses/${id}/regulatory`, label: "Certification & QCO" },
-  { to: `/analyses/${id}/graph`, label: "How standards connect" },
-  { to: `/analyses/${id}/copilot`, label: "Copilot & history" },
 ];
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
-    isActive ? "bg-primary-soft text-primary" : "text-muted hover:bg-panel hover:text-ink"
+  `whitespace-nowrap border-b-2 px-1 pb-2 text-sm font-medium transition-colors ${
+    isActive ? "border-primary text-primary" : "border-transparent text-muted hover:text-ink"
   }`;
 
 export function AnalysisTabs({ id }: { id: string }) {
   const location = useLocation();
-  const exploreTabs = explore(id);
-  const onExplore = exploreTabs.some((t) => location.pathname === t.to);
-  const [open, setOpen] = useState(onExplore);
+  const advTabs = advanced(id);
+  const onAdvanced = advTabs.some((t) => location.pathname === t.to);
+  const [open, setOpen] = useState(onAdvanced);
 
   return (
-    <nav className="mb-6 border-b border-line pb-3" aria-label="Analysis sections">
-      <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
-        {groups(id).map((g, gi) => (
-          <div key={g.no} className="flex items-center gap-x-1">
-            {gi > 0 && <span className="mx-1.5 h-6 w-px bg-line" aria-hidden />}
-            <span className="mr-0.5 flex items-baseline gap-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted/70">
-              <span className="tabular-nums text-primary/50">{g.no}</span>
-              {g.name}
-            </span>
-            {g.tabs.map((t) => (
-              <NavLink key={t.to} to={t.to} end={t.end} className={tabClass}>
-                {t.label}
-              </NavLink>
-            ))}
-          </div>
+    <nav className="mb-6 border-b border-line" aria-label="Analysis sections">
+      <div className="flex flex-wrap items-center gap-x-5">
+        {primary(id).map((t) => (
+          <NavLink key={t.to} to={t.to} end={t.end} className={tabClass}>
+            {t.label}
+          </NavLink>
         ))}
-
         <button
           onClick={() => setOpen((v) => !v)}
-          className={`ml-auto flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
-            onExplore ? "text-primary" : "text-muted hover:bg-panel hover:text-ink"
+          className={`ml-auto flex items-center gap-1 pb-2 text-sm font-medium transition-colors ${
+            onAdvanced ? "text-primary" : "text-muted hover:text-ink"
           }`}
           aria-expanded={open}
         >
-          Explore
+          Advanced
           <span className={`text-xs transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
         </button>
       </div>
 
       {open && (
-        <div className="mt-2 flex flex-wrap items-center gap-x-1 gap-y-1 rounded-lg bg-panel/60 px-3 py-2">
-          <span className="mr-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted/70">Analyst tools</span>
-          {exploreTabs.map((t) => (
-            <NavLink key={t.to} to={t.to} end className={tabClass}>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-b-lg bg-panel/60 px-3 py-2">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted/70">Analyst tools</span>
+          {advTabs.map((t) => (
+            <NavLink
+              key={t.to}
+              to={t.to}
+              end
+              className={({ isActive }) =>
+                `text-sm ${isActive ? "font-semibold text-primary" : "text-muted hover:text-ink"}`
+              }
+            >
               {t.label}
             </NavLink>
           ))}

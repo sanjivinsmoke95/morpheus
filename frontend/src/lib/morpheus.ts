@@ -499,7 +499,19 @@ export function useClauses(analysisId: string) {
   });
 }
 
-export interface AskAnswer { answer: string; abstained: boolean; citations: { is_number: string; text: string }[]; }
+export interface AskSource {
+  ref: string; type: "standard" | "tender" | "requirement" | "qco" | string;
+  label: string; is_number: string | null; page: number | null; text: string;
+}
+export interface AskAnswer {
+  answer: string;
+  abstained: boolean;
+  confidence?: "high" | "medium" | "low" | string;
+  reason?: string | null;
+  engine?: string;
+  sources?: AskSource[];
+  citations: { is_number: string; text: string }[];
+}
 export function useAsk(analysisId: string) {
   return useMutation({
     mutationFn: async (question: string) =>

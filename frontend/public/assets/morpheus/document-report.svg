@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 400">
+<rect x="25" y="18" width="270" height="364" rx="18" fill="#FFFDFC" stroke="#EAE4D8" stroke-width="4"/>
+<path d="M220 18v78h75" fill="#FAF8F3"/>
+<path d="M220 18l75 78h-75z" fill="#EAE4D8"/>
+<rect x="54" y="130" width="120" height="14" rx="7" fill="#0B5D3B"/>
+<rect x="54" y="162" width="205" height="9" rx="4.5" fill="#EAE4D8"/>
+<rect x="54" y="188" width="180" height="9" rx="4.5" fill="#EAE4D8"/>
+<rect x="54" y="228" width="205" height="70" rx="10" fill="#FAF8F3"/>
+<rect x="70" y="246" width="125" height="8" rx="4" fill="#EAE4D8"/>
+<rect x="70" y="268" width="165" height="8" rx="4" fill="#EAE4D8"/>
+<text x="54" y="115" font-family="IBM Plex Mono,monospace" font-size="13" fill="#6B746D">REPORT</text>
+<text x="54" y="338" font-family="Manrope,Arial,sans-serif" font-size="16" font-weight="800" fill="#0B5D3B">Analysis report</text>
+</svg>
