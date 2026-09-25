@@ -70,8 +70,8 @@ export function IssuesGapsPage() {
               <div className="flex items-center gap-2">
                 <span className="grid h-9 w-9 place-items-center rounded-lg bg-success-soft text-success">✓</span>
                 <div>
-                  <div className="text-xs text-muted">Overall Assessment</div>
-                  <div className="font-display text-base font-bold text-ink">{pct >= 65 ? "Mostly Compliant" : pct >= 40 ? "Partially Compliant" : "Needs Attention"}</div>
+                  <div className="text-xs text-muted">Overall assessment</div>
+                  <div className="font-display text-base font-bold text-ink">{pct >= 65 ? "Strong alignment" : pct >= 40 ? "Partial alignment" : "Needs attention"}</div>
                 </div>
                 <span className="ml-auto text-sm font-bold tabular-nums text-ink">{pct}%</span>
               </div>

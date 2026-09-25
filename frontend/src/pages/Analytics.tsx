@@ -8,7 +8,7 @@ export function AnalyticsPage() {
     <div>
       <PageHeader
         title="Department Analytics"
-        subtitle="Compliance trends and standards intelligence across every tender in the workspace."
+        subtitle="Standards-coverage trends and intelligence across every tender in the workspace."
       />
 
       <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -20,7 +20,7 @@ export function AnalyticsPage() {
         ) : (
           <>
             <StatTile value={data.kpis.total_analyses} label="Tenders analysed" tone="info" />
-            <StatTile value={`${data.kpis.compliance_rate}%`} label="Avg compliance"
+            <StatTile value={`${data.kpis.compliance_rate}%`} label="Avg coverage"
               tone={data.kpis.compliance_rate >= 70 ? "success" : data.kpis.compliance_rate >= 40 ? "warning" : "danger"} />
             <StatTile value={data.kpis.avg_gaps} label="Avg gaps / tender"
               tone={data.kpis.avg_gaps > 0 ? "warning" : "success"} />
@@ -32,7 +32,7 @@ export function AnalyticsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Sector breakdown */}
         <Card className="p-5">
-          <h2 className="mb-4 text-sm font-semibold text-ink">Compliance by sector</h2>
+          <h2 className="mb-4 text-sm font-semibold text-ink">Coverage by sector</h2>
           {!data ? <Skeleton className="h-40" /> : data.sector_breakdown.length === 0 ? (
             <EmptyState>No completed tenders yet.</EmptyState>
           ) : (

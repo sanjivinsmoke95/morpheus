@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { AnalysisTabs } from "@/components/AnalysisTabs";
+import { WorkflowStepper } from "@/components/workspace";
 import { downloadReport, useAnalysis, useCreateReport, useDocument } from "@/lib/morpheus";
 
 export function AnalysisHeader({ id, section, right }: { id: string; section: string; right?: ReactNode }) {
@@ -56,17 +57,32 @@ export function AnalysisHeader({ id, section, right }: { id: string; section: st
         </div>
 
         <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-muted">
-          <span className="flex items-center gap-1.5">📄 {doc?.filename || "—"}</span>
-          {date && <span className="flex items-center gap-1.5">🗓 Analyzed on {date}</span>}
-          {analysis?.sector && <span className="flex items-center gap-1.5 font-medium text-saffron">🏷 {analysis.sector}</span>}
-          {doc?.page_count ? <span className="flex items-center gap-1.5">📑 {doc.page_count} pages</span> : null}
+          <Meta k="Document" v={doc?.filename || "—"} />
+          {date && <Meta k="Analyzed" v={date} mono />}
+          {analysis?.sector && <Meta k="Sector" v={analysis.sector} accent />}
+          {doc?.page_count ? <Meta k="Pages" v={String(doc.page_count)} mono /> : null}
           {right}
         </div>
+
+        {analysis?.workflow_status && ready && (
+          <div className="mt-3">
+            <WorkflowStepper status={analysis.workflow_status} />
+          </div>
+        )}
       </div>
 
       <div className="mt-3">
         <AnalysisTabs id={id} />
       </div>
     </div>
+  );
+}
+
+function Meta({ k, v, mono, accent }: { k: string; v: string; mono?: boolean; accent?: boolean }) {
+  return (
+    <span className="flex items-baseline gap-1.5">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted/70">{k}</span>
+      <span className={`${mono ? "font-tech" : ""} ${accent ? "font-medium capitalize text-saffron" : "text-ink"}`}>{v}</span>
+    </span>
   );
 }

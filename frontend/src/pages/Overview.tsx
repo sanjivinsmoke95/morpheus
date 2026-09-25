@@ -6,10 +6,10 @@ import { Card, EmptyState, SectionAccordion, Skeleton, StatusChip } from "@/comp
 import { useAnalysis, useCoverageByCategory, useReadiness } from "@/lib/morpheus";
 
 function assessment(pct: number) {
-  if (pct >= 90) return { label: "Fully Compliant", tone: "success" };
-  if (pct >= 65) return { label: "Mostly Compliant", tone: "success" };
-  if (pct >= 40) return { label: "Partially Compliant", tone: "warning" };
-  return { label: "Needs Attention", tone: "danger" };
+  if (pct >= 90) return { label: "Strong alignment", tone: "success" };
+  if (pct >= 65) return { label: "Good alignment", tone: "success" };
+  if (pct >= 40) return { label: "Partial alignment", tone: "warning" };
+  return { label: "Needs attention", tone: "danger" };
 }
 
 export function OverviewPage() {
@@ -57,7 +57,7 @@ export function OverviewPage() {
               </div>
               <p className="mt-3 text-sm text-muted">
                 {covered} of {total} requirements have identified standard coverage.
-                {pct < 100 ? " A few items require review for complete compliance." : ""}
+                {pct < 100 ? " Some items still need review for full coverage." : ""}
               </p>
               <div className="mt-3 flex items-center gap-3">
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-panel">
@@ -200,7 +200,7 @@ export function OverviewPage() {
                 </div>
                 <p className="text-sm text-muted">
                   Your tender shows {pct >= 65 ? "strong" : "partial"} alignment with Indian Standards.
-                  {r.gaps > 0 ? ` Review the ${r.gaps} potential gap(s) to ensure complete compliance.` : ""}
+                  {r.gaps > 0 ? ` Review the ${r.gaps} potential gap(s) to strengthen coverage.` : ""}
                   {r.outdated_references > 0 ? ` Consider updating ${r.outdated_references} outdated reference(s).` : ""}
                 </p>
               </div>

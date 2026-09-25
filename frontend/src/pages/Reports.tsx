@@ -53,13 +53,13 @@ export function ReportsPage() {
               <div className="relative">
                 <h1 className="font-display text-2xl font-bold text-primary">Standards-Aligned Procurement Report</h1>
                 <div className="font-display text-lg font-semibold text-ink">{analysis?.title}</div>
-                <div className="mt-1 text-sm text-muted">Compliant · Transparent · Future-Ready</div>
+                <div className="mt-1 text-sm text-muted">Standards-aligned · Evidence-backed · Auditable</div>
               </div>
             </div>
 
             {/* 4 KPIs */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-              <RKpi icon="✓" tone="success" big={`${s.compliance_pct}%`} label="Overall Compliance" sub={`${s.covered} of ${s.requirements_total} aligned`} />
+              <RKpi icon="✓" tone="success" big={`${s.compliance_pct}%`} label="Standards Coverage" sub={`${s.covered} of ${s.requirements_total} aligned`} />
               <RKpi icon="📗" tone="info" big={s.top_rows.length} label="Applicable Standards" sub={`${s.mandatory_count} mandatory`} />
               <RKpi icon="⚠" tone="danger" big={criticalIssues} label="Critical Issues" sub="Require attention" />
               <RKpi icon="◎" tone="info" big={s.actions.length} label="Recommendations" sub="To strengthen compliance" />
@@ -164,7 +164,7 @@ export function ReportsPage() {
               <div className="flex items-center gap-2"><span className="text-saffron">🌱</span><span className="text-sm font-semibold text-saffron">AI Insight</span></div>
               <p className="mt-1 text-xs text-muted">
                 {criticalIssues > 0
-                  ? `Addressing the ${criticalIssues} critical issue(s) will ensure full compliance and reduce the risk of procurement delays.`
+                  ? `Addressing the ${criticalIssues} critical issue(s) will improve standards coverage and reduce the risk of procurement delays.`
                   : "This tender is well aligned with applicable standards and ready to proceed."}
               </p>
             </Card>

@@ -4,6 +4,7 @@ import { AnalysisHeader } from "@/components/AnalysisHeader";
 import {
   Button, Card, EmptyState, FilterChip, MatchBar, Skeleton, StatusChip, Tooltip,
 } from "@/components/ui";
+import { EvidenceStrength, strengthOf } from "@/components/workspace";
 import {
   useAnalysis, useDecide, useQco, useRecommendations, type Recommendation,
 } from "@/lib/morpheus";
@@ -111,6 +112,7 @@ function StandardCard({ rec, mandatory, onDecide }: {
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
+  const snippet = rec.evidence?.[0]?.text;
   return (
     <Card className={`p-4 ${mandatory ? "ring-1 ring-danger/30" : ""}`}>
       <div className="flex flex-wrap items-start gap-3">
@@ -121,32 +123,51 @@ function StandardCard({ rec, mandatory, onDecide }: {
             </Link>
             {mandatory && (
               <span className="inline-flex items-center gap-1 rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-white">
-                ⚠ QCO MANDATORY
-                <Tooltip text="This product needs BIS certification by law. Bids without valid certification must be rejected." />
+                QCO mandatory
+                <Tooltip text="This product category requires BIS certification under a Quality Control Order. Bids without valid certification are typically treated as non-compliant." />
               </span>
             )}
-            {rec.standard.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">DEMO</StatusChip>}
-            <span className="ml-auto"><StatusChip tone={STATUS_TONE[rec.review_status as keyof typeof STATUS_TONE] ?? "neutral"}>{rec.review_status}</StatusChip></span>
+            {rec.standard.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
+            <span className="ml-auto flex items-center gap-2">
+              <EvidenceStrength level={strengthOf(rec)} showLabel={false} />
+              <StatusChip tone={STATUS_TONE[rec.review_status as keyof typeof STATUS_TONE] ?? "neutral"}>{rec.review_status}</StatusChip>
+            </span>
           </div>
-          <div className="mt-0.5 text-sm text-ink">{rec.standard.title}</div>
-          {rec.rationale && <div className="mt-1 text-xs text-muted">{rec.rationale}</div>}
-
-          {/* Why this applies (Phase 7) */}
-          {rec.why && rec.why.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1">
-              {rec.why.map((w, i) => (
-                <span key={i} className="inline-flex items-center gap-1 text-[11px] text-ink" title={w.detail}>
-                  <span className="text-success">✓</span> {w.factor}
-                </span>
-              ))}
-            </div>
-          )}
+          <div className="mt-0.5 text-sm font-medium text-ink">{rec.standard.title}</div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <div className="w-48"><MatchBar score={rec.relevance_score} /></div>
+            <div className="min-w-[12rem] flex-1">
+              <div className="mb-1 flex items-baseline justify-between">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted/70">Applicability</span>
+                <span className="text-[11px] text-muted">{rec.relevance.toLowerCase()} relevance</span>
+              </div>
+              <MatchBar score={rec.relevance_score} />
+            </div>
             <StatusChip tone="info">{rec.applicability_class.replace(/_/g, " ")}</StatusChip>
-            <StatusChip tone="neutral">{rec.relevance} relevance</StatusChip>
-            <StatusChip tone="neutral">{rec.retrieval_method === "semantic+lexical" ? "Semantic AI" : "Deterministic"}</StatusChip>
+            <StatusChip tone="neutral">{rec.retrieval_method === "semantic+lexical" ? "Semantic + lexical" : "Deterministic"}</StatusChip>
+          </div>
+
+          {/* Why this applies — the prominent decision rationale */}
+          <div className="mt-3 rounded-xl border border-line bg-panel/40 p-3">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.1em] text-muted/70">Why this applies</div>
+            {rec.why && rec.why.length > 0 ? (
+              <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
+                {rec.why.map((w, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-ink">
+                    <span className="mt-0.5 text-success" aria-hidden>✓</span>
+                    <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-1 text-sm text-muted">{rec.rationale || "No structured factors were recorded for this match."}</p>
+            )}
+            {snippet && (
+              <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink">
+                <span className="font-tech text-[10px] uppercase tracking-wide text-muted">Evidence · </span>
+                “{snippet.slice(0, 180)}{snippet.length > 180 ? "…" : ""}”
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -3,9 +3,10 @@ import { useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { useAuth } from "@/lib/auth";
 import { Button, Card, EmptyState, StatusChip, type Tone } from "@/components/ui";
+import { WorkflowStepper, type WorkflowStatus } from "@/components/workspace";
 import {
   useAddComment, useAddStandard, useAnalysis, useComments, useDecide, useDecisionLog,
-  useRecommendations, useRequirements, type Recommendation,
+  useRecommendations, useRequirements, useSetWorkflowStatus, type Recommendation,
 } from "@/lib/morpheus";
 
 const STATUS_TONE: Record<string, Tone> = {
@@ -94,38 +95,42 @@ function AddStandard({ analysisId, requirementId }: { analysisId: string; requir
   );
 }
 
-const WF_LABEL: Record<string, string> = {
-  DRAFT: "Draft", UNDER_REVIEW: "Under Review", FINALIZED: "Finalized", ISSUED: "Tender Issued",
-};
-
 function CollaborationPanel({ id }: { id: string }) {
   const { user } = useAuth();
   const { data: analysis } = useAnalysis(id);
   const { data: comments } = useComments(id);
   const add = useAddComment(id);
+  const setStatus = useSetWorkflowStatus(id);
   const [text, setText] = useState("");
   const isReviewer = user?.role === "REVIEWER" || user?.role === "ADMIN";
 
   return (
     <Card className="mb-6 p-5">
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <h2 className="font-display text-base font-semibold text-ink">Review & Collaboration</h2>
-        <StatusChip tone={analysis?.workflow_status === "FINALIZED" ? "success" : "warning"}>
-          {WF_LABEL[analysis?.workflow_status ?? "DRAFT"] ?? analysis?.workflow_status}
-        </StatusChip>
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <h2 className="font-display text-base font-semibold text-ink">Review workspace</h2>
+        <WorkflowStepper
+          status={analysis?.workflow_status ?? "DRAFT"}
+          pending={setStatus.isPending}
+          onSelect={isReviewer ? (s: WorkflowStatus) => setStatus.mutate(s) : undefined}
+        />
         {isReviewer && (
           <div className="ml-auto flex gap-2">
             <Button className="px-3 py-1.5 text-xs" disabled={add.isPending}
-              onClick={() => add.mutate({ body: text.trim() || "Signed off — compliant for tendering.", kind: "signoff" }, { onSuccess: () => setText("") })}>
-              ✓ Sign off (Approve)
+              onClick={() => add.mutate({ body: text.trim() || "Signed off — standards-aligned for tendering.", kind: "signoff" }, { onSuccess: () => setText("") })}>
+              Sign off (approve)
             </Button>
             <Button variant="danger" className="px-3 py-1.5 text-xs" disabled={add.isPending || !text.trim()}
               onClick={() => add.mutate({ body: text.trim(), kind: "return" }, { onSuccess: () => setText("") })}>
-              ↩ Return for revision
+              Return for revision
             </Button>
           </div>
         )}
       </div>
+      {isReviewer && (
+        <p className="mb-3 text-[11px] text-muted">
+          MORPHEUS assists the officer's judgement — the reviewer advances the tender through its lifecycle and signs off.
+        </p>
+      )}
 
       <div className="mb-3 space-y-2">
         {!comments?.length ? (

@@ -56,8 +56,8 @@ export function DashboardPage() {
                   Smarter Procurement<br />for a Stronger <span className="text-saffron">Ind</span><span className="text-[#138808]">ia</span>
                 </h1>
                 <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
-                  Upload a tender specification and MORPHEUS identifies relevant Indian Standards, detects gaps,
-                  ensures compliance, and helps you make better, safer and more transparent procurement decisions.
+                  Upload a tender specification and MORPHEUS maps it to the relevant Indian Standards, surfaces the
+                  evidence behind each match, flags gaps and conflicts, and helps you make better, more transparent procurement decisions.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link to="/analyses/new"
