@@ -144,3 +144,26 @@ app.include_router(dashboard.router, prefix=api)
 app.include_router(assistant.router, prefix=api)
 app.include_router(insights.router, prefix=api)
 app.include_router(export.router, prefix=api)
+
+
+# ── Serve the built SPA (single-origin deploy / tunnel) ────────────────────
+# When frontend/dist exists, the backend serves it so one URL hosts the whole app
+# (API under /api, everything else → SPA). Enables a single cloudflared tunnel.
+import os as _os  # noqa: E402
+from fastapi.responses import FileResponse  # noqa: E402
+from fastapi.staticfiles import StaticFiles  # noqa: E402
+
+_DIST = _os.path.join(_os.path.dirname(__file__), "..", "..", "frontend", "dist")
+if _os.path.isdir(_DIST):
+    _assets = _os.path.join(_DIST, "assets")
+    if _os.path.isdir(_assets):
+        app.mount("/assets", StaticFiles(directory=_assets), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa(full_path: str):  # noqa: ANN201
+        # API/docs are matched by earlier routes; this only handles SPA + static files.
+        candidate = _os.path.normpath(_os.path.join(_DIST, full_path))
+        if full_path and candidate.startswith(_os.path.normpath(_DIST)) and _os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(_os.path.join(_DIST, "index.html"))
+    logger.info("Serving built SPA from %s", _DIST)

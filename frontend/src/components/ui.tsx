@@ -12,7 +12,7 @@ export function Card({
   as?: "div" | "section" | "article";
 }) {
   return (
-    <As className={`rounded-xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.08),0_1px_2px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-10px_rgba(16,24,40,0.18)] ${className}`}>
+    <As className={`rounded-2xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.08),0_1px_2px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-10px_rgba(16,24,40,0.18)] ${className}`}>
       {children}
     </As>
   );
@@ -271,7 +271,7 @@ export function StatTile({
   const tColor = trend?.dir === "up" ? "text-success" : trend?.dir === "down" ? "text-danger" : "text-muted";
   return (
     <div
-      className="group relative overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-12px_var(--glow),0_0_0_1.5px_var(--glow)]"
+      className="group relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-12px_var(--glow),0_0_0_1.5px_var(--glow)]"
       style={{ "--glow": glow } as CSSProperties}
     >
       <div className={`absolute left-0 top-0 h-1 w-0 ${accentBar} transition-all duration-300 group-hover:w-full`} />

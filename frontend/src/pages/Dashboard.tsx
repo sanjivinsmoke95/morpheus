@@ -247,7 +247,7 @@ function Metric({ icon, tone, value, label, delta, deltaUp, deltaDown }: {
   const s = METRIC_STYLE[tone] ?? METRIC_STYLE.neutral;
   return (
     <div
-      className={`group relative cursor-default overflow-hidden rounded-xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-10px_var(--glow),0_0_0_1.5px_var(--glow)] ${s.ring}`}
+      className={`group relative cursor-default overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_-10px_var(--glow),0_0_0_1.5px_var(--glow)] ${s.ring}`}
       style={{ "--glow": s.glow } as React.CSSProperties}
       onMouseMove={(e) => {
         const r = e.currentTarget.getBoundingClientRect();
@@ -279,7 +279,7 @@ function Metric({ icon, tone, value, label, delta, deltaUp, deltaDown }: {
 
 function QuickAction({ to, icon, tone, title, sub }: { to: string; icon: string; tone: string; title: string; sub: string }) {
   return (
-    <Link to={to} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-panel">
+    <Link to={to} className="flex items-center gap-3 rounded-2xl border border-line px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-panel">
       <span className={`grid h-9 w-9 flex-none place-items-center rounded-lg ${tone}`}><StepIcon name={icon} small /></span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-ink">{title}</span>
