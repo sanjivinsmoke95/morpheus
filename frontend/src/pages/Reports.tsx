@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { Card, EmptyState, Skeleton } from "@/components/ui";
 import {
@@ -8,6 +9,8 @@ import {
 
 export function ReportsPage() {
   const { id = "" } = useParams();
+  const { user } = useAuth();
+  const isReviewer = user?.role === "REVIEWER";
   const { data: analysis } = useAnalysis(id);
   const { data: s, isLoading } = useReportSummary(id);
   const { data: categories } = useCoverageByCategory(id);
@@ -129,23 +132,38 @@ export function ReportsPage() {
           <div className="space-y-6">
             <Card className="p-5">
               <h2 className="mb-3 font-display text-base font-semibold text-ink">Report Actions</h2>
-              <div className="space-y-2">
-                <button onClick={() => make("PDF")} disabled={!!busy}
-                  className="flex w-full items-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50">
-                  ⬇ {busy === "PDF" ? "Preparing…" : "Download Full Report (PDF)"}
-                </button>
-                <button onClick={() => make("DOCX")} disabled={!!busy}
-                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel disabled:opacity-50">
-                  📄 {busy === "DOCX" ? "Preparing…" : "Download Executive Summary (DOCX)"}
-                </button>
-                <button onClick={() => window.print()}
-                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">🖨 Print / Compliance Matrix</button>
-                <button onClick={exportPackage}
-                  className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">
-                  ⬇ Export Procurement Package (JSON)
-                </button>
-                <p className="px-1 text-[10px] leading-snug text-muted">GeM / CPPP integration-ready export — not a live integration.</p>
-              </div>
+              {isReviewer ? (
+                /* Reviewers consume the officer's report — they never regenerate it,
+                   so there is only ever one authoritative version. */
+                <div className="space-y-2">
+                  <button onClick={() => window.print()}
+                    className="flex w-full items-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark">
+                    View final report
+                  </button>
+                  <p className="px-1 text-[11px] leading-snug text-muted">
+                    The report is produced by the procurement officer. As reviewer you can view and annotate it —
+                    generation controls are intentionally disabled to avoid conflicting versions.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <button onClick={() => make("PDF")} disabled={!!busy}
+                    className="flex w-full items-center gap-2 rounded-lg bg-primary px-3 py-2.5 text-sm font-semibold text-white hover:bg-primary-dark disabled:opacity-50">
+                    {busy === "PDF" ? "Preparing…" : "Download full report (PDF)"}
+                  </button>
+                  <button onClick={() => make("DOCX")} disabled={!!busy}
+                    className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel disabled:opacity-50">
+                    {busy === "DOCX" ? "Preparing…" : "Download executive summary (DOCX)"}
+                  </button>
+                  <button onClick={() => window.print()}
+                    className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">Print / compliance matrix</button>
+                  <button onClick={exportPackage}
+                    className="flex w-full items-center gap-2 rounded-lg border border-line px-3 py-2.5 text-sm font-medium text-ink hover:bg-panel">
+                    Export procurement package (JSON)
+                  </button>
+                  <p className="px-1 text-[10px] leading-snug text-muted">GeM / CPPP integration-ready export — not a live integration.</p>
+                </div>
+              )}
             </Card>
 
             <Card className="p-5">

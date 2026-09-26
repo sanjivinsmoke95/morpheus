@@ -34,6 +34,16 @@ function RequireAuth({ children }: { children: ReactNode }) {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
+/** The landing screen depends on the role: Admins open the System Console and
+ *  Reviewers open their Sign-Off Queue (neither has a case-origination landing);
+ *  Officers get the case Dashboard. */
+function HomeRoute() {
+  const { user } = useAuth();
+  if (user?.role === "ADMIN") return <Navigate to="/admin" replace />;
+  if (user?.role === "REVIEWER") return <Navigate to="/history" replace />;
+  return <DashboardPage />;
+}
+
 function PublicOnly({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
@@ -45,7 +55,7 @@ export function App() {
       <Routes>
         <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
         <Route element={<RequireAuth><Layout /></RequireAuth>}>
-          <Route index element={<DashboardPage />} />
+          <Route index element={<HomeRoute />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/standards" element={<StandardsLibraryPage />} />
           <Route path="/regulatory-updates" element={<RegulatoryUpdatesPage />} />

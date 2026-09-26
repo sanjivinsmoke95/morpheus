@@ -3,21 +3,50 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette } from "@/components/CommandPalette";
 
-type NavItem = { to: string; label: string; icon: string; end?: boolean; roles?: string[] };
+type NavItem = { to: string; label: string; icon: string; end?: boolean };
 
-const MAIN: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: "home", end: true },
-  { to: "/analyses/new", label: "New Analysis", icon: "plus" },
-  { to: "/history", label: "My Tenders", icon: "docs" },
-  { to: "/standards", label: "Standards Library", icon: "book" },
-  { to: "/analytics", label: "Reports", icon: "report" },
-];
-const SECONDARY: NavItem[] = [
-  { to: "/regulatory-updates", label: "Regulatory Updates", icon: "bell" },
-  { to: "/admin", label: "Admin", icon: "gear", roles: ["ADMIN"] },
-  { to: "/evaluation", label: "Accuracy Proof", icon: "check", roles: ["ADMIN", "REVIEWER"] },
-  { to: "/help", label: "Help & Support", icon: "help" },
-];
+/** Navigation is scoped to the signed-in role so each person sees only their own
+ *  workflow. Routes still resolve for everyone (deep links are preserved) — this
+ *  only controls what the sidebar surfaces.
+ *  - Officer: the linear case workflow (analyse → track → export).
+ *  - Reviewer: a sign-off queue; no intake/drafting tools (separation of duties).
+ *  - Admin: a system console only — no case-work destinations at all. */
+function navFor(role?: string): { main: NavItem[]; secondary: NavItem[] } {
+  if (role === "ADMIN") {
+    return {
+      main: [
+        { to: "/admin", label: "System Console", icon: "gear", end: true },
+        { to: "/evaluation", label: "Accuracy Proof", icon: "check" },
+        { to: "/feedback", label: "Feedback", icon: "docs" },
+      ],
+      secondary: [{ to: "/help", label: "Help & Support", icon: "help" }],
+    };
+  }
+  if (role === "REVIEWER") {
+    // No intake/drafting; the sign-off queue is the reviewer's home.
+    return {
+      main: [
+        { to: "/history", label: "Sign-Off Queue", icon: "check", end: true },
+        { to: "/standards", label: "Standards Library", icon: "book" },
+        { to: "/analytics", label: "Reports", icon: "report" },
+      ],
+      secondary: [
+        { to: "/regulatory-updates", label: "Regulatory Updates", icon: "bell" },
+        { to: "/help", label: "Help & Support", icon: "help" },
+      ],
+    };
+  }
+  // Officer (default)
+  return {
+    main: [
+      { to: "/", label: "Home", icon: "home", end: true },
+      { to: "/analyses/new", label: "New Analysis", icon: "plus" },
+      { to: "/history", label: "My Submissions", icon: "docs" },
+      { to: "/standards", label: "Standards Library", icon: "book" },
+    ],
+    secondary: [{ to: "/help", label: "Help & Support", icon: "help" }],
+  };
+}
 
 function Icon({ name }: { name: string }) {
   const p: Record<string, string> = {
@@ -39,10 +68,6 @@ function Icon({ name }: { name: string }) {
   );
 }
 
-function visible(i: NavItem, role?: string) {
-  return !i.roles || (role != null && i.roles.includes(role));
-}
-
 const linkClass = ({ isActive }: { isActive: boolean }) =>
   `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
     isActive ? "bg-white text-primary shadow-sm" : "text-white/75 hover:bg-white/10 hover:text-white"
@@ -50,6 +75,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 
 export function Layout() {
   const { user, logout } = useAuth();
+  const nav = navFor(user?.role);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -77,14 +103,14 @@ export function Layout() {
       </div>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
-        {MAIN.map((i) => (
+        {nav.main.map((i) => (
           <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}
         <div className="my-3 border-t border-white/10" />
-        {SECONDARY.filter((i) => visible(i, user?.role)).map((i) => (
-          <NavLink key={i.to} to={i.to} className={linkClass} onClick={() => setMobileOpen(false)}>
+        {nav.secondary.map((i) => (
+          <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}

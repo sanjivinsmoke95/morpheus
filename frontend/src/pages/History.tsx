@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/lib/auth";
 import { Card, EmptyState, FilterChip, LinkButton, PageHeader, Skeleton, StatusChip, type Tone } from "@/components/ui";
 import { useAnalyses } from "@/lib/morpheus";
 
@@ -15,9 +16,13 @@ const WF: Record<string, { label: string; tone: Tone }> = {
 };
 
 export function HistoryPage() {
-  const { data: analyses, isLoading } = useAnalyses();
+  const { user } = useAuth();
+  const isReviewer = user?.role === "REVIEWER";
+  // Officers see only their own submissions; reviewers see the whole queue.
+  const { data: analyses, isLoading } = useAnalyses(!isReviewer && user?.role !== "ADMIN");
   const [query, setQuery] = useState("");
-  const [wf, setWf] = useState<string>("all");
+  // A reviewer's list opens as an inbox of tenders awaiting sign-off.
+  const [wf, setWf] = useState<string>(isReviewer ? "UNDER_REVIEW" : "all");
 
   const shown = useMemo(() => {
     let rows = analyses ?? [];
@@ -34,8 +39,12 @@ export function HistoryPage() {
 
   return (
     <div>
-      <PageHeader title="My Tenders" subtitle="Every tender you have analysed, with its review status."
-        actions={<LinkButton to="/analyses/new">＋ New Analysis</LinkButton>} />
+      <PageHeader
+        title={isReviewer ? "Sign-Off Queue" : "My Submissions"}
+        subtitle={isReviewer
+          ? "Tenders awaiting your review and sign-off."
+          : "Every tender you have submitted, with its review status."}
+        actions={isReviewer ? undefined : <LinkButton to="/analyses/new">＋ New Analysis</LinkButton>} />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">

@@ -113,8 +113,11 @@ export function useCreateAnalysis() {
   });
 }
 
-export function useAnalyses() {
-  return useQuery<Analysis[]>({ queryKey: ["analyses"], queryFn: async () => (await api.get<Analysis[]>("/analyses")).data });
+export function useAnalyses(mine = false) {
+  return useQuery<Analysis[]>({
+    queryKey: ["analyses", mine],
+    queryFn: async () => (await api.get<Analysis[]>("/analyses", { params: mine ? { mine: true } : {} })).data,
+  });
 }
 
 export function useAnalysis(id: string, poll = false) {
