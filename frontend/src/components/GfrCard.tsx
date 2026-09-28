@@ -17,7 +17,7 @@ export function GfrCard({ analysisId }: { analysisId: string }) {
     <Card className="p-5">
       <div className="mb-3 flex items-center gap-2">
         <h2 className="font-display text-base font-semibold text-ink">GFR 2017 procurement review</h2>
-        <Tooltip text="Advisory rule checks against General Financial Rules 2017 (Rule 149 GeM, Rule 161/173 specifications, sustainability). Not a legal determination." />
+        <Tooltip text="Advisory rule checks against General Financial Rules 2017 (Rule 144(i) Indian Standards preference, Rule 149 GeM, Rule 161/173 specifications, sustainability). Not a legal determination." />
         <span className="ml-auto"><StatusChip tone={s.tone}>{s.label}</StatusChip></span>
       </div>
       {data.flags.length === 0 ? (

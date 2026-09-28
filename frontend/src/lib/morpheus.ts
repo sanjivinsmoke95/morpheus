@@ -654,3 +654,23 @@ export interface DecisionLogEntry {
 export function useDecisionLog(analysisId: string) {
   return useQuery<DecisionLogEntry[]>({ queryKey: ["decision-log", analysisId], queryFn: async () => (await api.get(`/analyses/${analysisId}/decision-log`)).data });
 }
+
+export interface TenderClauseResponse {
+  available: boolean;
+  analysis_id: string;
+  title: string;
+  primary_standard: string | null;
+  primary_title: string | null;
+  clause_text: string;
+  has_mandatory_qco: boolean;
+  standards_cited: string[];
+}
+
+export function useTenderClause(analysisId: string) {
+  return useQuery<TenderClauseResponse>({
+    queryKey: ["tender-clause", analysisId],
+    queryFn: async () => (await api.get(`/analyses/${analysisId}/tender-clause`)).data,
+    enabled: Boolean(analysisId),
+  });
+}
+

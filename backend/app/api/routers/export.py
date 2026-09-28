@@ -24,6 +24,7 @@ from app.models import (
     Analysis, Conflict, CoverageResult, Document, Gap, QcoRecord, Recommendation,
     Requirement, RequirementAttribute, Standard, User,
 )
+from app.services.reports.tender_clause import generate_tender_clause
 
 router = APIRouter(tags=["export"])
 
@@ -106,6 +107,7 @@ def export_package(analysis_id: str, db: Session = Depends(get_db), _: User = De
         "gaps": gaps,
         "qco_certification": qco,
         "gfr_review": gfr_review(db, analysis_id),
+        "tender_clause": generate_tender_clause(db, analysis_id),
         "provenance_legend": {
             "DEMO_SYNTHETIC": "Illustrative demo record, not official BIS data",
             "PUBLIC_METADATA": "Public standard metadata (number/title/sector), no copyrighted text",
@@ -116,6 +118,14 @@ def export_package(analysis_id: str, db: Session = Depends(get_db), _: User = De
     }
     headers = {"Content-Disposition": f'attachment; filename="morpheus-procurement-package-{analysis_id[:8]}.json"'}
     return JSONResponse(package, headers=headers)
+
+
+@router.get("/analyses/{analysis_id}/tender-clause")
+def get_tender_clause(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> JSONResponse:
+    res = generate_tender_clause(db, analysis_id)
+    if not res.get("available"):
+        return JSONResponse(res, status_code=404)
+    return JSONResponse(res)
 
 
 def _provenance(s: Standard) -> str:

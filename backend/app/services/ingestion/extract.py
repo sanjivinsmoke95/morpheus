@@ -70,13 +70,35 @@ def _extract_pdf(data: bytes) -> ExtractionResult:
     with fitz.open(stream=data, filetype="pdf") as doc:
         for i, page in enumerate(doc, start=1):
             text = page.get_text("text") or ""
+            # Extract structured table content if present
+            tables_text = []
+            try:
+                tabs = page.find_tables()
+                for tab in tabs:
+                    df = tab.extract()
+                    for row in df:
+                        clean_row = [str(c).strip() for c in row if c and str(c).strip()]
+                        if clean_row:
+                            tables_text.append(" | ".join(clean_row))
+            except Exception:
+                pass
+            if tables_text:
+                text = (text + "\n" + "\n".join(tables_text)).strip()
+
+            is_tech = any(h in text.lower() for h in [
+                "technical specification", "schedule of requirement", "scope of work",
+                "bill of quantities", "boq", "technical parameter", "specifications", "annexure",
+            ])
+            layout = {"technical_section": is_tech}
+
             if len(text.strip()) >= _SCANNED_CHAR_THRESHOLD:
-                pages.append(ExtractedPage(page_number=i, text=text.strip()))
+                pages.append(ExtractedPage(page_number=i, text=text.strip(), layout=layout))
                 continue
             ocr_text, conf = _ocr_pdf_page(page)
+            layout["scanned"] = True
             pages.append(
                 ExtractedPage(page_number=i, text=ocr_text.strip(), ocr_used=bool(ocr_text.strip()),
-                              ocr_confidence=conf, layout={"scanned": True})
+                              ocr_confidence=conf, layout=layout)
             )
     return ExtractionResult(pages=pages)
 

@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { Card, EmptyState, Skeleton } from "@/components/ui";
 import {
-  downloadReport, useAnalysis, useCreateReport, useReportSummary, useCoverageByCategory,
+  downloadReport, useAnalysis, useCreateReport, useReportSummary, useCoverageByCategory, useTenderClause,
 } from "@/lib/morpheus";
 
 export function ReportsPage() {
@@ -14,8 +14,18 @@ export function ReportsPage() {
   const { data: analysis } = useAnalysis(id);
   const { data: s, isLoading } = useReportSummary(id);
   const { data: categories } = useCoverageByCategory(id);
+  const { data: clauseData } = useTenderClause(id);
   const create = useCreateReport();
   const [busy, setBusy] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  function copyClause() {
+    if (clauseData?.clause_text) {
+      navigator.clipboard.writeText(clauseData.clause_text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
+  }
 
   async function make(format: "PDF" | "DOCX") {
     setBusy(format);
@@ -105,6 +115,41 @@ export function ReportsPage() {
                 )}
               </Card>
             </div>
+
+            {/* Tender-Ready GeM Specification Clause */}
+            <Card className="p-5 border-primary/20 bg-primary-soft/10">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-white font-bold text-sm">📋</span>
+                  <div>
+                    <h2 className="font-display text-base font-semibold text-ink">Tender-Ready Specification Clause (GeM / CPPP Format)</h2>
+                    <p className="text-xs text-muted">Auto-synthesized, standards-aligned specification clause ready for tender publication</p>
+                  </div>
+                </div>
+                <button
+                  onClick={copyClause}
+                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark shadow-sm transition"
+                >
+                  {copied ? "✓ Copied to Clipboard!" : "Copy GeM Clause"}
+                </button>
+              </div>
+
+              {clauseData?.clause_text ? (
+                <div className="mt-3">
+                  <pre className="p-4 rounded-lg bg-canvas border border-line text-xs font-mono whitespace-pre-wrap text-ink max-h-72 overflow-y-auto leading-relaxed">
+                    {clauseData.clause_text}
+                  </pre>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
+                    <span>Includes GFR 2017 Rule 144(i) BIS preference & Rule 173 anti-brand favoritism clauses.</span>
+                    {clauseData.has_mandatory_qco && (
+                      <span className="font-semibold text-danger">⚠️ Statutory QCO license mandatory for bidders</span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <EmptyState>Clause generation loading or unavailable.</EmptyState>
+              )}
+            </Card>
 
             {/* Compliance by category */}
             <Card className="p-5">
