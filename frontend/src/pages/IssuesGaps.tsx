@@ -82,16 +82,21 @@ export function IssuesGapsPage() {
             <Card className="p-5">
               <h2 className="mb-3 font-display text-sm font-semibold text-ink">Category-wise Coverage</h2>
               <div className="space-y-2">
-                {(categories ?? []).map((c) => (
-                  <div key={c.category} className="flex items-center gap-2">
-                    <span className="w-20 flex-none text-[11px] capitalize text-muted">{c.category.toLowerCase()}</span>
-                    <div className="flex h-2 flex-1 overflow-hidden rounded-full bg-panel">
-                      <div className="h-full bg-danger" style={{ width: `${c.total ? (c.missing / c.total) * 100 : 0}%` }} />
-                      <div className="h-full bg-warning" style={{ width: `${c.total ? (c.partial / c.total) * 100 : 0}%` }} />
+                {(categories ?? []).map((c) => {
+                  const formatted = c.category.replace(/_/g, " ");
+                  return (
+                    <div key={c.category} className="group flex items-center gap-2.5">
+                      <span className="w-36 flex-none truncate text-[11px] font-medium capitalize text-muted" title={formatted}>
+                        {formatted}
+                      </span>
+                      <div className="flex h-2.5 flex-1 overflow-hidden rounded-full bg-panel">
+                        <div className="h-full bg-danger transition-all duration-300" style={{ width: `${c.total ? (c.missing / c.total) * 100 : 0}%` }} />
+                        <div className="h-full bg-warning transition-all duration-300" style={{ width: `${c.total ? (c.partial / c.total) * 100 : 0}%` }} />
+                      </div>
+                      <span className="w-8 text-right text-[11px] font-semibold tabular-nums text-muted">{c.missing + c.partial}</span>
                     </div>
-                    <span className="w-6 text-right text-[11px] tabular-nums text-muted">{c.missing + c.partial}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </Card>
 

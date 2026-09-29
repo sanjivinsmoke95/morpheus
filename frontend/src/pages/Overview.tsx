@@ -103,16 +103,22 @@ export function OverviewPage() {
                 <Link to={`/analyses/${id}/standards`} className="text-xs font-medium text-primary hover:underline">View Details →</Link>
               </div>
               {!categories?.length ? <EmptyState>No coverage computed.</EmptyState> : (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {categories.map((c) => {
                     const p = c.total ? Math.round((c.full + c.partial * 0.6) / c.total * 100) : 0;
+                    const formatted = c.category.replace(/_/g, " ");
                     return (
-                      <div key={c.category} className="flex items-center gap-3">
-                        <span className="w-24 flex-none text-xs capitalize text-ink">{c.category.toLowerCase()}</span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-panel">
-                          <div className={`h-full rounded-full ${p >= 90 ? "bg-success" : "bg-warning"}`} style={{ width: `${p}%` }} />
+                      <div key={c.category} className="group flex items-center gap-3">
+                        <span className="w-40 sm:w-44 flex-none truncate text-xs font-medium capitalize text-ink" title={formatted}>
+                          {formatted}
+                        </span>
+                        <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-panel">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ${p >= 90 ? "bg-success" : p >= 50 ? "bg-warning" : "bg-danger"}`}
+                            style={{ width: `${p}%` }}
+                          />
                         </div>
-                        <span className="w-9 flex-none text-right text-xs font-semibold tabular-nums text-ink">{p}%</span>
+                        <span className="w-11 flex-none text-right text-xs font-bold tabular-nums text-ink">{p}%</span>
                       </div>
                     );
                   })}
@@ -242,13 +248,13 @@ function ProfileChip({ label, value, strong }: { label: string; value: string; s
 }
 
 function Kpi({ icon, tone, value, label }: { icon: string; tone: string; value: number; label: string }) {
-  const cls = tone === "success" ? "bg-success-soft text-success" : tone === "danger" ? "bg-danger-soft text-danger"
-    : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
+  const cls = tone === "success" ? "bg-success-soft text-success ring-1 ring-success/20" : tone === "danger" ? "bg-danger-soft text-danger ring-1 ring-danger/20"
+    : tone === "warning" ? "bg-warning-soft text-warning ring-1 ring-warning/20" : "bg-primary-soft text-primary ring-1 ring-primary/20";
   return (
-    <div className="rounded-xl border border-line bg-surface p-3">
-      <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${cls}`}>{icon}</span>
+    <div className="group rounded-xl border border-line bg-surface p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
+      <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm transition-transform duration-200 group-hover:scale-110 ${cls}`}>{icon}</span>
       <div className="mt-2 text-2xl font-bold tabular-nums text-ink">{value}</div>
-      <div className="text-[11px] leading-tight text-muted">{label}</div>
+      <div className="text-[11px] font-medium leading-tight text-muted">{label}</div>
     </div>
   );
 }

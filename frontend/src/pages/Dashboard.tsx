@@ -363,13 +363,18 @@ function StatChip({ v, l }: { v: number | string; l: string }) {
 
 function QuickAction({ to, icon, tone, title, sub }: { to: string; icon: string; tone: string; title: string; sub: string }) {
   return (
-    <Link to={to} className="flex items-center gap-3 rounded-2xl border border-line px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-panel">
-      <span className={`grid h-9 w-9 flex-none place-items-center rounded-lg ${tone}`}><StepIcon name={icon} small /></span>
+    <Link
+      to={to}
+      className="group flex items-center gap-3 rounded-2xl border border-line bg-surface px-3.5 py-2.5 shadow-2xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+    >
+      <span className={`grid h-9 w-9 flex-none place-items-center rounded-xl transition-transform duration-200 group-hover:scale-110 ${tone}`}>
+        <StepIcon name={icon} small />
+      </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-ink">{title}</span>
+        <span className="block text-sm font-semibold text-ink transition-colors group-hover:text-primary">{title}</span>
         <span className="block truncate text-[11px] text-muted">{sub}</span>
       </span>
-      <span className="text-muted">›</span>
+      <span className="text-muted transition-transform duration-200 group-hover:translate-x-0.5 group-hover:text-primary">›</span>
     </Link>
   );
 }

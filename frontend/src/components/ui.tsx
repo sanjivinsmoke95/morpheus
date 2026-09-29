@@ -6,13 +6,21 @@ export function Card({
   children,
   className = "",
   as: As = "div",
+  hover = true,
 }: {
   children: ReactNode;
   className?: string;
   as?: "div" | "section" | "article";
+  hover?: boolean;
 }) {
   return (
-    <As className={`rounded-2xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.08),0_1px_2px_rgba(16,24,40,0.04)] transition-shadow duration-200 hover:shadow-[0_10px_28px_-10px_rgba(16,24,40,0.18)] ${className}`}>
+    <As
+      className={`rounded-2xl border border-line bg-surface shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.03)] transition-all duration-200 ease-out ${
+        hover
+          ? "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[0_12px_28px_-6px_rgba(11,93,59,0.12),0_4px_8px_-2px_rgba(0,0,0,0.04)]"
+          : ""
+      } ${className}`}
+    >
       {children}
     </As>
   );
@@ -42,10 +50,10 @@ export function PageHeader({
 /* ── Button ────────────────────────────────────────────────────────────── */
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 const BTN: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-white hover:bg-primary-dark",
-  secondary: "border border-line bg-surface text-ink hover:bg-panel",
-  ghost: "text-primary hover:bg-primary-soft",
-  danger: "border border-danger/30 bg-danger-soft text-danger hover:bg-danger/10",
+  primary: "bg-primary text-white hover:bg-primary-dark shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-xs",
+  secondary: "border border-line bg-surface text-ink hover:bg-panel hover:border-primary/40 hover:-translate-y-0.5 active:translate-y-0",
+  ghost: "text-primary hover:bg-primary-soft hover:-translate-y-0.5 active:translate-y-0",
+  danger: "border border-danger/30 bg-danger-soft text-danger hover:bg-danger/10 hover:-translate-y-0.5 active:translate-y-0",
 };
 
 export function Button({
@@ -56,7 +64,7 @@ export function Button({
 }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant }) {
   return (
     <button
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${BTN[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50 disabled:transform-none disabled:shadow-none ${BTN[variant]} ${className}`}
       {...rest}
     >
       {children}
