@@ -662,6 +662,9 @@ export interface TenderClauseResponse {
   primary_standard: string | null;
   primary_title: string | null;
   clause_text: string;
+  clause_text_en?: string;
+  clause_text_hi?: string;
+  bilingual_available?: boolean;
   has_mandatory_qco: boolean;
   standards_cited: string[];
 }

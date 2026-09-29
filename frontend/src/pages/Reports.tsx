@@ -18,10 +18,14 @@ export function ReportsPage() {
   const create = useCreateReport();
   const [busy, setBusy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [clauseLang, setClauseLang] = useState<"en" | "hi">("en");
 
   function copyClause() {
-    if (clauseData?.clause_text) {
-      navigator.clipboard.writeText(clauseData.clause_text);
+    const textToCopy = clauseLang === "hi" && clauseData?.clause_text_hi
+      ? clauseData.clause_text_hi
+      : (clauseData?.clause_text_en || clauseData?.clause_text || "");
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
@@ -126,23 +130,53 @@ export function ReportsPage() {
                     <p className="text-xs text-muted">Auto-synthesized, standards-aligned specification clause ready for tender publication</p>
                   </div>
                 </div>
-                <button
-                  onClick={copyClause}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark shadow-sm transition"
-                >
-                  {copied ? "✓ Copied to Clipboard!" : "Copy GeM Clause"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="flex rounded-lg border border-line bg-surface p-0.5 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setClauseLang("en")}
+                      className={`rounded px-2.5 py-1 font-medium transition ${
+                        clauseLang === "en" ? "bg-primary text-white shadow-xs" : "text-muted hover:text-ink"
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setClauseLang("hi")}
+                      className={`rounded px-2.5 py-1 font-medium transition ${
+                        clauseLang === "hi" ? "bg-primary text-white shadow-xs" : "text-muted hover:text-ink"
+                      }`}
+                    >
+                      हिन्दी
+                    </button>
+                  </div>
+                  <button
+                    onClick={copyClause}
+                    className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-white hover:bg-primary-dark shadow-sm transition"
+                  >
+                    {copied ? "✓ Copied to Clipboard!" : clauseLang === "hi" ? "Copy हिन्दी Clause" : "Copy GeM Clause"}
+                  </button>
+                </div>
               </div>
 
               {clauseData?.clause_text ? (
                 <div className="mt-3">
                   <pre className="p-4 rounded-lg bg-canvas border border-line text-xs font-mono whitespace-pre-wrap text-ink max-h-72 overflow-y-auto leading-relaxed">
-                    {clauseData.clause_text}
+                    {clauseLang === "hi" && clauseData.clause_text_hi
+                      ? clauseData.clause_text_hi
+                      : (clauseData.clause_text_en || clauseData.clause_text)}
                   </pre>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted">
-                    <span>Includes GFR 2017 Rule 144(i) BIS preference & Rule 173 anti-brand favoritism clauses.</span>
+                    <span>
+                      {clauseLang === "hi"
+                        ? "जीएफआर 2017 नियम 144(i) बीआईएस प्राथमिकता एवं नियम 173 गैर-भेदभाव खंड सम्मिलित।"
+                        : "Includes GFR 2017 Rule 144(i) BIS preference & Rule 173 anti-brand favoritism clauses."}
+                    </span>
                     {clauseData.has_mandatory_qco && (
-                      <span className="font-semibold text-danger">⚠️ Statutory QCO license mandatory for bidders</span>
+                      <span className="font-semibold text-danger">
+                        {clauseLang === "hi" ? "⚠️ सांविधिक क्यूसीओ (QCO) लाइसेंस अनिवार्य" : "⚠️ Statutory QCO license mandatory for bidders"}
+                      </span>
                     )}
                   </div>
                 </div>
