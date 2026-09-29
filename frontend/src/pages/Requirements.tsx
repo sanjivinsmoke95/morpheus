@@ -178,7 +178,7 @@ function RequirementPanel({ analysisId, req, onPrev, onNext }: { analysisId: str
           <div className="space-y-4">
             <div>
               <div className="mb-1 text-xs font-semibold text-muted">Requirement</div>
-              <div className="rounded-lg bg-panel/60 p-3 text-sm text-ink">{req.description}</div>
+              <div className="rounded-lg bg-panel/60 p-3 text-sm text-ink break-words">{req.description}</div>
             </div>
             {req.attributes.length > 0 && (
               <div>

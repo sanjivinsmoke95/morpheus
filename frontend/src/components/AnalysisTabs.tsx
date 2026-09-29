@@ -24,8 +24,8 @@ const advanced = (id: string): Tab[] => [
 ];
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap border-b-2 px-1 pb-2 text-sm font-medium transition-colors ${
-    isActive ? "border-primary text-primary" : "border-transparent text-muted hover:text-ink"
+  `relative -mb-px whitespace-nowrap border-b-2 px-1 pb-2 text-sm font-medium transition-colors ${
+    isActive ? "border-primary text-primary font-semibold" : "border-transparent text-muted hover:text-ink"
   }`;
 
 export function AnalysisTabs({ id }: { id: string }) {

@@ -98,7 +98,7 @@ export function EvidencePage() {
                 {page && (
                   <div className="mt-4">
                     <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted/70">Source text</div>
-                    <div className="font-evidence max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-panel/40 p-3 text-[12px] leading-relaxed text-ink">
+                    <div className="font-evidence max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-panel/40 p-3 text-[12px] leading-relaxed text-ink">
                       {highlight(page.text_excerpt, selClause?.evidence_text) || "No text on this page."}
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export function EvidencePage() {
                     </ChainStep>
 
                     <ChainStep n={3} label="Evidence from the tender">
-                      <div className="font-evidence rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12px] leading-relaxed text-ink">
+                      <div className="font-evidence rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12px] leading-relaxed text-ink break-words">
                         “{selClause.evidence_text || selRec?.evidence[0]?.text || "No source snippet retrieved."}”
                       </div>
                       <div className="mt-1 font-tech text-[10px] uppercase tracking-wide text-muted">

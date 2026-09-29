@@ -95,7 +95,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
         {rec.standard.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
         <span className="ml-auto"><EvidenceStrength level={strengthOf(rec)} showLabel={false} /></span>
       </div>
-      <div className="mt-0.5 text-sm font-medium text-ink">{rec.standard.title}</div>
+      <div className="mt-0.5 text-sm font-medium text-ink break-words">{rec.standard.title}</div>
 
       <div className="mt-2 max-w-md"><MatchBar score={rec.relevance_score} /></div>
 
@@ -106,15 +106,15 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
             {rec.why.map((w, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-ink">
                 <span className="mt-0.5 text-success" aria-hidden>✓</span>
-                <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
+                <span className="break-words"><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm text-muted">{rec.rationale || "No structured factors recorded."}</p>
+          <p className="mt-1 text-sm text-muted break-words">{rec.rationale || "No structured factors recorded."}</p>
         )}
         {snippet && (
-          <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink">
+          <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink break-words">
             <span className="font-tech text-[10px] uppercase tracking-wide text-muted">Evidence · </span>
             “{snippet.slice(0, 200)}{snippet.length > 200 ? "…" : ""}”
           </div>
@@ -146,14 +146,14 @@ function ExcludedRow({ rec }: { rec: Recommendation }) {
   return (
     <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
       <span className="mt-0.5 flex-none text-muted" aria-hidden>✕</span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link to={`/standards/${rec.standard.id}`} className="font-tech text-xs font-semibold text-muted hover:text-primary hover:underline">
             {rec.standard.is_number}
           </Link>
           <span className="truncate text-xs text-muted">{rec.standard.title}</span>
         </div>
-        <div className="mt-0.5 text-xs text-ink">{reasons.join(" · ")}</div>
+        <div className="mt-0.5 text-xs text-ink break-words">{reasons.join(" · ")}</div>
       </div>
     </div>
   );

@@ -121,7 +121,7 @@ export function Layout() {
       </nav>
 
       {/* Decorative footer (heritage illustration + motto + quote) */}
-      <div className="mt-auto px-3 pb-4 pt-1 text-center">
+      <div className="mt-auto flex-shrink-0 select-none px-3 pb-4 pt-1 text-center">
         <img
           src="/brand/sidebar_heritage_banner.png"
           alt="Transparent Procurement Stronger India"

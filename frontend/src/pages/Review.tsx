@@ -143,7 +143,7 @@ function CollaborationPanel({ id }: { id: string }) {
               {c.kind !== "comment" && <StatusChip tone={c.kind === "signoff" ? "success" : "danger"}>{c.kind === "signoff" ? "Sign-off" : "Returned"}</StatusChip>}
               <span className="ml-auto font-tech text-[10px] text-muted">{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</span>
             </div>
-            <div className="mt-1 text-sm text-ink">{c.body}</div>
+            <div className="mt-1 text-sm text-ink break-words">{c.body}</div>
           </div>
         ))}
       </div>
