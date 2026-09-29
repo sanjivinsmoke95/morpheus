@@ -42,7 +42,10 @@ export function LoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-primary/70 to-primary-dark/95" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <img src="/brand/morpheus_wordmark_light.png" alt="MORPHEUS" className="h-9 w-auto self-start" />
+          <div className="flex items-center gap-2.5 self-start">
+            <img src="/brand/emblem_light.png" alt="" className="h-10 w-auto opacity-90" />
+            <span className="font-display text-xl font-semibold tracking-wide text-white">MORPHEUS</span>
+          </div>
           <div className="max-w-md">
             <h1 className="font-display text-3xl font-semibold leading-tight">
               Every tender specification, checked against the Indian Standards ecosystem.
