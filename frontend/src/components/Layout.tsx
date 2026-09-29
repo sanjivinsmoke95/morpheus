@@ -95,7 +95,7 @@ export function Layout() {
   const sidebar = (
     <div
       className="flex h-full flex-col text-white"
-      style={{ background: "#16362d" }}
+      style={{ background: "#013528" }}
     >
       {/* Brand */}
       <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
@@ -120,19 +120,13 @@ export function Layout() {
         ))}
       </nav>
 
-      {/* Decorative footer (matches the design: monuments line-art + motto + quote) */}
-      <div className="px-4 pb-5 pt-2 text-center">
-        <img src="/assets/sidebar/heritage-illustration.svg" alt="" className="mx-auto w-full max-w-[210px]"
-          style={{ mixBlendMode: "lighten" }} />
-        <div className="mt-1 text-[12px] font-semibold leading-tight text-white/85">
-          Transparent Procurement<br />Stronger India
-        </div>
-        <div className="mx-auto my-2.5 h-2 w-16 rounded-full"
-          style={{ background: "linear-gradient(90deg,#FF9933,#ffffff,#138808)", clipPath: "polygon(0 40%,100% 0,100% 60%,0 100%)" }} />
-        <p className="text-[11px] italic leading-snug text-white/55">
-          “Good governance<br />builds a stronger nation.”
-        </p>
-        <p className="mt-0.5 text-[10px] text-white/45">— Government of India</p>
+      {/* Decorative footer (heritage illustration + motto + quote) */}
+      <div className="mt-auto px-3 pb-4 pt-1 text-center">
+        <img
+          src="/brand/sidebar_heritage_banner.png"
+          alt="Transparent Procurement Stronger India"
+          className="mx-auto w-full max-w-[210px] object-contain"
+        />
       </div>
     </div>
   );
