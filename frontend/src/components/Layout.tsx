@@ -43,8 +43,12 @@ function navFor(role?: string): { main: NavItem[]; secondary: NavItem[] } {
       { to: "/analyses/new", label: "New Analysis", icon: "plus" },
       { to: "/history", label: "My Submissions", icon: "docs" },
       { to: "/standards", label: "Standards Library", icon: "book" },
+      { to: "/analytics", label: "Reports", icon: "report" },
     ],
-    secondary: [{ to: "/help", label: "Help & Support", icon: "help" }],
+    secondary: [
+      { to: "/regulatory-updates", label: "Regulatory Updates", icon: "bell" },
+      { to: "/help", label: "Help & Support", icon: "help" },
+    ],
   };
 }
 
@@ -118,7 +122,7 @@ export function Layout() {
 
       {/* Decorative footer (matches the design: monuments line-art + motto + quote) */}
       <div className="px-4 pb-5 pt-2 text-center">
-        <img src="/brand/india_gate_lineart.png" alt="" className="mx-auto w-full max-w-[210px]"
+        <img src="/assets/sidebar/heritage-illustration.svg" alt="" className="mx-auto w-full max-w-[210px]"
           style={{ mixBlendMode: "lighten" }} />
         <div className="mt-1 text-[12px] font-semibold leading-tight text-white/85">
           Transparent Procurement<br />Stronger India

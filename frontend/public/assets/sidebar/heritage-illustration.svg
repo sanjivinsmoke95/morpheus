@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
+  <!-- India Gate simplified -->
+  <path d="M80 110 V60 A40 40 0 0 1 160 60 V110" />
+  <path d="M90 110 V68 A30 30 0 0 1 150 68 V110" />
+  <line x1="80" y1="58" x2="160" y2="58" />
+  <rect x="108" y="38" width="24" height="20" rx="2" />
+  <line x1="120" y1="38" x2="120" y2="28" />
+  <!-- flag -->
+  <rect x="120" y="18" width="14" height="10" rx="1" fill="none" />
+  <!-- ground line -->
+  <line x1="20" y1="110" x2="220" y2="110" stroke-width="0.6" />
+  <!-- trees left -->
+  <ellipse cx="40" cy="96" rx="14" ry="14" stroke-width="0.6" />
+  <line x1="40" y1="110" x2="40" y2="96" stroke-width="0.6" />
+  <!-- trees right -->
+  <ellipse cx="200" cy="96" rx="14" ry="14" stroke-width="0.6" />
+  <line x1="200" y1="110" x2="200" y2="96" stroke-width="0.6" />
+</svg>
