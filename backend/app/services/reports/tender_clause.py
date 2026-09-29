@@ -30,7 +30,13 @@ def generate_tender_clause(db: Session, analysis_id: str) -> dict:
 
     std_by_id = {s.id: s for s in db.execute(select(Standard)).scalars()}
 
-    primary_std: Standard | None = None
+    profile = analysis.product_profile_json or {}
+    primary_cat = (profile.get("product_category") or "").lower()
+    analysis_sector = (analysis.sector or profile.get("sector") or "").lower()
+    title_low = title.lower()
+
+    # Prioritize standards that match the main product category / tender title
+    candidates_primary: list[tuple[int, Standard]] = []
     testing_stds: list[Standard] = []
     material_stds: list[Standard] = []
     safety_stds: list[Standard] = []
@@ -43,9 +49,25 @@ def generate_tender_clause(db: Session, analysis_id: str) -> dict:
             continue
         seen_std_ids.add(s.id)
 
-        if r.is_primary and not primary_std:
-            primary_std = s
-        elif r.applicability_class == "TESTING":
+        # Match score for primary standard:
+        p_score = 0
+        s_title_low = (s.title or "").lower()
+        cats = [c.lower() for c in (s.product_categories or [])]
+        if any(cat in primary_cat or cat in title_low for cat in cats):
+            p_score += 4
+        if any(w in s_title_low for w in primary_cat.split() if len(w) > 3):
+            p_score += 3
+        if r.is_primary:
+            p_score += 2
+        if r.applicability_class in ("DIRECTLY_APPLICABLE", "NORMATIVE_REFERENCE"):
+            p_score += 1
+        candidates_primary.append((p_score, s))
+
+        # Filter out cross-sector mismatch for auxiliary standards (e.g. pump tests in electrical tender)
+        if analysis_sector and s.sector and s.sector != analysis_sector and r.relevance_score < 0.4:
+            continue
+
+        if r.applicability_class == "TESTING":
             testing_stds.append(s)
         elif r.applicability_class == "MATERIAL":
             material_stds.append(s)
@@ -53,6 +75,9 @@ def generate_tender_clause(db: Session, analysis_id: str) -> dict:
             safety_stds.append(s)
         elif r.applicability_class in ("NORMATIVE_REFERENCE", "DIRECTLY_APPLICABLE"):
             normative_stds.append(s)
+
+    candidates_primary.sort(key=lambda x: x[0], reverse=True)
+    primary_std: Standard | None = candidates_primary[0][1] if candidates_primary and candidates_primary[0][0] > 0 else None
 
     if not primary_std and normative_stds:
         primary_std = normative_stds.pop(0)
@@ -66,9 +91,12 @@ def generate_tender_clause(db: Session, analysis_id: str) -> dict:
         attrs = db.execute(
             select(RequirementAttribute).where(RequirementAttribute.requirement_id == req.id)
         ).scalars().all()
+        # Short context from requirement description (first 4 words)
+        words = req.description.split()[:4]
+        ctx = " ".join(words).rstrip(":")
         for a in attrs:
             if a.raw_value:
-                key_params.append(f"{a.key.replace('_', ' ').capitalize()}: {a.comparator} {a.raw_value} {a.unit}".strip())
+                key_params.append(f"{ctx} — {a.key.replace('_', ' ').capitalize()}: {a.comparator} {a.raw_value} {a.unit}".strip())
 
     qco_records = db.execute(
         select(QcoRecord).where(QcoRecord.standard_id.in_(list(seen_std_ids)))

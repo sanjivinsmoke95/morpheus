@@ -64,6 +64,7 @@ def gfr_review(db: Session, analysis_id: str) -> dict:
     if not analysis:
         return {"available": False}
     text = _text(db, analysis)
+    flags: list[dict] = []
     # 1. GFR 2017 Rule 144(i) — Mandate for Indian Standards over foreign standards & non-discriminatory specs
     detected_foreign = []
     for pat in _FOREIGN_PATTERNS:
