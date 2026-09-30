@@ -424,11 +424,11 @@ export function AnalyticsPage() {
       <Card className="overflow-hidden border border-emerald-900/10 bg-gradient-to-br from-surface via-surface to-emerald-50/20 p-6 lg:p-7">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
           <div className="flex flex-none items-center justify-center">
-            <div className="relative overflow-hidden rounded-2xl border-2 border-amber-300/40 bg-emerald-950 p-2 shadow-xl ring-4 ring-emerald-600/10">
+            <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-md ring-4 ring-emerald-600/10 transition-transform duration-300 hover:scale-[1.02]">
               <img
                 src="/assets/analytics/compliance_audit_shield.jpg"
-                alt="BIS Statutory Compliance Intelligence Seal"
-                className="h-32 w-32 object-contain"
+                alt="Official Bureau of Indian Standards Certification Seal"
+                className="h-32 w-32 object-cover"
               />
             </div>
           </div>
