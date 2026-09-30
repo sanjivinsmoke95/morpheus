@@ -33,7 +33,7 @@ def build_why(signals: dict, applicability_class: str, relevance: str,
         detail = s.get("graph_support") or graph_info
         out.append({"factor": "Knowledge Graph relationship", "detail": f"Inter-standard graph link: {detail}."})
     if s.get("qco_enforced"):
-        out.append({"factor": "Mandatory Quality Control Order (QCO)", "detail": "Enforced under BIS Act 2016. Compliance is mandatory for government procurement."})
+        out.append({"factor": "Quality Control Order (QCO)", "detail": "Catalogue record indicates mandatory treatment; verify against current official gazette order before procurement use."})
     if s.get("semantic", 0) >= 0.5:
         out.append({"factor": "Semantic similarity", "detail": f"Dense vector embedding similarity score ({round(s.get('semantic', 0), 2)}) confirms semantic alignment."})
     elif s.get("lexical", 0) >= 0.5:
@@ -47,7 +47,7 @@ def build_why(signals: dict, applicability_class: str, relevance: str,
     elif applicability_class == "MATERIAL":
         out.append({"factor": "Material specification", "detail": "Standard governs the composition and mechanical properties of components."})
     if version_status == "CURRENT":
-        out.append({"factor": "Current active version", "detail": "The standard edition is current, active, and verified in the catalogue."})
+        out.append({"factor": "Current active version", "detail": "The standard edition is recorded as active in the catalogue; verify current publication status before contract execution."})
     return out
 
 
@@ -60,9 +60,9 @@ def build_why_not(signals: dict, exclusion_reason: str, version_status: str | No
 
     out: list[dict] = []
     if version_status in ("OUTDATED", "SUPERSEDED"):
-        out.append({"reason": "Superseded / outdated edition", "detail": "A newer edition of this standard exists. GFR Rule 144(i) requires current standards."})
+        out.append({"reason": "Superseded / outdated edition", "detail": "Catalogue record indicates a newer edition exists. Advisory check: GFR 2017 Rule 144(i) recommends current national standards."})
     elif version_status == "WITHDRAWN":
-        out.append({"reason": "Withdrawn standard", "detail": "This standard has been formally withdrawn by the Bureau of Indian Standards."})
+        out.append({"reason": "Withdrawn standard", "detail": "Catalogue record indicates this standard has been withdrawn; verify current active replacement."})
 
     if not s.get("product_match"):
         out.append({"reason": "Product mismatch", "detail": "The standard's designated product category was not found in the requirement."})

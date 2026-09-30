@@ -102,23 +102,45 @@ def evaluate_case(db: Session, case: EvaluationCase) -> dict[str, dict]:
     v_rows = db.execute(select(StandardVersion)).scalars().all()
     versions_by_std: dict[str, list[dict]] = defaultdict(list)
     for v in v_rows:
-        versions_by_std[v.standard_id].append({"version_label": v.version_label, "is_current": v.is_current})
+        versions_by_std[v.standard_id].append({
+            "version_label": v.version_label,
+            "is_current": v.is_current,
+            "data_origin": getattr(v, "data_origin", "DEMO_SYNTHETIC"),
+        })
 
     q_rows = db.execute(select(QcoRecord)).scalars().all()
     qco_by_std: dict[str, list[dict]] = defaultdict(list)
     for q in q_rows:
-        qco_by_std[q.standard_id].append({"qco_status": q.qco_status, "order_name": q.order_name})
+        qco_by_std[q.standard_id].append({
+            "qco_status": q.qco_status,
+            "order_name": q.order_name,
+            "data_origin": getattr(q, "data_origin", "DEMO_SYNTHETIC"),
+            "verification_status": getattr(q, "verification_status", "UNVERIFIED"),
+        })
 
     c_rows = db.execute(select(CertificationRecord)).scalars().all()
     cert_by_std: dict[str, list[dict]] = defaultdict(list)
     for cr in c_rows:
-        cert_by_std[cr.standard_id].append({"scheme": cr.scheme, "requirement": cr.requirement})
+        cert_by_std[cr.standard_id].append({
+            "scheme": cr.scheme,
+            "requirement": cr.requirement,
+            "data_origin": getattr(cr, "data_origin", "DEMO_SYNTHETIC"),
+            "verification_status": getattr(cr, "verification_status", "UNVERIFIED"),
+        })
 
     r_rows = db.execute(select(StandardRelationship)).scalars().all()
     rels_by_std: dict[str, list[dict]] = defaultdict(list)
     for r in r_rows:
-        rels_by_std[r.from_standard_id].append({"relationship_type": r.relationship_type, "note": r.note})
-        rels_by_std[r.to_standard_id].append({"relationship_type": r.relationship_type, "note": r.note})
+        rels_by_std[r.from_standard_id].append({
+            "relationship_type": r.relationship_type,
+            "note": r.note,
+            "data_origin": getattr(r, "data_origin", "DEMO_SYNTHETIC"),
+        })
+        rels_by_std[r.to_standard_id].append({
+            "relationship_type": r.relationship_type,
+            "note": r.note,
+            "data_origin": getattr(r, "data_origin", "DEMO_SYNTHETIC"),
+        })
 
     TIER_SCORES = {
         "DIRECTLY_APPLICABLE": 0.35,
@@ -250,6 +272,7 @@ def evaluate_case(db: Session, case: EvaluationCase) -> dict[str, dict]:
     results = {}
     for m, order in rankings.items():
         metrics = _metrics(order, gold)
+        metrics["ranked_standards"] = order
         if m == "morpheus":
             metrics["applicability_f1"] = app_f1
             metrics["abstention_rate"] = abstention_rate

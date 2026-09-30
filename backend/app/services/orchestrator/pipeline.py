@@ -233,22 +233,46 @@ def _recommend_for(db: Session, analysis: Analysis, requirement: Requirement) ->
             .where(StandardRelationship.from_standard_id == cand.standard.id)
         ).all()
         for ro, tgt in rel_out:
-            graph_rels.append({"relationship_type": ro.relationship_type, "target_is_number": tgt, "note": ro.note})
+            graph_rels.append({
+                "relationship_type": ro.relationship_type,
+                "target_is_number": tgt,
+                "note": ro.note,
+                "data_origin": getattr(ro, "data_origin", "DEMO_SYNTHETIC"),
+            })
         rel_in = db.execute(
             select(StandardRelationship, Standard.is_number)
             .join(Standard, Standard.id == StandardRelationship.from_standard_id)
             .where(StandardRelationship.to_standard_id == cand.standard.id)
         ).all()
         for ri, src in rel_in:
-            graph_rels.append({"relationship_type": ri.relationship_type, "target_is_number": src, "note": ri.note})
+            graph_rels.append({
+                "relationship_type": ri.relationship_type,
+                "target_is_number": src,
+                "note": ri.note,
+                "data_origin": getattr(ri, "data_origin", "DEMO_SYNTHETIC"),
+            })
 
         # Versions, QCO, Cert
         v_rows = db.execute(select(StandardVersion).where(StandardVersion.standard_id == cand.standard.id)).scalars().all()
-        v_recs = [{"version_label": v.version_label, "is_current": v.is_current} for v in v_rows]
+        v_recs = [{
+            "version_label": v.version_label,
+            "is_current": v.is_current,
+            "data_origin": getattr(v, "data_origin", "DEMO_SYNTHETIC"),
+        } for v in v_rows]
         q_rows = db.execute(select(QcoRecord).where(QcoRecord.standard_id == cand.standard.id)).scalars().all()
-        q_recs = [{"qco_status": q.qco_status, "order_name": q.order_name} for q in q_rows]
+        q_recs = [{
+            "qco_status": q.qco_status,
+            "order_name": q.order_name,
+            "data_origin": getattr(q, "data_origin", "DEMO_SYNTHETIC"),
+            "verification_status": getattr(q, "verification_status", "UNVERIFIED"),
+        } for q in q_rows]
         c_rows = db.execute(select(CertificationRecord).where(CertificationRecord.standard_id == cand.standard.id)).scalars().all()
-        c_recs = [{"scheme": c.scheme, "requirement": c.requirement} for c in c_rows]
+        c_recs = [{
+            "scheme": c.scheme,
+            "requirement": c.requirement,
+            "data_origin": getattr(c, "data_origin", "DEMO_SYNTHETIC"),
+            "verification_status": getattr(c, "verification_status", "UNVERIFIED"),
+        } for c in c_rows]
 
         cls = evaluate_applicability(
             requirement_type=requirement.requirement_type,

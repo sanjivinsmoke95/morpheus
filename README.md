@@ -785,7 +785,7 @@ The evaluation harness computes dynamic, non-hardcoded metrics:
 
 - **Ranking & Retrieval**: Precision@5, Recall@5, MRR, nDCG@5.
 - **Applicability & Grounding**: Applicability Precision, Recall, Macro F1, Evidence Support Precision, Confusion Matrix.
-- **Safety & Verification**: Hallucination Rate (0.0%), Unsupported Recommendation Rate (0.0%), Citation Correctness (100.0%), Adversarial Case Abstention Rate (100.0%).
+- **Safety & Verification**: Hallucination Rate (0.0%), Unsupported Recommendation Rate (2.8%), Citation Correctness (100.0%), Adversarial Case Abstention Rate (100.0%).
 
 To run the offline evaluation benchmark:
 ```bash

@@ -83,6 +83,106 @@ class ApplicabilityDecision:
         return self.evidence_strength
 
 
+def format_provenance_aware_explanation(
+    claim_type: str,
+    *,
+    data_origin: str = "DEMO_SYNTHETIC",
+    std_num: str = "",
+    title: str = "",
+    status: str = "",
+    extra: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    """Format safe, provenance-grounded explanations distinguishing DEMO_SYNTHETIC,
+    PUBLIC_METADATA, and VERIFIED_RECORD / AUTHORITATIVE.
+    Never emits unconditional authoritative claims on synthetic / demo data.
+    """
+    origin = (data_origin or "DEMO_SYNTHETIC").upper()
+    is_verified = origin in ("VERIFIED_RECORD", "AUTHORITATIVE")
+    is_public_meta = origin == "PUBLIC_METADATA"
+    extra = extra or {}
+
+    if claim_type == "qco":
+        order_name = extra.get("order_name", "Quality Control Order")
+        if is_verified:
+            return {
+                "factor": "Mandatory Quality Control Order (QCO) [Verified]",
+                "detail": f"Enforced under statutory order ({order_name}). Standard compliance is legally mandatory for domestic and imported goods as per gazette record.",
+                "rationale": f"Directly applicable: Mandatory under verified Government Quality Control Order ({order_name}) and matches product specification.",
+            }
+        elif is_public_meta:
+            return {
+                "factor": "Quality Control Order (QCO) [Public Registry Metadata]",
+                "detail": f"Public registry metadata lists Quality Control Order ({order_name}); verify statutory enforcement date and schedule with official gazette.",
+                "rationale": f"Directly applicable: Public QCO metadata indicates mandatory treatment ({order_name}); verify official gazette enforcement.",
+            }
+        else:
+            return {
+                "factor": "Quality Control Order (QCO) [Demo/Benchmark]",
+                "detail": f"Demo QCO record indicates mandatory treatment ({order_name}) in synthetic benchmark data; verify against current gazette order before procurement use.",
+                "rationale": f"Directly applicable: Demo QCO record indicates mandatory treatment ({order_name}); verify against current gazette order before procurement use.",
+            }
+
+    elif claim_type == "certification":
+        scheme = extra.get("scheme", "ISI")
+        req_text = extra.get("requirement", "Conformity assessment")
+        if is_verified:
+            return {
+                "factor": f"Statutory Certification Scheme ({scheme}) [Verified]",
+                "detail": f"Verified statutory certification requirement: {req_text} under {scheme} mark licensing.",
+            }
+        elif is_public_meta:
+            return {
+                "factor": f"Certification Scheme ({scheme}) [Public Metadata]",
+                "detail": f"Public registry metadata notes {scheme} certification scheme ({req_text}); verify applicable scheme and authority with BIS.",
+            }
+        else:
+            return {
+                "factor": f"Certification Scheme ({scheme}) [Demo/Benchmark]",
+                "detail": f"Demo certification record indicates a {scheme} certification relationship in benchmark data ({req_text}); verify applicable scheme and authority with BIS before tender finalization.",
+            }
+
+    elif claim_type == "version_active":
+        if is_verified:
+            return {
+                "factor": "Current active version [Verified]",
+                "detail": f"Standard edition ({std_num}) is verified active in the authoritative repository.",
+            }
+        elif is_public_meta:
+            return {
+                "factor": "Current active version [Public Metadata]",
+                "detail": f"Public metadata lists standard edition ({std_num}) as active; verify current status with official BIS portal.",
+            }
+        else:
+            return {
+                "factor": "Current active version [Demo/Benchmark]",
+                "detail": f"Demo catalogue record lists standard edition ({std_num}) as active in benchmark data; verify current BIS publication before contract execution.",
+            }
+
+    elif claim_type == "version_superseded":
+        curr_ver = extra.get("current_version", "")
+        curr_str = f" Current edition is {curr_ver}." if curr_ver else ""
+        if is_verified:
+            return {
+                "reason": "Standard edition superseded or outdated [Verified]",
+                "detail": f"Verified record confirms standard {std_num} is {status} or specification cites an older version.{curr_str}",
+                "recommendation": "Advisory check: GFR 2017 Rule 144(i) recommends current national standards. Confirm current active edition with procurement officer.",
+            }
+        elif is_public_meta:
+            return {
+                "reason": "Standard edition superseded or outdated [Public Metadata]",
+                "detail": f"Public metadata indicates standard {std_num} is {status} or specification cites an older version.{curr_str}",
+                "recommendation": "Advisory check: GFR 2017 Rule 144(i) recommends current national standards. Confirm current active edition with procurement officer.",
+            }
+        else:
+            return {
+                "reason": "Standard edition superseded or outdated [Demo/Benchmark]",
+                "detail": f"Demo catalogue record indicates standard {std_num} is marked as {status} in benchmark data.{curr_str} Verify current BIS publication before final procurement use.",
+                "recommendation": "Advisory check: GFR 2017 Rule 144(i) recommends current national standards. Confirm current active edition with procurement officer.",
+            }
+
+    return {}
+
+
 def evaluate_applicability(
     *,
     requirement_type: str,
@@ -118,6 +218,7 @@ def evaluate_applicability(
     std_status = (getattr(candidate_standard, "status", "") or "ACTIVE").upper()
     std_categories = [p.lower() for p in (getattr(candidate_standard, "product_categories", []) or [])]
     std_scope = getattr(candidate_standard, "scope", "") or ""
+    std_origin = getattr(candidate_standard, "data_origin", "DEMO_SYNTHETIC") or "DEMO_SYNTHETIC"
 
     why: list[dict[str, Any]] = []
     why_not: list[dict[str, Any]] = []
@@ -147,7 +248,9 @@ def evaluate_applicability(
             "is_current_edition": False,
             "evidence_gate_passed": False,
             "evidence_strength": ES.NO_EVIDENCE.value,
+            "data_origin": std_origin,
             "gfr_rule_144_compliance": False,
+            "gfr_rule_144_advisory": "Advisory decision-support check: GFR 2017 Rule 144(i) recommends current national standards. Confirm active status with procurement officer.",
             "qco_enforced": False,
             "is_referenced_match": is_referenced_match,
             "decision_path": "EVIDENCE_GATE_ABSTAIN",
@@ -178,37 +281,60 @@ def evaluate_applicability(
 
     if is_outdated or newer_version_label or cited_superseded:
         is_outdated = True
+        v_exp = format_provenance_aware_explanation(
+            "version_superseded",
+            data_origin=std_origin,
+            std_num=std_num,
+            status=std_status,
+            extra={"current_version": getattr(candidate_standard, "current_version", "")},
+        )
         why_not.append({
-            "reason": "Standard edition superseded or outdated",
-            "detail": f"Standard {std_num} is marked as {std_status} or specification cites an older version." + (f" Current edition is {getattr(candidate_standard, 'current_version', '')}." if getattr(candidate_standard, 'current_version', '') else ""),
+            "reason": v_exp.get("reason", "Standard edition superseded or outdated"),
+            "detail": v_exp.get("detail", f"Standard {std_num} is marked as {std_status}."),
             "severity": "WARNING",
-            "recommendation": "GFR 2017 Rule 144(i) requires current standards. Update reference to current edition.",
+            "recommendation": v_exp.get("recommendation", "Advisory check: GFR 2017 Rule 144(i) recommends current national standards. Confirm current active edition with procurement officer."),
         })
 
     # ── 3. QCO & REGULATORY ENFORCEMENT SIGNALS ─────────────────────────────
     is_qco_mandatory = False
     qco_title = ""
+    qco_origin = std_origin
     if qco_records:
         for q in qco_records:
             if q.get("qco_status") == "MANDATORY":
                 is_qco_mandatory = True
                 qco_title = q.get("order_name") or "Mandatory Quality Control Order"
+                qco_origin = q.get("data_origin") or std_origin
+                qco_exp = format_provenance_aware_explanation(
+                    "qco",
+                    data_origin=qco_origin,
+                    std_num=std_num,
+                    extra={"order_name": qco_title},
+                )
                 why.append({
-                    "factor": "Mandatory Quality Control Order (QCO)",
-                    "detail": f"Enforced under BIS Act 2016 ({qco_title}). Standard compliance is legally mandatory for domestic and imported goods.",
+                    "factor": qco_exp.get("factor", "Mandatory Quality Control Order (QCO)"),
+                    "detail": qco_exp.get("detail", f"Quality Control Order ({qco_title})."),
                     "signal": "qco_order",
                     "strength": "HIGH",
                 })
                 break
 
     cert_scheme = ""
+    cert_origin = std_origin
     if cert_records:
         for cr in cert_records:
             scheme = cr.get("scheme") or "ISI"
             cert_scheme = scheme
+            cert_origin = cr.get("data_origin") or std_origin
+            cert_exp = format_provenance_aware_explanation(
+                "certification",
+                data_origin=cert_origin,
+                std_num=std_num,
+                extra={"scheme": scheme, "requirement": cr.get("requirement", "Mandatory conformity")},
+            )
             why.append({
-                "factor": f"Statutory Certification Scheme ({scheme})",
-                "detail": f"Product requires {scheme} certification mark as per statutory order. Requirement: {cr.get('requirement', 'Mandatory conformity')}.",
+                "factor": cert_exp.get("factor", f"Statutory Certification Scheme ({scheme})"),
+                "detail": cert_exp.get("detail", f"Product relates to {scheme} certification."),
                 "signal": "certification",
                 "strength": "HIGH",
             })
@@ -279,7 +405,7 @@ def evaluate_applicability(
                     "reason": f"Standard {rtype.lower().replace('_', ' ')} in graph",
                     "detail": f"Standard is linked via {rtype} to {target_num}. {note}".strip(),
                     "severity": "WARNING",
-                    "recommendation": "Review current edition under GFR Rule 144(i).",
+                    "recommendation": "Advisory check: Review current edition under GFR 2017 Rule 144(i) with procurement officer.",
                 })
                 graph_notes.append(f"{rtype} {target_num}")
             elif rtype in ("NORMATIVE_REFERENCE", "REFERENCES"):
@@ -390,9 +516,15 @@ def evaluate_applicability(
         })
 
     if not is_outdated:
+        v_exp = format_provenance_aware_explanation(
+            "version_active",
+            data_origin=std_origin,
+            std_num=std_num,
+            status=std_status,
+        )
         why.append({
-            "factor": "Current active version",
-            "detail": f"Standard edition ({std_num}) is currently in force and actively published by BIS.",
+            "factor": v_exp.get("factor", "Current active version"),
+            "detail": v_exp.get("detail", f"Standard edition ({std_num}) is recorded active in catalogue."),
             "signal": "version_status",
             "strength": "HIGH",
         })
@@ -433,10 +565,10 @@ def evaluate_applicability(
 
     if cert_scheme and not any(k in requirement_desc.lower() for k in ("isi", "bis", "certification", "cert")):
         why_not.append({
-            "reason": "Statutory certification not stated in tender",
-            "detail": f"This product standard is governed by {cert_scheme} certification, but the tender text does not specify the certification mark.",
+            "reason": "Certification scheme not stated in tender",
+            "detail": f"Catalogue records link this standard to {cert_scheme} certification, but the tender text does not specify the certification mark.",
             "severity": "WARNING",
-            "recommendation": f"Add explicit mandatory requirement for {cert_scheme} mark in tender to avoid regulatory non-compliance.",
+            "recommendation": f"Advisory check: Consider specifying {cert_scheme} mark in tender if statutory compliance is mandated.",
         })
 
     # ── 7. DECISION CLASSIFICATION LOGIC ────────────────────────────────────
@@ -506,7 +638,8 @@ def evaluate_applicability(
         elif is_qco_mandatory:
             applicability_class = AC.DIRECTLY_APPLICABLE.value
             evidence_strength = EvidenceStrengthStr(ES.STRONG.value)
-            rationale = f"Directly applicable: Mandatory under Government Quality Control Order ({qco_title}) and matches product specification."
+            qco_exp = format_provenance_aware_explanation("qco", data_origin=qco_origin, std_num=std_num, extra={"order_name": qco_title})
+            rationale = qco_exp.get("rationale") or f"Directly applicable: Quality Control Order ({qco_title}) applies to this product specification."
         else:
             applicability_class = AC.DIRECTLY_APPLICABLE.value
             evidence_strength = EvidenceStrengthStr(ES.STRONG.value if (param_match >= 1.0 and scope_match >= 0.3) else ES.SUPPORTED.value)
@@ -618,7 +751,9 @@ def evaluate_applicability(
         "is_current_edition": not is_outdated,
         "evidence_gate_passed": bool(evidence_strength in (ES.STRONG.value, ES.SUPPORTED.value) and not excluded),
         "evidence_strength": str(evidence_strength),
+        "data_origin": std_origin,
         "gfr_rule_144_compliance": not is_outdated,
+        "gfr_rule_144_advisory": "Advisory decision-support check: GFR 2017 Rule 144(i) recommends current national standards. Confirm active status with procurement officer.",
         "qco_enforced": is_qco_mandatory,
         "is_referenced_match": is_referenced_match,
         "decision_path": decision_path,

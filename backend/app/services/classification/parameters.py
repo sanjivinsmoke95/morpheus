@@ -106,7 +106,10 @@ def normalize_parameter(
             effective_unit = u_match.group(1).lower()
 
     if normalized_value is not None:
-        num = float(normalized_value)
+        try:
+            num = float(normalized_value)
+        except (ValueError, TypeError):
+            return NormalizedParameter(key_clean, raw_str, None, effective_unit, is_valid=False)
     else:
         n_match = _NUM_RE.search(raw_str)
         if not n_match:
@@ -121,7 +124,10 @@ def normalize_parameter(
 
     high_canon = None
     if value_high is not None:
-        high_canon = round(float(value_high) * factor, 4)
+        try:
+            high_canon = round(float(value_high) * factor, 4)
+        except (ValueError, TypeError):
+            high_canon = None
     elif "to" in raw_str.lower() or "-" in raw_str:
         # Check range in raw string e.g. "25 to 250 kVA"
         nums = [float(x) for x in _NUM_RE.findall(raw_str)]
@@ -417,6 +423,8 @@ def audit_requirement_parameters(
     scores: list[float] = []
 
     for attr in attributes:
+        if not attr or not isinstance(attr, dict):
+            continue
         key = attr.get("key") or ""
         raw_val = attr.get("raw_value") or ""
         norm_val = attr.get("normalized_value")
