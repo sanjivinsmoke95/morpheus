@@ -20,8 +20,8 @@
   --color-violet: #7c3aed;      /* evidence accent */
   --color-violet-soft: #f0eafe;
 
-  --color-ink: #1a1a17;         /* warm near-black text */
-  --color-muted: #6b6a63;       /* warm secondary text */
+  --color-ink: #191815;         /* warm crisp near-black text */
+  --color-muted: #56544d;       /* enhanced contrast warm secondary text (7.2:1 ratio) */
 
   --color-success: #16a34a;
   --color-success-soft: #e7f6ed;
@@ -53,12 +53,14 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   font-size: 15px;
-  font-weight: 450;
+  font-weight: 500;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
+
 
 /* Headings typography hierarchy */
 h1, h2, h3, h4, h5, h6 {

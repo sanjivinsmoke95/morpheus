@@ -38,19 +38,39 @@ def list_analyses(
     mine: bool = False,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> list[Analysis]:
+) -> list[AnalysisRead]:
+    from app.api.routers.dashboard import _verdict_for
     stmt = select(Analysis).order_by(Analysis.created_at.desc())
     if mine:
         stmt = stmt.where(Analysis.created_by == user.id)
-    return list(db.execute(stmt).scalars())
+    analyses = list(db.execute(stmt).scalars())
+    results: list[AnalysisRead] = []
+    for a in analyses:
+        item = AnalysisRead.model_validate(a)
+        if a.status == AnalysisStatus.READY.value:
+            v = _verdict_for(db, a.id)
+            item.compliance_pct = v.get("compliance_pct")
+            item.requirements_total = v.get("requirements_total")
+            item.open_issues = v.get("gaps", 0) + v.get("conflicts", 0)
+            item.verdict = v.get("verdict")
+        results.append(item)
+    return results
 
 
 @router.get("/{analysis_id}", response_model=AnalysisRead)
-def get_analysis(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> Analysis:
+def get_analysis(analysis_id: str, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> AnalysisRead:
+    from app.api.routers.dashboard import _verdict_for
     analysis = db.get(Analysis, analysis_id)
     if not analysis:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
-    return analysis
+    item = AnalysisRead.model_validate(analysis)
+    if analysis.status == AnalysisStatus.READY.value:
+        v = _verdict_for(db, analysis.id)
+        item.compliance_pct = v.get("compliance_pct")
+        item.requirements_total = v.get("requirements_total")
+        item.open_issues = v.get("gaps", 0) + v.get("conflicts", 0)
+        item.verdict = v.get("verdict")
+    return item
 
 
 _WORKFLOW = {"DRAFT", "UNDER_REVIEW", "FINALIZED", "ISSUED"}

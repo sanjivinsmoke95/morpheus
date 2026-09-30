@@ -97,27 +97,37 @@ export function LinkButton({
 export type Tone = "success" | "warning" | "danger" | "info" | "neutral";
 
 const TONE_CHIP: Record<Tone, string> = {
-  success: "bg-success-soft text-success",
-  warning: "bg-warning-soft text-warning",
-  danger: "bg-danger-soft text-danger",
-  info: "bg-primary-soft text-primary",
-  neutral: "bg-panel text-muted",
+  success: "bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-600/25",
+  warning: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-600/25",
+  danger: "bg-rose-50 text-rose-800 ring-1 ring-inset ring-rose-600/25",
+  info: "bg-sky-50 text-sky-800 ring-1 ring-inset ring-sky-600/25",
+  neutral: "bg-stone-100 text-stone-700 ring-1 ring-inset ring-stone-300/80",
 };
 
 export function StatusChip({
   tone = "neutral",
   children,
   className = "",
+  showDot = false,
 }: {
   tone?: Tone;
   children: ReactNode;
   className?: string;
+  showDot?: boolean;
 }) {
+  const dotColor: Record<Tone, string> = {
+    success: "bg-emerald-500",
+    warning: "bg-amber-500",
+    danger: "bg-rose-500",
+    info: "bg-sky-500",
+    neutral: "bg-stone-400",
+  };
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONE_CHIP[tone]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ${TONE_CHIP[tone]} ${className}`}
     >
-      {children}
+      {showDot && <span className={`h-1.5 w-1.5 rounded-full ${dotColor[tone]}`} />}
+      <span>{children}</span>
     </span>
   );
 }

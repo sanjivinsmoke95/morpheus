@@ -30,6 +30,10 @@ export interface Analysis {
   product_profile_json?: ProductProfile | null;
   decision_trace_json?: TraceStep[] | null;
   languages_json?: LanguageInfo[] | null;
+  compliance_pct?: number | null;
+  requirements_total?: number | null;
+  open_issues?: number | null;
+  verdict?: string | null;
 }
 
 export interface ReqAttribute {

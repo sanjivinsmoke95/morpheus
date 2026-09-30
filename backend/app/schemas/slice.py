@@ -38,6 +38,10 @@ class AnalysisRead(BaseModel):
     product_profile_json: dict | None = None
     decision_trace_json: list | None = None
     languages_json: list | None = None
+    compliance_pct: int | None = None
+    requirements_total: int | None = None
+    open_issues: int | None = None
+    verdict: str | None = None
 
 
 # ---- requirements ----
