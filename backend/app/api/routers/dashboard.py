@@ -182,12 +182,24 @@ def analytics_summary(db: Session = Depends(get_db), _: User = Depends(get_curre
         sec = a.sector or "unspecified"
         sector_counter[sec] += 1
         sector_compliance.setdefault(sec, []).append(verdicts[a.id]["compliance_pct"])
+
+    std_by_sector = Counter([s.sector for s in db.execute(select(Standard)).scalars() if s.sector])
+
     sector_breakdown = [
         {"sector": sec, "count": cnt,
          "compliance_rate": round(sum(sector_compliance[sec]) / len(sector_compliance[sec]))
-         if sector_compliance.get(sec) else 0}
+         if sector_compliance.get(sec) else 0,
+         "catalogue_standards": std_by_sector.get(sec.lower(), 0)}
         for sec, cnt in sector_counter.most_common()
     ]
+    for sec, std_cnt in std_by_sector.most_common(5):
+        if sec.lower() not in [s["sector"].lower() for s in sector_breakdown]:
+            sector_breakdown.append({
+                "sector": sec,
+                "count": 0,
+                "compliance_rate": 0,
+                "catalogue_standards": std_cnt,
+            })
 
     # Top gap categories (by requirement type of gap-affected reqs; fallback to gap_type)
     gap_type_counter: Counter[str] = Counter()

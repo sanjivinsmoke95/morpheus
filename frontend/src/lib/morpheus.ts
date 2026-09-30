@@ -440,7 +440,7 @@ export function useDashboard() {
 
 export interface AnalyticsSummary {
   kpis: { total_analyses: number; compliance_rate: number; avg_gaps: number; standards_catalogue: number };
-  sector_breakdown: { sector: string; count: number; compliance_rate: number }[];
+  sector_breakdown: { sector: string; count: number; compliance_rate: number; catalogue_standards?: number }[];
   gap_categories: { category: string; gap_count: number }[];
   top_standards: { is_number: string; title: string; citation_count: number }[];
   trend: { week: string; analyses_count: number; compliance_rate: number }[];
