@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import {
-  Button, Card, EmptyState, FilterChip, MatchBar, Skeleton, StatusChip, Tooltip,
+  Button, Card, EmptyState, FilterChip, GovIcon, MatchBar, Skeleton, StatusChip, Tooltip,
 } from "@/components/ui";
 import { EvidenceStrength, strengthOf } from "@/components/workspace";
 import {
@@ -154,7 +154,7 @@ function StandardCard({ rec, mandatory, onDecide }: {
               <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
                 {rec.why.map((w, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                    <span className="mt-0.5 text-success" aria-hidden>✓</span>
+                    <GovIcon name="check" className="mt-0.5 h-3.5 w-3.5 flex-none text-success" />
                     <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
                   </li>
                 ))}

@@ -1,15 +1,15 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Card, EmptyState, FilterChip, SectionAccordion, Skeleton, StatusChip, type Tone } from "@/components/ui";
+import { Card, EmptyState, FilterChip, GovIcon, SectionAccordion, Skeleton, StatusChip, type Tone } from "@/components/ui";
 import {
   useAmendmentImpactFeed, useCoverageByCategory, useCoverageMatrix, useIssues, useReadiness, type Issue,
 } from "@/lib/morpheus";
 
 const TYPE_META: Record<string, { label: string; icon: string; ring: string; pill: string; stripe: string }> = {
-  CONFLICT: { label: "Specification Conflict", icon: "!", ring: "bg-danger-soft text-danger", pill: "bg-danger-soft text-danger", stripe: "border-l-danger" },
-  GAP: { label: "Potential Gap", icon: "△", ring: "bg-warning-soft text-warning", pill: "bg-warning-soft text-warning", stripe: "border-l-warning" },
-  OUTDATED: { label: "Outdated Reference", icon: "◷", ring: "bg-amber-100 text-amber-700", pill: "bg-amber-100 text-amber-700", stripe: "border-l-amber-400" },
+  CONFLICT: { label: "Specification Conflict", icon: "conflict", ring: "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20", pill: "bg-rose-50 text-rose-700", stripe: "border-l-rose-500" },
+  GAP: { label: "Potential Gap", icon: "gap", ring: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20", pill: "bg-amber-50 text-amber-700", stripe: "border-l-amber-500" },
+  OUTDATED: { label: "Outdated Reference", icon: "clock", ring: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20", pill: "bg-amber-50 text-amber-700", stripe: "border-l-amber-400" },
 };
 type TFilter = "all" | "CONFLICT" | "GAP" | "OUTDATED";
 
@@ -41,10 +41,10 @@ export function IssuesGapsPage() {
           <div>
             {/* 4 KPI cards */}
             <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-              <IssueKpi n={r?.conflicts ?? 0} label="Specification Conflicts" cls="border-danger/30 bg-danger-soft/40" icon="⚠" ic="text-danger" />
-              <IssueKpi n={r?.gaps ?? 0} label="Potential Gaps" cls="border-warning/30 bg-warning-soft/40" icon="△" ic="text-warning" />
-              <IssueKpi n={r?.outdated_references ?? 0} label="Outdated Reference" cls="border-amber-300/40 bg-amber-50" icon="◷" ic="text-amber-600" />
-              <IssueKpi n={r?.unresolved_references ?? 0} label="Unresolved References" cls="border-blue-200 bg-blue-50" icon="ⓘ" ic="text-blue-600" />
+              <IssueKpi n={r?.conflicts ?? 0} label="Specification Conflicts" tone="danger" icon="conflict" />
+              <IssueKpi n={r?.gaps ?? 0} label="Potential Gaps" tone="warning" icon="gap" />
+              <IssueKpi n={r?.outdated_references ?? 0} label="Outdated Reference" tone="warning" icon="clock" />
+              <IssueKpi n={r?.unresolved_references ?? 0} label="Unresolved References" tone="info" icon="info" />
             </div>
 
             <div className="mb-4 space-y-3">
@@ -68,7 +68,9 @@ export function IssuesGapsPage() {
           <div className="space-y-6">
             <Card className="p-5">
               <div className="flex items-center gap-2">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-success-soft text-success">✓</span>
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20">
+                  <GovIcon name="check" className="h-5 w-5" />
+                </span>
                 <div>
                   <div className="text-xs text-muted">Overall assessment</div>
                   <div className="font-display text-base font-bold text-ink">{pct >= 65 ? "Strong alignment" : pct >= 40 ? "Partial alignment" : "Needs attention"}</div>
@@ -120,14 +122,38 @@ export function IssuesGapsPage() {
   );
 }
 
-function IssueKpi({ n, label, cls, icon, ic }: { n: number; label: string; cls: string; icon: string; ic: string }) {
+function IssueKpi({ n, label, tone, icon }: { n: number; label: string; tone: string; icon: string }) {
+  const meta = {
+    danger: {
+      border: "hover:border-rose-500/50",
+      topBorder: "border-t-2 border-t-rose-600",
+      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20",
+    },
+    warning: {
+      border: "hover:border-amber-500/50",
+      topBorder: "border-t-2 border-t-amber-600",
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
+    },
+    info: {
+      border: "hover:border-teal-500/50",
+      topBorder: "border-t-2 border-t-teal-600",
+      badge: "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20",
+    },
+  }[tone] || {
+    border: "hover:border-primary/50",
+    topBorder: "border-t-2 border-t-primary",
+    badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+  };
+
   return (
-    <div className={`rounded-xl border p-3 ${cls}`}>
-      <div className="flex items-center gap-2">
-        <span className={`text-lg ${ic}`}>{icon}</span>
+    <div className={`group rounded-xl border border-line bg-gradient-to-b from-surface to-panel/30 p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${meta.topBorder} ${meta.border}`}>
+      <div className="flex items-center gap-2.5">
+        <span className={`grid h-8 w-8 place-items-center rounded-lg transition-transform duration-200 group-hover:scale-110 shadow-2xs ${meta.badge}`}>
+          <GovIcon name={icon} className="h-4 w-4" />
+        </span>
         <span className="text-2xl font-bold tabular-nums text-ink">{n}</span>
       </div>
-      <div className="mt-0.5 text-[11px] text-muted">{label}</div>
+      <div className="mt-1 text-[11px] font-medium text-muted">{label}</div>
     </div>
   );
 }
@@ -138,7 +164,9 @@ function IssueCard({ issue }: { issue: Issue }) {
   return (
     <Card className={`border-l-4 p-4 ${m.stripe}`}>
       <div className="flex items-start gap-3">
-        <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg font-bold ${m.ring}`}>{m.icon}</span>
+        <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg font-bold shadow-2xs ${m.ring}`}>
+          <GovIcon name={m.icon} className="h-4 w-4" />
+        </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-semibold text-ink">{m.label}</span>
@@ -198,7 +226,7 @@ function AmendmentImpact({ id }: { id: string }) {
   return (
     <Card className="border-l-4 border-l-warning p-4">
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-warning">⚠</span>
+        <GovIcon name="warning" className="h-4 w-4 text-warning" />
         <h3 className="text-sm font-semibold text-ink">Standard Update Detected ({data.length})</h3>
       </div>
       <div className="space-y-2">

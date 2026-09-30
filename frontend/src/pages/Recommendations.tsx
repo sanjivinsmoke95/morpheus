@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Button, Card, EmptyState, MatchBar, Skeleton, StatusChip, type Tone } from "@/components/ui";
+import { Button, Card, EmptyState, GovIcon, MatchBar, Skeleton, StatusChip, type Tone } from "@/components/ui";
 import { EvidenceStrength, strengthOf } from "@/components/workspace";
 import { useDecide, useRecommendations, useRequirements, type Recommendation } from "@/lib/morpheus";
 
@@ -105,7 +105,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
           <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
             {rec.why.map((w, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                <span className="mt-0.5 text-success" aria-hidden>✓</span>
+                <GovIcon name="check" className="mt-0.5 h-3.5 w-3.5 flex-none text-success" />
                 <span className="break-words"><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
               </li>
             ))}
@@ -145,7 +145,7 @@ function ExcludedRow({ rec }: { rec: Recommendation }) {
     : [rec.exclusion_reason || "Ranked below stronger candidates"];
   return (
     <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
-      <span className="mt-0.5 flex-none text-muted" aria-hidden>✕</span>
+      <GovIcon name="close" className="mt-0.5 h-3.5 w-3.5 flex-none text-muted" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link to={`/standards/${rec.standard.id}`} className="font-tech text-xs font-semibold text-muted hover:text-primary hover:underline">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Card, EmptyState, Skeleton } from "@/components/ui";
+import { Card, EmptyState, GovIcon, Skeleton } from "@/components/ui";
 import {
   downloadReport, useAnalysis, useCreateReport, useReportSummary, useCoverageByCategory, useTenderClause,
 } from "@/lib/morpheus";
@@ -86,28 +86,28 @@ export function ReportsPage() {
             {/* 4 Interactive KPI Cards */}
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <RKpi
-                icon="✓"
+                icon="check"
                 tone="success"
                 big={`${s.compliance_pct}%`}
                 label="Standards Coverage"
                 sub={`${s.covered} of ${s.requirements_total} aligned`}
               />
               <RKpi
-                icon="📗"
+                icon="book"
                 tone="info"
                 big={s.top_rows.length}
                 label="Applicable Standards"
                 sub={`${s.mandatory_count} mandatory`}
               />
               <RKpi
-                icon="⚠"
+                icon="conflict"
                 tone="danger"
                 big={criticalIssues}
                 label="Critical Issues"
                 sub="Require attention"
               />
               <RKpi
-                icon="◎"
+                icon="bulb"
                 tone="gold"
                 big={s.actions.length}
                 label="Recommendations"
@@ -119,7 +119,7 @@ export function ReportsPage() {
             <Card className="p-5.5">
               <div className="flex items-start gap-3.5">
                 <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-primary-soft text-primary font-bold text-base shadow-xs">
-                  📄
+                  <GovIcon name="doc" className="h-5 w-5" />
                 </span>
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
@@ -143,10 +143,10 @@ export function ReportsPage() {
                   <span className="text-[11px] font-medium text-muted">Audited criteria</span>
                 </div>
                 <div className="space-y-3 text-sm">
-                  <Finding icon="⚠" tone="danger" t={`${s.conflicts} specification conflict(s)`} d="Conflicting requirements detected" />
-                  <Finding icon="△" tone="warning" t={`${s.gaps} potential gap(s)`} d="Additional specifications may be needed" />
-                  <Finding icon="◷" tone="warning" t={`${s.mandatory_count} QCO-mandatory standard(s)`} d="Statutory certification required before purchase" />
-                  <Finding icon="ⓘ" tone="info" t={`Overall compliance: ${s.compliance_pct}%`} d="Specification alignment with Indian Standards" />
+                  <Finding icon="conflict" tone="danger" t={`${s.conflicts} specification conflict(s)`} d="Conflicting requirements detected" />
+                  <Finding icon="gap" tone="warning" t={`${s.gaps} potential gap(s)`} d="Additional specifications may be needed" />
+                  <Finding icon="clock" tone="warning" t={`${s.mandatory_count} QCO-mandatory standard(s)`} d="Statutory certification required before purchase" />
+                  <Finding icon="info" tone="info" t={`Overall compliance: ${s.compliance_pct}%`} d="Specification alignment with Indian Standards" />
                 </div>
               </Card>
 
@@ -177,7 +177,7 @@ export function ReportsPage() {
               <div className="flex flex-wrap items-center justify-between gap-3 mb-3.5">
                 <div className="flex items-center gap-2.5">
                   <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-white font-bold text-sm shadow-xs">
-                    📋
+                    <GovIcon name="clipboard" className="h-4 w-4" />
                   </span>
                   <div>
                     <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ export function ReportsPage() {
                     </span>
                     {clauseData.has_mandatory_qco && (
                       <span className="inline-flex items-center gap-1 font-semibold text-danger">
-                        <span>⚠️</span>
+                        <GovIcon name="warning" className="h-3.5 w-3.5" />
                         <span>{clauseLang === "hi" ? "सांविधिक क्यूसीओ (QCO) लाइसेंस अनिवार्य" : "Statutory QCO license mandatory for bidders"}</span>
                       </span>
                     )}
@@ -355,7 +355,7 @@ export function ReportsPage() {
                     onClick={() => window.print()}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-primary-dark hover:-translate-y-0.5 transition-all"
                   >
-                    <span>🖨</span>
+                    <GovIcon name="print" className="h-4 w-4" />
                     <span>View & Print Final Report</span>
                   </button>
                   <p className="px-1 text-[11px] leading-snug text-muted">
@@ -370,7 +370,7 @@ export function ReportsPage() {
                     disabled={!!busy}
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 transition-all"
                   >
-                    <span>📄</span>
+                    <GovIcon name="doc" className="h-4 w-4" />
                     <span>{busy === "PDF" ? "Generating Official PDF…" : "Download Full Report (PDF)"}</span>
                   </button>
 
@@ -379,7 +379,7 @@ export function ReportsPage() {
                     disabled={!!busy}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink shadow-2xs hover:bg-panel hover:border-primary/40 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 transition-all"
                   >
-                    <span>📝</span>
+                    <GovIcon name="note" className="h-4 w-4" />
                     <span>{busy === "DOCX" ? "Preparing Document…" : "Download Executive Summary (DOCX)"}</span>
                   </button>
 
@@ -387,7 +387,7 @@ export function ReportsPage() {
                     onClick={() => window.print()}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink shadow-2xs hover:bg-panel hover:border-primary/40 hover:-translate-y-0.5 transition-all"
                   >
-                    <span>🖨</span>
+                    <GovIcon name="print" className="h-4 w-4" />
                     <span>Print Compliance Matrix</span>
                   </button>
 
@@ -395,7 +395,7 @@ export function ReportsPage() {
                     onClick={exportPackage}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 py-2.5 text-sm font-medium text-ink shadow-2xs hover:bg-panel hover:border-primary/40 hover:-translate-y-0.5 transition-all"
                   >
-                    <span>📦</span>
+                    <GovIcon name="package" className="h-4 w-4" />
                     <span>Export GeM Package (JSON)</span>
                   </button>
 
@@ -428,7 +428,7 @@ export function ReportsPage() {
             {/* AI Strategic Advisory Card */}
             <Card className="border-saffron/35 bg-saffron-soft/50 p-4.5 shadow-xs">
               <div className="flex items-center gap-2">
-                <span className="text-base text-saffron">💡</span>
+                <GovIcon name="bulb" className="h-4 w-4 text-saffron" />
                 <span className="text-sm font-bold text-saffron">Procurement Advisory</span>
               </div>
               <p className="mt-2 text-xs leading-relaxed text-ink/80">
@@ -445,32 +445,55 @@ export function ReportsPage() {
 }
 
 function RKpi({ icon, tone, big, label, sub }: { icon: string; tone: string; big: React.ReactNode; label: string; sub: string }) {
-  const cls = tone === "success"
-    ? "bg-success-soft text-success ring-1 ring-success/25"
-    : tone === "danger"
-    ? "bg-danger-soft text-danger ring-1 ring-danger/25"
-    : tone === "gold"
-    ? "bg-amber-100 text-amber-700 ring-1 ring-amber-300"
-    : "bg-primary-soft text-primary ring-1 ring-primary/25";
+  const meta = {
+    success: {
+      border: "hover:border-emerald-500/50",
+      topBorder: "border-t-2 border-t-emerald-600",
+      badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20",
+    },
+    danger: {
+      border: "hover:border-rose-500/50",
+      topBorder: "border-t-2 border-t-rose-600",
+      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20",
+    },
+    gold: {
+      border: "hover:border-amber-500/50",
+      topBorder: "border-t-2 border-t-amber-600",
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
+    },
+    info: {
+      border: "hover:border-teal-500/50",
+      topBorder: "border-t-2 border-t-teal-600",
+      badge: "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20",
+    },
+  }[tone] || {
+    border: "hover:border-primary/50",
+    topBorder: "border-t-2 border-t-primary",
+    badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+  };
 
   return (
-    <Card className="group p-4 transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
-      <span className={`grid h-9 w-9 place-items-center rounded-xl text-sm transition-transform duration-200 group-hover:scale-110 ${cls}`}>
-        {icon}
+    <Card className={`group p-4 bg-gradient-to-b from-surface to-panel/30 transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${meta.topBorder} ${meta.border}`}>
+      <span className={`grid h-9 w-9 place-items-center rounded-xl text-sm transition-transform duration-200 group-hover:scale-110 shadow-2xs ${meta.badge}`}>
+        <GovIcon name={icon} className="h-4 w-4" />
       </span>
-      <div className="mt-2 text-2xl font-bold tabular-nums text-ink">{big}</div>
+      <div className="mt-2.5 text-2xl font-bold tabular-nums text-ink">{big}</div>
       <div className="text-xs font-semibold text-ink">{label}</div>
-      <div className="text-[11px] text-muted">{sub}</div>
+      <div className="mt-0.5 text-[11px] font-medium text-muted">{sub}</div>
     </Card>
   );
 }
 
 function Finding({ icon, tone, t, d }: { icon: string; tone: string; t: string; d: string }) {
-  const cls = tone === "danger" ? "bg-danger-soft text-danger" : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
+  const cls = tone === "danger"
+    ? "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20"
+    : tone === "warning"
+    ? "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20"
+    : "bg-primary-soft text-primary ring-1 ring-primary/20";
   return (
     <div className="group flex items-start gap-3 rounded-xl p-1 transition-colors hover:bg-panel/40">
-      <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg text-sm transition-transform duration-150 group-hover:scale-105 ${cls}`}>
-        {icon}
+      <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg text-sm transition-transform duration-150 group-hover:scale-105 shadow-2xs ${cls}`}>
+        <GovIcon name={icon} className="h-4 w-4" />
       </span>
       <div className="min-w-0">
         <div className="font-semibold text-ink">{t}</div>

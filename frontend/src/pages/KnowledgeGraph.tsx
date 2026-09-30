@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ReactFlow, { Background, Controls, type Edge, type Node } from "reactflow";
 import "reactflow/dist/style.css";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Card, StatusChip, type Tone } from "@/components/ui";
+import { Card, GovIcon, StatusChip, type Tone } from "@/components/ui";
 import { SectionHeader } from "@/components/workspace";
 import { useGraph, useVersionFindings, type GraphNode } from "@/lib/morpheus";
 
@@ -149,7 +149,9 @@ export function KnowledgeGraphPage() {
             <Card className="p-4 text-sm">
               <div className="mb-1 flex items-center justify-between">
                 <span className="font-tech text-sm font-semibold text-primary">{selNode.is_number}</span>
-                <button onClick={() => setSelected(null)} className="text-xs text-muted hover:text-ink" aria-label="Clear selection">✕</button>
+                <button onClick={() => setSelected(null)} className="rounded p-0.5 text-muted hover:bg-panel hover:text-ink transition" aria-label="Clear selection">
+                  <GovIcon name="close" className="h-3.5 w-3.5" />
+                </button>
               </div>
               <div className="text-ink">{selNode.title}</div>
               <div className="mt-2 flex flex-wrap items-center gap-2">

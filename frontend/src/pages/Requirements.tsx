@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Button, Card, EmptyState, Skeleton, StatusChip, Tabs } from "@/components/ui";
+import { Button, Card, EmptyState, GovIcon, Skeleton, StatusChip, Tabs } from "@/components/ui";
 import {
   useAddNote, useAddRequirement, useCoverage, useEditRequirement, useNotes, useReadiness,
   useRecommendations, useRequirements, type Requirement,
@@ -71,10 +71,10 @@ export function RequirementsPage() {
 
       {/* 4 KPIs */}
       <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <RKpi icon="📄" tone="neutral" n={r?.requirements_total ?? 0} label="Total Requirements" />
-        <RKpi icon="📗" tone="success" n={(r?.requirements_covered ?? 0) + (r?.requirements_partial ?? 0)} label="Mapped to Standards" />
-        <RKpi icon="⚠" tone="warning" n={r?.requirements_partial ?? 0} label="Need Review" />
-        <RKpi icon="◷" tone="danger" n={r?.requirements_missing ?? 0} label="Unmapped" />
+        <RKpi icon="doc" tone="neutral" n={r?.requirements_total ?? 0} label="Total Requirements" />
+        <RKpi icon="book" tone="success" n={(r?.requirements_covered ?? 0) + (r?.requirements_partial ?? 0)} label="Mapped to Standards" />
+        <RKpi icon="warning" tone="warning" n={r?.requirements_partial ?? 0} label="Need Review" />
+        <RKpi icon="clock" tone="danger" n={r?.requirements_missing ?? 0} label="Unmapped" />
       </div>
 
       {isLoading ? <Skeleton className="h-64" /> : (
@@ -250,11 +250,42 @@ function NotesTab({ req }: { req: Requirement }) {
 }
 
 function RKpi({ icon, tone, n, label }: { icon: string; tone: string; n: number; label: string }) {
-  const cls = tone === "success" ? "bg-success-soft text-success" : tone === "danger" ? "bg-danger-soft text-danger" : tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary";
+  const meta = {
+    success: {
+      border: "hover:border-emerald-500/50",
+      topBorder: "border-t-2 border-t-emerald-600",
+      badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20",
+    },
+    danger: {
+      border: "hover:border-rose-500/50",
+      topBorder: "border-t-2 border-t-rose-600",
+      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20",
+    },
+    warning: {
+      border: "hover:border-amber-500/50",
+      topBorder: "border-t-2 border-t-amber-600",
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
+    },
+    neutral: {
+      border: "hover:border-primary/50",
+      topBorder: "border-t-2 border-t-primary",
+      badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+    },
+  }[tone] || {
+    border: "hover:border-primary/50",
+    topBorder: "border-t-2 border-t-primary",
+    badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+  };
+
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-line bg-surface p-3">
-      <span className={`grid h-10 w-10 flex-none place-items-center rounded-lg text-sm ${cls}`}>{icon}</span>
-      <div><div className="text-2xl font-bold tabular-nums text-ink">{n}</div><div className="text-[11px] text-muted">{label}</div></div>
+    <div className={`group flex items-center gap-3.5 rounded-xl border border-line bg-gradient-to-b from-surface to-panel/30 p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${meta.topBorder} ${meta.border}`}>
+      <span className={`grid h-10 w-10 flex-none place-items-center rounded-lg transition-transform duration-200 group-hover:scale-110 shadow-2xs ${meta.badge}`}>
+        <GovIcon name={icon} className="h-5 w-5" />
+      </span>
+      <div>
+        <div className="text-2xl font-bold tabular-nums text-ink">{n}</div>
+        <div className="text-[11px] font-medium text-muted">{label}</div>
+      </div>
     </div>
   );
 }

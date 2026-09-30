@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { AIAnswerPanel } from "@/components/AIAnswerPanel";
-import { Button, Card, EmptyState, Skeleton, StatusChip, Tooltip, type Tone } from "@/components/ui";
+import { Button, Card, EmptyState, GovIcon, Skeleton, StatusChip, Tooltip, type Tone } from "@/components/ui";
 import { EvidenceStrength, SectionHeader, strengthOf } from "@/components/workspace";
 import {
   useClauses, useDecide, useRecommendations, useRequirements,
@@ -198,7 +198,7 @@ export function EvidencePage() {
                         <ul className="space-y-1">
                           {selRec.why.map((w, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                              <span className="mt-0.5 text-success" aria-hidden>✓</span>
+                              <GovIcon name="check" className="mt-0.5 h-3.5 w-3.5 flex-none text-success" />
                               <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
                             </li>
                           ))}

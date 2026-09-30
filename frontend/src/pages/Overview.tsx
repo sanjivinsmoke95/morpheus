@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { MiiCard } from "@/components/MiiCard";
 import { GfrCard } from "@/components/GfrCard";
-import { Card, EmptyState, SectionAccordion, Skeleton, StatusChip } from "@/components/ui";
+import { Card, EmptyState, GovIcon, SectionAccordion, Skeleton, StatusChip } from "@/components/ui";
 import { useAnalysis, useCoverageByCategory, useReadiness } from "@/lib/morpheus";
 
 function assessment(pct: number) {
@@ -30,10 +30,10 @@ export function OverviewPage() {
   const a = assessment(pct);
 
   const findings = [
-    { icon: "⚠", tone: "danger", n: r?.conflicts ?? 0, t: "Specification conflicts", d: "Review conflicting requirements" },
-    { icon: "△", tone: "warning", n: r?.gaps ?? 0, t: "Potential gaps", d: "Additional specifications may be needed" },
-    { icon: "◷", tone: "warning", n: r?.outdated_references ?? 0, t: "Outdated reference", d: "A newer version of the standard exists" },
-    { icon: "ⓘ", tone: "info", n: r?.unresolved_references ?? 0, t: "Unresolved references", d: "All references could be mapped" },
+    { icon: "conflict", tone: "danger", n: r?.conflicts ?? 0, t: "Specification conflicts", d: "Review conflicting requirements" },
+    { icon: "gap", tone: "warning", n: r?.gaps ?? 0, t: "Potential gaps", d: "Additional specifications may be needed" },
+    { icon: "outdated", tone: "warning", n: r?.outdated_references ?? 0, t: "Outdated reference", d: "A newer version of the standard exists" },
+    { icon: "info", tone: "info", n: r?.unresolved_references ?? 0, t: "Unresolved references", d: "All references could be mapped" },
   ];
 
   return (
@@ -47,21 +47,25 @@ export function OverviewPage() {
           {/* Row 1: assessment + KPIs + doc preview */}
           <div className="grid gap-4 lg:grid-cols-12">
             {/* Overall Assessment */}
-            <Card className="p-5 lg:col-span-4">
-              <div className="flex items-start gap-3">
-                <span className={`grid h-11 w-11 flex-none place-items-center rounded-full text-white ${a.tone === "success" ? "bg-success" : a.tone === "warning" ? "bg-warning" : "bg-danger"}`}>✓</span>
-                <div>
-                  <div className="text-xs text-muted">Overall Assessment</div>
-                  <div className="font-display text-xl font-bold text-ink">{a.label}</div>
+            <Card className="p-5 lg:col-span-4 flex flex-col justify-between">
+              <div>
+                <div className="flex items-start gap-3">
+                  <span className={`grid h-11 w-11 flex-none place-items-center rounded-full text-white shadow-xs ${a.tone === "success" ? "bg-emerald-600" : a.tone === "warning" ? "bg-amber-600" : "bg-rose-600"}`}>
+                    <GovIcon name={a.tone === "success" ? "check" : a.tone === "warning" ? "warning" : "conflict"} className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <div className="text-xs text-muted">Overall Assessment</div>
+                    <div className="font-display text-xl font-bold text-ink">{a.label}</div>
+                  </div>
                 </div>
+                <p className="mt-3 text-sm text-muted">
+                  {covered} of {total} requirements have identified standard coverage.
+                  {pct < 100 ? " Some items still need review for full coverage." : ""}
+                </p>
               </div>
-              <p className="mt-3 text-sm text-muted">
-                {covered} of {total} requirements have identified standard coverage.
-                {pct < 100 ? " Some items still need review for full coverage." : ""}
-              </p>
-              <div className="mt-3 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-3">
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-panel">
-                  <div className={`h-full rounded-full ${a.tone === "success" ? "bg-success" : a.tone === "warning" ? "bg-warning" : "bg-danger"}`} style={{ width: `${pct}%` }} />
+                  <div className={`h-full rounded-full transition-all duration-500 ${a.tone === "success" ? "bg-emerald-600" : a.tone === "warning" ? "bg-amber-500" : "bg-rose-600"}`} style={{ width: `${pct}%` }} />
                 </div>
                 <span className="text-sm font-bold tabular-nums text-ink">{pct}%</span>
               </div>
@@ -69,28 +73,30 @@ export function OverviewPage() {
 
             {/* 6 KPI tiles */}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:col-span-5">
-              <Kpi icon="📄" tone="neutral" value={total} label="Total Requirements" />
-              <Kpi icon="📗" tone="success" value={withCoverage} label="With Coverage" />
-              <Kpi icon="⚠" tone="warning" value={r.gaps} label="Potential Gaps" />
-              <Kpi icon="📄" tone="neutral" value={r.standards_identified} label="Standards Identified" />
-              <Kpi icon="⚠" tone="danger" value={r.conflicts} label="Conflicts" />
-              <Kpi icon="◷" tone="warning" value={r.outdated_references} label="Outdated Reference" />
+              <Kpi icon="doc" tone="neutral" value={total} label="Total Requirements" sub="Extracted" />
+              <Kpi icon="book" tone="success" value={withCoverage} label="With Coverage" sub={`${pct}%`} />
+              <Kpi icon="gap" tone="warning" value={r.gaps} label="Potential Gaps" sub={r.gaps > 0 ? "Review" : "None"} />
+              <Kpi icon="standard" tone="info" value={r.standards_identified} label="Standards Identified" sub="BIS" />
+              <Kpi icon="conflict" tone="danger" value={r.conflicts} label="Conflicts" sub={r.conflicts > 0 ? "Critical" : "None"} />
+              <Kpi icon="outdated" tone="warning" value={r.outdated_references} label="Outdated Reference" sub={r.outdated_references > 0 ? "Update" : "Current"} />
             </div>
 
             {/* Document Preview */}
-            <Card className="p-4 lg:col-span-3">
+            <Card className="p-4 lg:col-span-3 flex flex-col justify-between">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-sm font-semibold text-ink">Document Preview</span>
                 <Link to={`/analyses/${id}/evidence`} className="text-[11px] font-medium text-primary hover:underline">View Full →</Link>
               </div>
-              <div className="rounded-lg border border-line bg-canvas p-4 text-center">
-                <img src="/brand/government_emblem_dashboard.png" alt="" className="mx-auto h-8 w-auto opacity-80" />
-                <div className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted">Tender Document</div>
-                <div className="mx-auto mt-3 h-1 w-16 rounded bg-primary/30" />
+              <div className="rounded-lg border border-line bg-gradient-to-b from-surface to-canvas p-4 text-center shadow-xs">
+                <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-primary ring-1 ring-primary/20">
+                  <GovIcon name="doc" className="h-5 w-5" />
+                </div>
+                <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-ink">Tender Document</div>
+                <div className="mx-auto mt-3 h-1 w-20 rounded bg-primary/40" />
+                <div className="mx-auto mt-1.5 h-1 w-28 rounded bg-line" />
                 <div className="mx-auto mt-1.5 h-1 w-24 rounded bg-line" />
-                <div className="mx-auto mt-1.5 h-1 w-20 rounded bg-line" />
-                <div className="mx-auto mt-1.5 h-1 w-24 rounded bg-line" />
-                <div className="mt-4 text-[10px] text-muted">Specification under analysis</div>
+                <div className="mx-auto mt-1.5 h-1 w-28 rounded bg-line" />
+                <div className="mt-3.5 text-[10px] text-muted">Specification under analysis</div>
               </div>
             </Card>
           </div>
@@ -134,7 +140,9 @@ export function OverviewPage() {
               <div className="space-y-2.5">
                 {findings.map((f) => (
                   <div key={f.t} className="flex items-start gap-3">
-                    <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg text-sm ${f.tone === "danger" ? "bg-danger-soft text-danger" : f.tone === "warning" ? "bg-warning-soft text-warning" : "bg-primary-soft text-primary"}`}>{f.icon}</span>
+                    <span className={`grid h-8 w-8 flex-none place-items-center rounded-lg text-sm ${f.tone === "danger" ? "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20" : f.tone === "warning" ? "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20" : "bg-primary-soft text-primary ring-1 ring-primary/20"}`}>
+                      <GovIcon name={f.icon} className="h-4 w-4" />
+                    </span>
                     <div>
                       <div className="text-sm font-semibold text-ink">{f.n} {f.t}</div>
                       <div className="text-xs text-muted">{f.d}</div>
@@ -201,7 +209,7 @@ export function OverviewPage() {
             <div className="grid gap-6 lg:grid-cols-2">
               <div>
                 <div className="mb-2 flex items-center gap-2">
-                  <span className="text-saffron">💡</span>
+                  <GovIcon name="bulb" className="h-5 w-5 text-saffron" />
                   <h2 className="font-display text-base font-semibold text-saffron">AI Insights</h2>
                 </div>
                 <p className="text-sm text-muted">
@@ -247,14 +255,77 @@ function ProfileChip({ label, value, strong }: { label: string; value: string; s
   );
 }
 
-function Kpi({ icon, tone, value, label }: { icon: string; tone: string; value: number; label: string }) {
-  const cls = tone === "success" ? "bg-success-soft text-success ring-1 ring-success/20" : tone === "danger" ? "bg-danger-soft text-danger ring-1 ring-danger/20"
-    : tone === "warning" ? "bg-warning-soft text-warning ring-1 ring-warning/20" : "bg-primary-soft text-primary ring-1 ring-primary/20";
+function Kpi({
+  icon,
+  tone,
+  value,
+  label,
+  sub,
+}: {
+  icon: string;
+  tone: string;
+  value: number;
+  label: string;
+  sub?: string;
+}) {
+  const meta = {
+    success: {
+      border: "hover:border-emerald-500/50",
+      topBorder: "border-t-2 border-t-emerald-600",
+      badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20",
+      pill: "text-emerald-700 bg-emerald-50/80",
+    },
+    danger: {
+      border: "hover:border-rose-500/50",
+      topBorder: "border-t-2 border-t-rose-600",
+      badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20",
+      pill: "text-rose-700 bg-rose-50/80",
+    },
+    warning: {
+      border: "hover:border-amber-500/50",
+      topBorder: "border-t-2 border-t-amber-600",
+      badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-600/20",
+      pill: "text-amber-700 bg-amber-50/80",
+    },
+    info: {
+      border: "hover:border-teal-500/50",
+      topBorder: "border-t-2 border-t-teal-600",
+      badge: "bg-teal-50 text-teal-700 ring-1 ring-teal-600/20",
+      pill: "text-teal-700 bg-teal-50/80",
+    },
+    neutral: {
+      border: "hover:border-primary/50",
+      topBorder: "border-t-2 border-t-primary",
+      badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+      pill: "text-primary bg-primary-soft/80",
+    },
+  }[tone] || {
+    border: "hover:border-primary/50",
+    topBorder: "border-t-2 border-t-primary",
+    badge: "bg-primary-soft text-primary ring-1 ring-primary/20",
+    pill: "text-primary bg-primary-soft/80",
+  };
+
   return (
-    <div className="group rounded-xl border border-line bg-surface p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md">
-      <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm transition-transform duration-200 group-hover:scale-110 ${cls}`}>{icon}</span>
-      <div className="mt-2 text-2xl font-bold tabular-nums text-ink">{value}</div>
-      <div className="text-[11px] font-medium leading-tight text-muted">{label}</div>
+    <div
+      className={`group relative flex flex-col justify-between rounded-xl border border-line bg-gradient-to-b from-surface to-panel/30 p-3.5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-md ${meta.topBorder} ${meta.border}`}
+    >
+      <div className="flex items-center justify-between">
+        <span
+          className={`grid h-8 w-8 place-items-center rounded-lg transition-transform duration-200 group-hover:scale-110 shadow-2xs ${meta.badge}`}
+        >
+          <GovIcon name={icon} className="h-4 w-4" />
+        </span>
+        {sub && (
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${meta.pill}`}>
+            {sub}
+          </span>
+        )}
+      </div>
+      <div className="mt-2.5">
+        <div className="text-2xl font-bold tracking-tight tabular-nums text-ink">{value}</div>
+        <div className="mt-0.5 text-[11px] font-medium leading-tight text-muted">{label}</div>
+      </div>
     </div>
   );
 }
