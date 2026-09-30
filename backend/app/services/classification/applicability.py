@@ -39,6 +39,7 @@ from typing import Any
 
 from app.models.enums import ApplicabilityClass as AC
 from app.models.enums import Confidence, EvidenceStrength as ES
+from app.services.classification.parameters import audit_requirement_parameters
 
 logger = logging.getLogger(__name__)
 
@@ -132,8 +133,24 @@ def evaluate_applicability(
             "recommendation": "Officer must verify authoritative standard text before adopting.",
         })
         trace = {
+            "lexical_score": round(lexical_sim, 4),
+            "semantic_score": round(semantic_sim, 4),
+            "product_match": round(product_match, 4),
+            "product_conflict": bool(s.get("product_conflict", False)),
+            "parameter_match": round(param_match, 4),
+            "parameter_conflict": False,
+            "material_match": round(material_match, 4),
+            "scope_match": round(scope_match, 4),
+            "sector_match": round(sector_match, 4),
+            "graph_relationships": [r.get("relationship_type", "") for r in (graph_relationships or [])],
+            "version_status": std_status if candidate_standard else "UNKNOWN",
+            "is_current_edition": False,
             "evidence_gate_passed": False,
             "evidence_strength": ES.NO_EVIDENCE.value,
+            "gfr_rule_144_compliance": False,
+            "qco_enforced": False,
+            "is_referenced_match": is_referenced_match,
+            "decision_path": "EVIDENCE_GATE_ABSTAIN",
             "gate_reason": "No verifiable clause or scope chunk in database.",
         }
         return ApplicabilityDecision(
@@ -202,6 +219,8 @@ def evaluate_applicability(
     has_material_rel = False
     has_safety_rel = False
     has_normative_rel = False
+    has_installation_rel = False
+    has_cert_rel = False
     graph_notes: list[str] = []
 
     if graph_relationships:
@@ -236,6 +255,33 @@ def evaluate_applicability(
                     "strength": "HIGH",
                 })
                 graph_notes.append(f"Safety standard for {target_num}")
+            elif rtype == "INSTALLATION":
+                has_installation_rel = True
+                why.append({
+                    "factor": "Installation practice relationship (Knowledge Graph)",
+                    "detail": f"Connected to {target_num} as an authorized installation code of practice. {note}".strip(),
+                    "signal": "graph_relationship",
+                    "strength": "HIGH",
+                })
+                graph_notes.append(f"Installation code for {target_num}")
+            elif rtype == "CERTIFICATION":
+                has_cert_rel = True
+                why.append({
+                    "factor": "Certification requirement relationship (Knowledge Graph)",
+                    "detail": f"Connected to {target_num} for statutory conformity assessment. {note}".strip(),
+                    "signal": "graph_relationship",
+                    "strength": "HIGH",
+                })
+                graph_notes.append(f"Certification scheme for {target_num}")
+            elif rtype in ("SUPERSEDES", "SUPERSEDED_BY"):
+                is_outdated = True
+                why_not.append({
+                    "reason": f"Standard {rtype.lower().replace('_', ' ')} in graph",
+                    "detail": f"Standard is linked via {rtype} to {target_num}. {note}".strip(),
+                    "severity": "WARNING",
+                    "recommendation": "Review current edition under GFR Rule 144(i).",
+                })
+                graph_notes.append(f"{rtype} {target_num}")
             elif rtype in ("NORMATIVE_REFERENCE", "REFERENCES"):
                 has_normative_rel = True
                 why.append({
@@ -273,7 +319,36 @@ def evaluate_applicability(
             "strength": "MEDIUM",
         })
 
-    if param_match >= 1.0:
+    # ── 5. PARAMETER COMPATIBILITY AUDIT (Phase 8 & Part 4) ────────────────
+    attrs_to_audit = list(requirement_attributes or [])
+    if product_profile and "parameters" in product_profile and isinstance(product_profile["parameters"], list):
+        for p in product_profile["parameters"]:
+            if isinstance(p, dict) and p.get("key") and not any(a.get("key") == p.get("key") for a in attrs_to_audit):
+                attrs_to_audit.append(p)
+
+    std_text_for_audit = f"{std_title} {std_scope} {' '.join(getattr(candidate_standard, 'keywords', []) or [])}"
+    param_score, param_checks, param_conflict = audit_requirement_parameters(
+        attributes=attrs_to_audit,
+        std_text=std_text_for_audit,
+    )
+
+    for pchk in param_checks:
+        if pchk.status == "CONFLICT":
+            why_not.append({
+                "reason": f"Parameter rating conflict ({pchk.key})",
+                "detail": pchk.details,
+                "severity": "CRITICAL",
+                "recommendation": f"Requirement specifies {pchk.tender_display}, but standard limit is {pchk.standard_display}. Verify standard rating scope.",
+            })
+        elif pchk.status == "COMPATIBLE":
+            why.append({
+                "factor": f"Parameter compatibility verified ({pchk.key})",
+                "detail": f"{pchk.details} [{pchk.tender_display} aligns with {pchk.standard_display}].",
+                "signal": "parameter_match",
+                "strength": "HIGH" if pchk.match_type in ("EXACT_MATCH", "RANGE_MATCH", "THRESHOLD_MATCH") else "MEDIUM",
+            })
+
+    if param_match >= 1.0 and not param_checks:
         matched_keys = [a.get("key", "") for a in requirement_attributes if a.get("key") and a.get("key").lower() in (std_scope + " " + std_title).lower()]
         param_str = ", ".join(matched_keys) if matched_keys else "Key parameters"
         why.append({
@@ -323,6 +398,15 @@ def evaluate_applicability(
         })
 
     # ── 6. LIMITATIONS / WHY NOT (RISKS & MISSING SIGNALS) ───────────────────
+    if s.get("product_conflict") and not is_referenced_match:
+        prod_label = product_profile.get("product") if product_profile else ""
+        why_not.append({
+            "reason": "Product domain conflict",
+            "detail": f"Tender specification is for '{prod_label or 'different product'}', which is mutually exclusive with standard '{std_num}' ({std_title}).",
+            "severity": "CRITICAL",
+            "recommendation": "Disqualify candidate standard due to conflicting product classification.",
+        })
+
     if product_match == 0.0 and not is_referenced_match:
         why_not.append({
             "reason": "Product category not explicitly named",
@@ -331,7 +415,7 @@ def evaluate_applicability(
             "recommendation": "Verify whether this standard is intended as a general material/installation reference.",
         })
 
-    if param_match == 0.0 and requirement_attributes:
+    if param_match == 0.0 and requirement_attributes and not param_checks:
         why_not.append({
             "reason": "Specific parameter values not confirmed in scope excerpt",
             "detail": "Numerical parameter ratings (e.g. pressure, voltage, capacity) require manual clause verification against detailed tables.",
@@ -357,12 +441,11 @@ def evaluate_applicability(
 
     # ── 7. DECISION CLASSIFICATION LOGIC ────────────────────────────────────
     # Baseline evidence quality assessment
-    # Baseline evidence quality assessment
     if s.get("product_conflict") and not is_referenced_match:
         base_evidence = EvidenceStrengthStr(ES.WEAK.value)
     elif is_qco_mandatory or is_referenced_match or (product_match >= 0.70 and scope_match >= 0.25 and (param_match >= 1.0 or material_match >= 1.0 or semantic_sim >= 0.50)):
         base_evidence = EvidenceStrengthStr(ES.STRONG.value)
-    elif product_match >= 0.70 or scope_match >= 0.30 or param_match >= 1.0 or has_testing_rel or has_material_rel or has_safety_rel:
+    elif product_match >= 0.70 or scope_match >= 0.30 or param_match >= 1.0 or has_testing_rel or has_material_rel or has_safety_rel or has_installation_rel or has_cert_rel:
         base_evidence = EvidenceStrengthStr(ES.SUPPORTED.value)
     else:
         base_evidence = EvidenceStrengthStr(ES.WEAK.value)
@@ -373,8 +456,29 @@ def evaluate_applicability(
     exclusion_reason = ""
     decision_path = "DEFAULT_RELATED"
 
+    # Decision Path 0: Parameter Conflict Gate
+    if param_conflict:
+        if is_referenced_match:
+            decision_path = "PARAMETER_CONFLICT_REFERENCED"
+            applicability_class = AC.CONDITIONAL.value
+            evidence_strength = EvidenceStrengthStr(ES.SUPPORTED.value)
+            rationale = f"Conditional: Referenced in tender, but technical parameter conflict detected ({std_num} scope/rating exceeded). Officer review required."
+        else:
+            decision_path = "PARAMETER_CONFLICT_EXCLUDED"
+            applicability_class = AC.NOT_APPLICABLE.value
+            evidence_strength = EvidenceStrengthStr(ES.WEAK.value)
+            excluded = True
+            exclusion_reason = f"Technical parameter conflict: specified rating violates {std_num} scope constraints"
+            rationale = f"Not applicable: Candidate standard disqualified due to parameter conflict ({exclusion_reason})."
+            why_not.insert(0, {
+                "reason": "Parameter conflict",
+                "detail": exclusion_reason,
+                "severity": "CRITICAL",
+                "recommendation": "Excluded from primary recommendations.",
+            })
+
     # Decision Path A: Explicit Citation in Tender
-    if is_referenced_match:
+    elif is_referenced_match:
         decision_path = "EXPLICIT_CITATION"
         if is_outdated:
             applicability_class = AC.CONDITIONAL.value
@@ -421,27 +525,39 @@ def evaluate_applicability(
         evidence_strength = EvidenceStrengthStr(ES.STRONG.value if (has_safety_rel or scope_match >= 0.3) else ES.SUPPORTED.value)
         rationale = f"Safety applicability: Standard defines mandatory protective, earthing, or insulation safety codes."
 
+    elif requirement_type in ("INSTALLATION", "installation", "erection", "laying") or has_installation_rel or (any(k in std_title.lower() for k in ("code of practice for installation", "installation and maintenance", "laying of", "erection of")) and product_match < 0.70):
+        decision_path = "INSTALLATION_CODE"
+        applicability_class = AC.INSTALLATION.value
+        evidence_strength = EvidenceStrengthStr(ES.STRONG.value if (has_installation_rel or scope_match >= 0.3) else ES.SUPPORTED.value)
+        rationale = f"Installation applicability: Standard provides mandatory code of practice for installation, laying, or maintenance."
+
+    elif requirement_type in ("CERTIFICATION", "certification", "compliance") or has_cert_rel or (cert_scheme and any(k in q_desc_low for k in ("isi mark", "bis certification", "hallmark", "conformity")) and product_match < 0.70):
+        decision_path = "CERTIFICATION_SCHEME"
+        applicability_class = AC.CERTIFICATION.value
+        evidence_strength = EvidenceStrengthStr(ES.STRONG.value if (has_cert_rel or cert_scheme) else ES.SUPPORTED.value)
+        rationale = f"Certification applicability: Standard specifies mandatory statutory certification, licensing, or conformity scheme ({cert_scheme or 'BIS'})."
+
     elif (any(k in std_title.lower() for k in ("methods of test", "testing", "tests for", "acceptance test"))) and any(k in q_desc_low for k in ("test", "tested", "testing", "inspection", "performance")) and product_match < 0.70:
         decision_path = "TESTING_METHOD"
         applicability_class = AC.TESTING.value
         evidence_strength = EvidenceStrengthStr(ES.SUPPORTED.value)
         rationale = f"Testing applicability: Standard defines test methods or testing procedures for this requirement."
 
-    # Decision Path D: Conditional Applicability
+    # Decision Path E: Conditional Applicability
     elif (product_match >= 1.0 or scope_match >= 0.4) and (relevance in ("HIGH", "MEDIUM") or semantic_sim >= 0.45):
         decision_path = "CONDITIONAL_APPLICATION"
         applicability_class = AC.CONDITIONAL.value
         evidence_strength = EvidenceStrengthStr(ES.SUPPORTED.value)
         rationale = f"Conditional applicability: Substantive overlap with tender requirements, subject to capacity/application rating verification."
 
-    # Decision Path E: Related / Informational Standards
+    # Decision Path F: Related / Informational Standards
     elif relevance in ("HIGH", "MEDIUM") or has_normative_rel or (scope_match >= 0.25 and sector_match >= 1.0) or material_match >= 1.0:
         decision_path = "RELATED_STANDARD"
         applicability_class = AC.RELATED.value
         evidence_strength = EvidenceStrengthStr(ES.SUPPORTED.value if material_match >= 1.0 else ES.WEAK.value)
         rationale = f"Related standard: Applicable as an associated code of practice, material/installation guide, or normative cross-reference."
 
-    # Decision Path F: Weak / Not Applicable (Excluded)
+    # Decision Path G: Weak / Not Applicable (Excluded)
     else:
         decision_path = "NOT_APPLICABLE"
         applicability_class = AC.NOT_APPLICABLE.value
@@ -486,13 +602,23 @@ def evaluate_applicability(
                 "recommendation": "Officer must verify whether this standard actually governs this item.",
             })
 
+    effective_param_match = max(param_match, param_score if param_score > 0 else 0.0)
     decision_trace = {
-        "evidence_gate_passed": evidence_strength in (ES.STRONG.value, ES.SUPPORTED.value),
+        "lexical_score": round(lexical_sim, 4),
+        "semantic_score": round(semantic_sim, 4),
+        "product_match": round(product_match, 4),
+        "product_conflict": bool(s.get("product_conflict", False)),
+        "parameter_match": round(effective_param_match, 4),
+        "parameter_conflict": bool(param_conflict),
+        "material_match": round(material_match, 4),
+        "scope_match": round(scope_match, 4),
+        "sector_match": round(sector_match, 4),
+        "graph_relationships": [r.get("relationship_type", "") for r in (graph_relationships or [])],
+        "version_status": std_status,
+        "is_current_edition": not is_outdated,
+        "evidence_gate_passed": bool(evidence_strength in (ES.STRONG.value, ES.SUPPORTED.value) and not excluded),
         "evidence_strength": str(evidence_strength),
-        "product_match": product_match,
-        "product_conflict": s.get("product_conflict", False),
-        "scope_match": scope_match,
-        "parameter_match": param_match,
+        "gfr_rule_144_compliance": not is_outdated,
         "qco_enforced": is_qco_mandatory,
         "is_referenced_match": is_referenced_match,
         "decision_path": decision_path,
