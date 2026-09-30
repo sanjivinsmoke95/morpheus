@@ -18,6 +18,85 @@ MORPHEUS is a procurement-specification intelligence platform for mapping tender
 
 ---
 
+## What Makes MORPHEUS Different?
+
+Traditional document search primarily asks:
+
+> "Which standards look similar to this text?"
+
+MORPHEUS asks a broader question:
+
+> "Which standards are potentially applicable to this procurement requirement, what evidence supports that relationship, what conflicts or limitations exist, and what should an officer review?"
+
+### The intelligence stack
+
+| Layer | Contribution |
+|---|---|
+| **Document intelligence** | Extracts requirements from PDF, DOCX, TXT and scanned documents |
+| **Product profile** | Identifies product/domain context and influences candidate ranking |
+| **Parameter intelligence** | Normalizes values, units, comparators and ranges |
+| **Hybrid retrieval** | Combines lexical, semantic, metadata and structured signals |
+| **Applicability engine** | Distinguishes direct, conditional, testing, safety, material, installation, certification, related and non-applicable relationships |
+| **Knowledge graph** | Connects standards through testing, safety, material, installation, certification, normative and supersession relationships |
+| **Evidence gating** | Prevents weak or unsupported evidence from becoming a confident recommendation |
+| **Provenance** | Separates synthetic/demo records from public metadata and verified records |
+| **Explainability** | Provides why, why-not, evidence and a decision trace |
+| **Human review** | Keeps procurement acceptance/rejection with the officer |
+
+The goal is not to make the system appear certain. The goal is to make the **reasoning inspectable**.
+
+## End-to-End Flow
+
+```text
+Tender PDF / DOCX / TXT / scanned PDF
+                |
+                v
+       Document Extraction / OCR
+                |
+                v
+        Requirement Intelligence
+                |
+                v
+      Product + Parameter Profile
+                |
+                v
+         Candidate Retrieval
+       +--------+---------+
+       |        |         |
+    Keyword   Vector    Hybrid
+       |        |         |
+       +--------+---------+
+                |
+                v
+       MORPHEUS Intelligence
+       | product compatibility
+       | parameter compatibility
+       | scope / sector
+       | graph relationships
+       | version / supersession
+       | evidence / provenance
+                |
+                v
+       Applicability + Gates
+                |
+        +-------+--------+
+        |                |
+      Result        REVIEW_REQUIRED
+        |                |
+        +-------+--------+
+                |
+                v
+       Why / Why-Not + Trace
+                |
+                v
+        Human Review / Sign-off
+                |
+                v
+          PDF / DOCX / JSON
+```
+
+---
+
 ## 2. SIH Problem Statement ID + Title
 
 **Problem Statement ID:** **26108**
@@ -774,24 +853,44 @@ Development convenience settings and seeded credentials must be replaced before 
 
 ## Evaluation & Benchmark Harness
 
-MORPHEUS includes a comprehensive, labelled evaluation harness over 36 `DEMO_SYNTHETIC` procurement cases comparing four distinct algorithmic pipelines:
+MORPHEUS includes a labelled evaluation harness over 36 `DEMO_SYNTHETIC` procurement cases comparing four distinct pipelines:
 
-1. **Keyword (BM25 only)**: Lexical term frequency and inverted index scoring against standard titles, scopes, and keywords.
-2. **Vector (Cosine embeddings only)**: Semantic similarity computed against indexed clause chunks.
-3. **Hybrid Retrieval**: Linear weighted fusion of BM25 lexical overlap and semantic chunk proximity.
-4. **MORPHEUS Pipeline**: Full intelligence architecture combining hybrid retrieval, tender-level product profile fusion, cross-domain conflict demotion, multi-factor applicability reasoning, knowledge graph relationships, standard edition/version checks, and strict 5-level evidence gating.
+1. **Keyword (BM25 only)** — lexical retrieval against standard titles, scopes and keywords.
+2. **Vector** — semantic similarity against indexed clause chunks.
+3. **Hybrid Retrieval** — fusion of lexical and semantic retrieval.
+4. **MORPHEUS** — product-aware retrieval plus parameter compatibility, applicability reasoning, graph relationships, version checks and evidence gating.
 
-The evaluation harness computes dynamic, non-hardcoded metrics:
+The benchmark computes metrics dynamically from the current labelled cases. Benchmark output is not embedded as a fixed accuracy claim in the README.
 
-- **Ranking & Retrieval**: Precision@5, Recall@5, MRR, nDCG@5.
-- **Applicability & Grounding**: Applicability Precision, Recall, Macro F1, Evidence Support Precision, Confusion Matrix.
-- **Safety & Verification**: Hallucination Rate (0.0%), Unsupported Recommendation Rate (2.8%), Citation Correctness (100.0%), Adversarial Case Abstention Rate (100.0%).
+### Metrics
 
-To run the offline evaluation benchmark:
+**Ranking / Retrieval**
+- Precision@5
+- Recall@5
+- MRR
+- nDCG@5
+
+**Applicability / Grounding**
+- Applicability Precision
+- Applicability Recall
+- Macro F1
+- Evidence Support Precision
+- Confusion Matrix
+
+**Safety / Verification**
+- Hallucination rate
+- Unsupported recommendation rate
+- Citation/evidence correctness
+- Adversarial abstention rate
+
+Run the benchmark:
+
 ```bash
 cd backend
 python scripts/run_evaluation.py
 ```
+
+Use the generated output as the source of truth for the current benchmark values. These metrics describe the synthetic evaluation set; they are not production accuracy or legal-compliance guarantees.
 
 ### Evidence Quality Model
 Evidence strength is strictly assessed across 5 discrete levels rather than a binary flag:
@@ -809,6 +908,22 @@ Evidence strength is strictly assessed across 5 discrete levels rather than a bi
 
 ## Honest Limitations
 
+MORPHEUS is a prototype/decision-support system and has important boundaries:
+
+- Demo standards, QCO and certification records are synthetic (`DEMO_SYNTHETIC`) unless explicitly marked otherwise.
+- The system is not a live BIS catalogue integration.
+- The system is not a live GeM or CPPP integration.
+- The system does not scrape or reproduce copyrighted BIS standard PDFs.
+- Current demo/evaluation data should not be interpreted as official government procurement data.
+- Legal and regulatory conclusions require verification against current authoritative sources.
+- Non-English extraction quality depends on the configured AI path.
+- OCR quality depends on document quality and OCR configuration.
+- AI recommendations remain subject to officer verification.
+- GFR output is advisory review information, not legal advice or a legal verdict.
+- A local/demo deployment is not production-ready without replacing development secrets/auth settings and configuring production infrastructure.
+
+These limitations are deliberate: the system is designed to expose uncertainty rather than hide it.
+
 - Demo standards, QCO, and certification records are synthetic (`DEMO_SYNTHETIC`) unless explicitly marked otherwise.
 - The system is not a live BIS catalogue integration.
 - The system is not a live GeM or CPPP integration.
@@ -817,6 +932,50 @@ Evidence strength is strictly assessed across 5 discrete levels rather than a bi
 - AI recommendations remain subject to officer verification.
 - GFR output is advisory review information, not legal advice or a legal verdict.
 - A local/demo deployment should not be treated as production-ready without replacing development secrets/auth settings and configuring production infrastructure.
+
+---
+
+## Demo / Evaluation Scenarios
+
+The evaluation and demo fixtures are designed to exercise more than a simple happy-path search.
+
+| Scenario | Purpose |
+|---|---|
+| **Distribution transformer — 100 kVA / 11 kV** | Product-aware retrieval, parameters, testing and installation |
+| **Transformer — 2.5 MVA / 33 kV** | Numeric compatibility and voltage-range conflict handling |
+| **Centrifugal pump** | Product-profile differentiation and cross-domain retrieval |
+| **Low-evidence tender** | Evidence gating and `REVIEW_REQUIRED` |
+| **Contradictory tender** | Conflict detection and review/abstention behavior |
+
+The associated tender fixtures are explicitly marked **DEMO_SYNTHETIC** and are not official BIS, GeM, CPPP or government records.
+
+### Example analysis
+
+A simplified transformer requirement may contain:
+
+```text
+Product: three-phase distribution transformer
+Rated power: 100 kVA
+Primary voltage: 11 kV
+Secondary voltage: 433 V
+Installation: outdoor substation
+Testing: routine and type tests
+```
+
+MORPHEUS then:
+
+1. extracts the requirements;
+2. builds a product/domain profile;
+3. normalizes technical parameters;
+4. retrieves candidate standards;
+5. evaluates product, scope and parameter compatibility;
+6. checks graph relationships;
+7. checks available version, QCO and certification records;
+8. evaluates evidence strength and provenance;
+9. produces applicability plus why/why-not reasoning; and
+10. records the decision trace for officer review.
+
+The system is intentionally designed so that insufficient evidence can produce `REVIEW_REQUIRED` instead of a fabricated conclusion.
 
 ---
 
