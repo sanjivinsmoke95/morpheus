@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette } from "@/components/CommandPalette";
 
@@ -97,14 +97,26 @@ export function Layout() {
       className="flex h-full flex-col text-white"
       style={{ background: "#013528" }}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
-        <img src="/brand/emblem_light.png" alt="" className="h-9 w-auto opacity-90" />
-        <div className="leading-tight">
-          <div className="font-display text-lg font-semibold tracking-wide">MORPHEUS</div>
-          <div className="text-[10px] leading-tight text-white/55">Standards Intelligence<br />for Public Procurement</div>
+      {/* Brand Logo & Wordmark - Links to Home */}
+      <Link
+        to="/"
+        className="group mx-2 mt-2 flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
+        aria-label="MORPHEUS Home — Standards Intelligence for Public Procurement"
+      >
+        <img
+          src="/brand/emblem_light.png"
+          alt="Emblem of India"
+          className="h-10 w-auto opacity-95 transition-transform duration-200 group-hover:scale-105 flex-none"
+        />
+        <div className="leading-tight min-w-0">
+          <div className="font-display text-xl font-bold tracking-wider text-white transition-colors group-hover:text-emerald-200">
+            MORPHEUS
+          </div>
+          <div className="text-[11px] font-medium leading-tight text-white/70">
+            Standards Intelligence<br />for Public Procurement
+          </div>
         </div>
-      </div>
+      </Link>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {nav.main.map((i) => (
@@ -160,6 +172,16 @@ export function Layout() {
           style={{ top: "env(safe-area-inset-top, 0px)" }}>
           <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
             className="grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel lg:hidden">☰</button>
+          
+          {/* Mobile Brand Link to Home */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 lg:hidden flex-none pr-1 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg group"
+            aria-label="MORPHEUS Home"
+          >
+            <img src="/brand/emblem_light.png" alt="" className="h-7 w-auto transition-transform duration-200 group-hover:scale-105" />
+            <span className="font-display text-base font-bold tracking-wide text-primary">MORPHEUS</span>
+          </Link>
           <div className="relative min-w-0 flex-1 max-w-xl">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">

@@ -47,7 +47,7 @@ export function DashboardPage() {
             <div className="relative z-10 px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary/80">
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
                   AI-Powered · Standards-Driven · For a Stronger Bharat
                 </span>
               </div>
@@ -83,10 +83,10 @@ export function DashboardPage() {
 
               {/* Quote overlay on the right */}
               <div className="pointer-events-none absolute right-6 top-5 z-20 hidden max-w-[210px] text-right lg:block">
-                <p className="font-serif text-sm italic leading-snug text-ink/70">
+                <p className="font-serif text-sm italic leading-snug text-ink/75">
                   "Standards build trust.<br />Trust builds a stronger nation."
                 </p>
-                <p className="mt-1 text-[10px] font-semibold text-muted">— Government of India</p>
+                <p className="mt-1 text-xs font-semibold text-muted">— Government of India</p>
               </div>
             </div>
           </div>
@@ -452,7 +452,7 @@ function Metric({
           <StepIcon name={icon} small />
         </span>
         {badge && (
-          <span className="rounded-full bg-surface/90 border border-line px-2 py-0.5 text-[10px] font-bold text-muted shadow-2xs">
+          <span className="rounded-full bg-surface/90 border border-line px-2.5 py-0.5 text-[11px] font-bold text-muted shadow-2xs">
             {badge}
           </span>
         )}
@@ -460,22 +460,22 @@ function Metric({
 
       {/* Large Bold Metric Number */}
       <div className="mt-3">
-        <div className="text-3xl font-extrabold tabular-nums tracking-tight text-ink">{value}</div>
+        <div className="font-display text-3xl font-extrabold tabular-nums tracking-tight text-ink sm:text-4xl">{value}</div>
         <div className="text-xs font-bold text-ink mt-0.5">{label}</div>
-        {sub && <div className="text-[10px] text-muted leading-tight mt-0.5">{sub}</div>}
+        {sub && <div className="text-xs text-muted leading-tight mt-0.5">{sub}</div>}
       </div>
 
       {/* Bottom Delta Trend Pill */}
       {delta != null && delta !== 0 && (
         <div className="mt-2.5 pt-2 border-t border-line/60 flex items-center justify-between">
           <span
-            className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-bold ${
+            className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-bold ${
               deltaDown ? "bg-rose-50 text-rose-700" : "bg-emerald-50 text-emerald-700"
             }`}
           >
             {deltaDown ? "↓" : "↑"} {deltaUp || !deltaDown ? "+" : "-"}{Math.abs(delta)}
           </span>
-          <span className="text-[10px] text-muted">vs last month</span>
+          <span className="text-[11px] font-medium text-muted">vs last month</span>
         </div>
       )}
     </div>

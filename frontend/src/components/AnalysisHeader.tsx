@@ -180,22 +180,29 @@ Timestamp: ${new Date().toISOString()}`;
         </div>
       )}
 
-      {/* Breadcrumb Section */}
-      <div className="text-xs text-muted flex items-center">
-        <Link to="/history" className="font-medium hover:text-primary transition-colors">
-          ← My Analyses
+      {/* Breadcrumb Section with Home navigation */}
+      <nav aria-label="Breadcrumb" className="text-xs text-muted flex items-center gap-1.5 mb-1.5">
+        <Link to="/" className="font-medium text-muted hover:text-primary transition-colors flex items-center gap-1 group" title="Return to Dashboard">
+          <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+          </svg>
+          <span>Home</span>
         </Link>
-        <span className="mx-1.5 text-muted/50" aria-hidden>·</span>
-        <span className="font-medium text-ink">{section}</span>
-      </div>
+        <span className="text-muted/40" aria-hidden>/</span>
+        <Link to="/history" className="font-medium text-muted hover:text-primary transition-colors">
+          My Analyses
+        </Link>
+        <span className="text-muted/40" aria-hidden>/</span>
+        <span className="font-semibold text-primary">{section}</span>
+      </nav>
 
-      <div className="mt-1.5 flex flex-wrap items-start justify-between gap-3">
+      <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="font-display text-xl font-semibold text-ink sm:text-2xl">{title}</h1>
+            <h1 className="font-display text-xl font-bold tracking-tight text-ink sm:text-2xl">{title}</h1>
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                ready ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
+                ready ? "bg-success-soft text-success border border-success/30" : "bg-warning-soft text-warning border border-warning/30"
               }`}
             >
               {ready ? "Completed" : "Processing"}

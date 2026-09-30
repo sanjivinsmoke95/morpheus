@@ -39,8 +39,8 @@ export function PageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+        <h1 className="font-display text-2xl font-bold tracking-tight text-ink sm:text-3xl">{title}</h1>
+        {subtitle && <p className="mt-1.5 text-sm leading-relaxed text-muted">{subtitle}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </div>
@@ -553,15 +553,15 @@ export function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
         active
-          ? "bg-primary text-white"
-          : "border border-line bg-surface text-muted hover:border-primary hover:text-primary"
+          ? "bg-primary text-white shadow-xs"
+          : "border border-line bg-surface text-muted hover:border-primary/60 hover:text-ink"
       }`}
     >
       {children}
       {count != null && (
-        <span className={`rounded-full px-1.5 text-[10px] tabular-nums ${active ? "bg-white/20" : "bg-panel"}`}>
+        <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold tabular-nums ${active ? "bg-white/20 text-white" : "bg-panel text-muted"}`}>
           {count}
         </span>
       )}

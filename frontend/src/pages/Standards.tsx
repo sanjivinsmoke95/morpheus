@@ -195,8 +195,8 @@ function StandardCard({ rec, mandatory, isPending, onDecide }: {
               <p className="mt-1 text-sm text-muted">{rec.rationale || "No structured factors were recorded for this match."}</p>
             )}
             {snippet && (
-              <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink">
-                <span className="font-tech text-[10px] uppercase tracking-wide text-muted">Evidence · </span>
+              <div className="font-evidence mt-2 border-t border-line pt-2 text-xs leading-relaxed text-ink">
+                <span className="font-tech text-[11px] font-semibold uppercase tracking-wide text-muted">Evidence · </span>
                 “{snippet.slice(0, 180)}{snippet.length > 180 ? "…" : ""}”
               </div>
             )}

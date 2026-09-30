@@ -52,18 +52,40 @@ body {
   background: var(--color-canvas);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.55;
+  font-size: 15px;
+  font-weight: 450;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* Section & major headings — Manrope, sentence case, optically tightened.
-   Weight is carried by the existing font-semibold/bold utilities per heading;
-   the negative tracking keeps large Manrope headings compact, not oversized. */
+/* Headings typography hierarchy */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+h1 {
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+h2 {
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+h3 {
+  letter-spacing: -0.015em;
+  line-height: 1.35;
+}
+
+/* Section & major headings — Manrope, sentence case, optically tightened. */
 .font-display {
   font-family: var(--font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   letter-spacing: -0.02em;
 }
 
@@ -78,7 +100,20 @@ body {
 /* Document excerpts, quotations and evidence reading areas — Source Serif 4. */
 .font-evidence {
   font-family: var(--font-serif);
-  letter-spacing: 0;
+  line-height: 1.65;
+  letter-spacing: 0.005em;
+}
+
+/* High-readability badge and micro-text helper */
+.text-micro {
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+}
+
+/* Force crisp tabular numbers on financial and metrics figures */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Accessible focus ring for keyboard users. */
