@@ -64,81 +64,74 @@ export function AnalyticsPage() {
         </div>
       )}
 
-      {/* ── Official Government Hero Header ────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-[#013528] via-[#024a38] to-[#012d22] p-6 text-white shadow-xl lg:p-8">
-        {/* Subtle decorative background patterns */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-1/4 -bottom-24 h-64 w-64 rounded-full bg-amber-400/10 blur-2xl" />
+      {/* ── Official Government Hero Header — Secretariat Architecture with Gradient Blend ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
+        {/* Building image — right side with gentle gradient blend */}
+        <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden">
+          <img
+            src="/assets/hero/secretariat-building.webp"
+            alt=""
+            className="h-full w-full object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/75 to-transparent" />
+        </div>
 
-        <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl space-y-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-400/15 px-3 py-1 font-tech text-[11px] font-semibold uppercase tracking-wider text-emerald-200 ring-1 ring-emerald-400/30">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Department Intelligence & Audit Dossier
-              </span>
-              <span className="rounded-full bg-white/10 px-2.5 py-0.5 font-tech text-[10px] text-amber-200/90 ring-1 ring-white/15">
-                GFR 2017 · Rule 144(i) Aligned
-              </span>
-              <span className="rounded-full bg-white/10 px-2.5 py-0.5 font-tech text-[10px] text-emerald-200/90 ring-1 ring-white/15">
-                Viksit Bharat 2047
-              </span>
-            </div>
-
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-                Department Standards Analytics & Reports
-              </h1>
-              <p className="mt-1.5 text-sm leading-relaxed text-emerald-100/80">
-                Comprehensive standards-coverage trends, statutory Quality Control Order (QCO) enforcement, and compliance intelligence across all public procurement tenders.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Button
-                variant="primary"
-                onClick={exportCsv}
-                className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md hover:shadow-lg"
-              >
-                <GovIcon name="clipboard" className="h-4 w-4" />
-                <span>Export Executive CSV</span>
-              </Button>
-
-              <Button
-                variant="secondary"
-                onClick={() => window.print()}
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border-white/20 shadow-sm"
-              >
-                <GovIcon name="print" className="h-4 w-4" />
-                <span>Print Official Summary</span>
-              </Button>
-
-              <Link
-                to="/standards"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-200 hover:text-white underline-offset-4 hover:underline ml-2"
-              >
-                <GovIcon name="book" className="h-3.5 w-3.5" />
-                <span>Browse Standards Library →</span>
-              </Link>
-            </div>
+        <div className="relative z-10 px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Department Intelligence &amp; Audit Dossier
+            </span>
+            <span className="rounded-full bg-panel px-2.5 py-0.5 font-tech text-[10px] font-semibold text-muted ring-1 ring-line">
+              GFR 2017 · Rule 144(i) Aligned
+            </span>
+            <span className="rounded-full bg-panel px-2.5 py-0.5 font-tech text-[10px] font-semibold text-muted ring-1 ring-line">
+              Viksit Bharat 2047
+            </span>
           </div>
 
-          {/* Right Banner Artwork Thumbnail */}
-          <div className="relative hidden w-80 flex-none overflow-hidden rounded-2xl border border-white/20 bg-white/5 shadow-2xl backdrop-blur-md lg:block">
-            <img
-              src="/assets/analytics/analytics_hero_banner.jpg"
-              alt="Department Procurement Analytics Hero"
-              className="h-44 w-full object-cover transition-transform duration-500 hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#012d22] via-transparent to-transparent opacity-80" />
-            <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] font-medium text-emerald-100">
-              <span className="flex items-center gap-1">
-                <GovIcon name="shield" className="h-3.5 w-3.5 text-amber-300" />
-                <span>BIS Digital Oversight</span>
-              </span>
-              <span className="font-tech text-[10px] text-emerald-300">Live Telemetry</span>
-            </div>
+          <h1 className="mt-3 max-w-xl font-display text-2xl font-bold leading-tight tracking-tight text-ink sm:text-[2rem]">
+            Department Standards Analytics &amp; <span className="text-saffron">Reports.</span>
+          </h1>
+          <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-muted">
+            Comprehensive standards-coverage trends, statutory Quality Control Order (QCO) enforcement, and compliance intelligence across all public procurement tenders.
+          </p>
+
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Button
+              variant="primary"
+              onClick={exportCsv}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-dark hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+            >
+              <GovIcon name="clipboard" className="h-4 w-4" />
+              <span>Export Executive CSV</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() => window.print()}
+              className="inline-flex items-center gap-2 rounded-xl border border-line bg-white/80 px-5 py-2.5 text-sm font-semibold text-ink shadow-xs backdrop-blur hover:bg-panel hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+            >
+              <GovIcon name="print" className="h-4 w-4 text-primary" />
+              <span>Print Official Summary</span>
+            </Button>
+
+            <Link
+              to="/standards"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-dark underline-offset-4 hover:underline ml-2"
+            >
+              <GovIcon name="book" className="h-3.5 w-3.5" />
+              <span>Browse Standards Library →</span>
+            </Link>
           </div>
+        </div>
+
+        {/* Quote overlay on the right */}
+        <div className="pointer-events-none absolute right-6 top-5 z-20 hidden max-w-[210px] text-right lg:block">
+          <p className="font-serif text-sm italic leading-snug text-ink/75">
+            "Standards build trust.<br />Trust builds a stronger nation."
+          </p>
+          <p className="mt-1 text-xs font-semibold text-muted">— Government of India</p>
         </div>
       </div>
 

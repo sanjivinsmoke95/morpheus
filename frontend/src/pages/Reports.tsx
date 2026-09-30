@@ -59,27 +59,43 @@ export function ReportsPage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-6">
-            {/* Executive Hero Banner */}
-            <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-surface via-surface to-primary-soft/30 p-6 shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/3 overflow-hidden rounded-r-2xl lg:block">
-                <img src="/brand/hero_building_clean.png" alt="" className="h-full w-full object-cover object-top opacity-35" />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/60 to-transparent" />
+            {/* Executive Hero Banner — Secretariat Architecture with Gradient Blend */}
+            <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
+              {/* Building image — right side with gentle gradient blend */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden">
+                <img
+                  src="/assets/hero/secretariat-building.webp"
+                  alt=""
+                  className="h-full w-full object-cover object-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/75 to-transparent" />
               </div>
-              <div className="relative">
+
+              <div className="relative z-10 px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 font-tech text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/25">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 font-tech text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Authoritative Compliance Dossier
                   </span>
                   <span className="font-tech text-[10px] text-muted">{refCode}</span>
                 </div>
-                <h1 className="font-display text-2xl font-bold text-primary">Standards-Aligned Procurement Report</h1>
-                <div className="mt-1 font-display text-base font-semibold text-ink">{analysis?.title}</div>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted">
+                <h1 className="font-display text-2xl font-bold leading-tight tracking-tight text-ink sm:text-[1.85rem]">
+                  Standards-Aligned Procurement Report
+                </h1>
+                <div className="mt-1 font-display text-base font-semibold text-primary">{analysis?.title}</div>
+                <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted">
                   <span>Standards-aligned · Evidence-backed · Auditable</span>
                   <span>·</span>
                   <span className="text-success font-medium">✓ Verified against BIS catalogue</span>
                 </div>
+              </div>
+
+              {/* Quote overlay on the right */}
+              <div className="pointer-events-none absolute right-6 top-5 z-20 hidden max-w-[210px] text-right lg:block">
+                <p className="font-serif text-sm italic leading-snug text-ink/75">
+                  "Standards build trust.<br />Trust builds a stronger nation."
+                </p>
+                <p className="mt-1 text-xs font-semibold text-muted">— Government of India</p>
               </div>
             </div>
 
