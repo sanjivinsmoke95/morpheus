@@ -73,8 +73,10 @@ function Icon({ name }: { name: string }) {
 }
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
-    isActive ? "bg-white text-primary shadow-sm" : "text-white/75 hover:bg-white/10 hover:text-white"
+  `group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200 ${
+    isActive
+      ? "bg-white/15 text-white shadow-xs border border-white/20 backdrop-blur-xs ring-1 ring-emerald-400/30 font-bold"
+      : "text-white/75 hover:bg-white/10 hover:text-white"
   }`;
 
 export function Layout() {
@@ -94,8 +96,10 @@ export function Layout() {
 
   const sidebar = (
     <div
-      className="flex h-full flex-col text-white"
-      style={{ background: "#013528" }}
+      className="flex h-full flex-col text-white border-r border-emerald-900/60 shadow-xl"
+      style={{
+        background: "linear-gradient(180deg, #053b28 0%, #032a1c 65%, #011c12 100%)",
+      }}
     >
       {/* Brand Logo & Wordmark - Links to Home */}
       <Link
@@ -168,11 +172,18 @@ export function Layout() {
       {/* Content column */}
       <div className="min-w-0 flex-1">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-surface/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8"
-          style={{ top: "env(safe-area-inset-top, 0px)" }}>
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            className="grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel lg:hidden">☰</button>
-          
+        <header
+          className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-surface/90 px-4 py-3 backdrop-blur-md shadow-2xs sm:px-6 lg:px-8"
+          style={{ top: "env(safe-area-inset-top, 0px)" }}
+        >
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel lg:hidden"
+          >
+            ☰
+          </button>
+
           {/* Mobile Brand Link to Home */}
           <Link
             to="/"
@@ -182,31 +193,49 @@ export function Layout() {
             <img src="/brand/emblem_light.png" alt="" className="h-7 w-auto transition-transform duration-200 group-hover:scale-105" />
             <span className="font-display text-base font-bold tracking-wide text-primary">MORPHEUS</span>
           </Link>
+
           <div className="relative min-w-0 flex-1 max-w-xl">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                <circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" strokeLinecap="round" />
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3-3" strokeLinecap="round" />
               </svg>
             </span>
-            <input placeholder="Search tenders, standards, keywords…" readOnly
-              onFocus={() => setPaletteOpen(true)} onClick={() => setPaletteOpen(true)}
+            <input
+              placeholder="Search tenders, standards, clause requirements…"
+              readOnly
+              onFocus={() => setPaletteOpen(true)}
+              onClick={() => setPaletteOpen(true)}
               aria-label="Open command palette"
-              className="w-full cursor-pointer rounded-xl border border-line bg-canvas py-2 pl-9 pr-14 text-sm text-ink outline-none focus:border-primary" />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] text-muted sm:block">⌘K</kbd>
+              className="w-full cursor-pointer rounded-xl border border-line bg-canvas/80 py-2 pl-9.5 pr-14 text-xs font-medium text-ink shadow-inner outline-none transition-all hover:bg-canvas focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/20"
+            />
+            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px] font-bold text-muted shadow-2xs sm:block">
+              ⌘K
+            </kbd>
           </div>
-          <NavLink to="/regulatory-updates" aria-label="Regulatory updates and alerts"
-            className="relative grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
+
+          <NavLink
+            to="/regulatory-updates"
+            aria-label="Regulatory updates and alerts"
+            className="relative grid h-9 w-9 flex-none place-items-center rounded-xl border border-line/60 text-muted transition-all hover:border-primary/40 hover:bg-panel hover:text-ink shadow-2xs"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+              <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface animate-pulse" />
           </NavLink>
+
           <div className="relative flex-none">
-            <button onClick={() => setUserMenu((v) => !v)} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-panel">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-white">
+            <button
+              onClick={() => setUserMenu((v) => !v)}
+              className="flex items-center gap-2 rounded-xl border border-line/70 bg-surface/80 p-1 pr-2.5 shadow-2xs transition-all hover:bg-panel hover:border-line focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-xs font-bold text-white shadow-xs">
                 {(user?.full_name || "U").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase()}
               </span>
               <span className="hidden text-left leading-tight sm:block">
-                <span className="block text-xs font-semibold text-ink">{user?.full_name || user?.email}</span>
-                <span className="block text-[10px] capitalize text-muted">{(user?.role || "").toLowerCase()}</span>
+                <span className="block text-xs font-bold text-ink">{user?.full_name || user?.email}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted">{(user?.role || "").toLowerCase()}</span>
               </span>
               <span className="hidden text-xs text-muted sm:block">▾</span>
             </button>

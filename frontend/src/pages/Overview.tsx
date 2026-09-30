@@ -3,7 +3,7 @@ import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { MiiCard } from "@/components/MiiCard";
 import { GfrCard } from "@/components/GfrCard";
 import { Card, EmptyState, GovIcon, SectionAccordion, Skeleton, StatusChip } from "@/components/ui";
-import { useAnalysis, useCoverageByCategory, useReadiness } from "@/lib/morpheus";
+import { useAnalysis, useCoverageByCategory, useDocument, useReadiness } from "@/lib/morpheus";
 
 function assessment(pct: number) {
   if (pct >= 90) return { label: "Strong alignment", tone: "success" };
@@ -15,6 +15,7 @@ function assessment(pct: number) {
 export function OverviewPage() {
   const { id = "" } = useParams();
   const { data: analysis } = useAnalysis(id);
+  const { data: doc } = useDocument(analysis?.document_id);
   const { data: r, isLoading } = useReadiness(id);
   const { data: categories } = useCoverageByCategory(id);
   const profile = analysis?.product_profile_json;
@@ -81,22 +82,53 @@ export function OverviewPage() {
               <Kpi icon="outdated" tone="warning" value={r.outdated_references} label="Outdated Reference" sub={r.outdated_references > 0 ? "Update" : "Current"} />
             </div>
 
-            {/* Document Preview */}
-            <Card className="p-4 lg:col-span-3 flex flex-col justify-between">
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-sm font-semibold text-ink">Document Preview</span>
-                <Link to={`/analyses/${id}/evidence`} className="text-[11px] font-medium text-primary hover:underline">View Full →</Link>
+            {/* Real Document Dossier Card */}
+            <Card className="p-5 lg:col-span-3 flex flex-col justify-between border border-line shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted">Dossier Source</span>
+                <Link to={`/analyses/${id}/evidence`} className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1">
+                  <span>Evidence</span>
+                  <span>→</span>
+                </Link>
               </div>
-              <div className="rounded-lg border border-line bg-gradient-to-b from-surface to-canvas p-4 text-center shadow-xs">
-                <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-primary ring-1 ring-primary/20">
-                  <GovIcon name="doc" className="h-5 w-5" />
+
+              <div className="my-2 rounded-xl border border-line/80 bg-gradient-to-br from-panel/70 to-surface p-3.5 shadow-2xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-10 w-10 flex-none place-items-center rounded-xl bg-danger-soft text-danger border border-danger/20 shadow-2xs font-tech text-xs font-bold">
+                    PDF
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-xs font-bold text-ink" title={doc?.filename || analysis?.title}>
+                      {doc?.filename || analysis?.title || "Specification Document"}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted mt-0.5 font-tech">
+                      <span>{doc?.page_count ? `${doc.page_count} Pages` : "Document"}</span>
+                      <span>·</span>
+                      <span>{doc?.byte_size ? `${Math.round(doc.byte_size / 1024)} KB` : "Verified"}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-ink">Tender Document</div>
-                <div className="mx-auto mt-3 h-1 w-20 rounded bg-primary/40" />
-                <div className="mx-auto mt-1.5 h-1 w-28 rounded bg-line" />
-                <div className="mx-auto mt-1.5 h-1 w-24 rounded bg-line" />
-                <div className="mx-auto mt-1.5 h-1 w-28 rounded bg-line" />
-                <div className="mt-3.5 text-[10px] text-muted">Specification under analysis</div>
+
+                <div className="mt-3 pt-2.5 border-t border-line/60 grid grid-cols-2 gap-2 text-center text-[10px]">
+                  <div className="rounded-lg bg-surface/90 p-1.5 border border-line/60">
+                    <div className="font-bold text-ink">{total}</div>
+                    <div className="text-muted">Clauses</div>
+                  </div>
+                  <div className="rounded-lg bg-surface/90 p-1.5 border border-line/60">
+                    <div className="font-bold text-primary">{multilingual ? "Bilingual" : "English"}</div>
+                    <div className="text-muted">Script</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] text-muted">
+                <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Parser verified
+                </span>
+                <Link to={`/analyses/${id}/requirements`} className="font-semibold text-primary hover:underline">
+                  Clauses ({total}) →
+                </Link>
               </div>
             </Card>
           </div>
