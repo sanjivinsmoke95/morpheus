@@ -8,5 +8,14 @@ export default defineConfig({
   resolve: {
     alias: { "@": path.resolve(__dirname, "./src") },
   },
-  server: { port: 5174 },
+  server: {
+    port: 5174,
+    allowedHosts: true,
+    proxy: {
+      "/api": "http://localhost:8010",
+      "/health": "http://localhost:8010",
+      "/docs": "http://localhost:8010",
+      "/openapi.json": "http://localhost:8010",
+    },
+  },
 });
