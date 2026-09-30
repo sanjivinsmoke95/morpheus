@@ -14,6 +14,8 @@ class Requirement(Base, UUIDMixin, TimestampMixin):
     req_code: Mapped[str] = mapped_column(String(24), nullable=False)  # "R-007"
     requirement_type: Mapped[str] = mapped_column(String(32), default=RequirementType.PARAMETER.value)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    original_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    normalized_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     source_page: Mapped[int | None] = mapped_column(Integer)
     source_section: Mapped[str] = mapped_column(String(64), default="")
     confidence: Mapped[str] = mapped_column(String(16), default=Confidence.MEDIUM.value)

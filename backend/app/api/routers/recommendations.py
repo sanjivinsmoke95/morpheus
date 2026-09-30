@@ -26,8 +26,8 @@ def _read(db: Session, rec: Recommendation) -> RecommendationRead:
         confidence=rec.confidence, final_rank=rec.final_rank, is_primary=rec.is_primary,
         review_status=rec.review_status, excluded=rec.excluded, exclusion_reason=rec.exclusion_reason,
         evidence=[EvidenceRead.model_validate(e) for e in evidence],
-        why=build_why(rec.signals_json, rec.applicability_class, rec.relevance, version_status),
-        why_not=build_why_not(rec.signals_json, rec.exclusion_reason, version_status) if rec.excluded else [],
+        why=rec.signals_json.get("why") or build_why(rec.signals_json, rec.applicability_class, rec.relevance, version_status),
+        why_not=rec.signals_json.get("why_not") or build_why_not(rec.signals_json, rec.exclusion_reason, version_status),
     )
 
 

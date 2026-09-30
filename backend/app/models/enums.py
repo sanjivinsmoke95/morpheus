@@ -30,6 +30,8 @@ class ApplicabilityClass(StrEnum):
     CONDITIONAL = "CONDITIONAL"
     RELATED = "RELATED"
     NOT_APPLICABLE = "NOT_APPLICABLE"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
 
 
 class CoverageClass(StrEnum):
@@ -40,11 +42,23 @@ class CoverageClass(StrEnum):
     NOT_APPLICABLE = "NOT_APPLICABLE"
 
 
+class EvidenceStrength(StrEnum):
+    STRONG = "STRONG"
+    SUPPORTED = "SUPPORTED"
+    WEAK = "WEAK"
+    NO_EVIDENCE = "NO_EVIDENCE"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+
+
 class Confidence(StrEnum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
     REVIEW_REQUIRED = "REVIEW_REQUIRED"  # abstain
+    STRONG = "STRONG"
+    SUPPORTED = "SUPPORTED"
+    WEAK = "WEAK"
+    NO_EVIDENCE = "NO_EVIDENCE"
 
 
 class Relevance(StrEnum):

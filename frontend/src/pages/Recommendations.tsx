@@ -119,6 +119,24 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
             “{snippet.slice(0, 200)}{snippet.length > 200 ? "…" : ""}”
           </div>
         )}
+
+        {/* Limitations & Considerations */}
+        {rec.why_not && rec.why_not.length > 0 && (
+          <div className="mt-2.5 rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-amber-700 dark:text-amber-400">
+              <GovIcon name="warning" className="h-3 w-3 flex-none" />
+              Limitations & Considerations
+            </div>
+            <ul className="mt-1 space-y-1">
+              {rec.why_not.map((wn, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-ink/90">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">• {wn.reason}:</span>
+                  <span>{wn.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
@@ -150,22 +168,36 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
   );
 }
 
-/* Excluded candidate — shows only the reason the backend actually provided. */
+/* Excluded candidate — shows reasons, severity, and recommendations */
 function ExcludedRow({ rec }: { rec: Recommendation }) {
-  const reasons = rec.why_not && rec.why_not.length > 0
-    ? rec.why_not.map((w) => w.reason)
-    : [rec.exclusion_reason || "Ranked below stronger candidates"];
+  const whyNotList = rec.why_not && rec.why_not.length > 0 ? rec.why_not : null;
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
+    <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface p-3">
       <GovIcon name="close" className="mt-0.5 h-3.5 w-3.5 flex-none text-muted" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link to={`/standards/${rec.standard.id}`} className="font-tech text-xs font-semibold text-muted hover:text-primary hover:underline">
             {rec.standard.is_number}
           </Link>
-          <span className="truncate text-xs text-muted">{rec.standard.title}</span>
+          <span className="truncate text-xs font-medium text-ink">{rec.standard.title}</span>
+          <span className="ml-auto text-[10px] font-tech uppercase text-muted">
+            {rec.applicability_class.replace(/_/g, " ")}
+          </span>
         </div>
-        <div className="mt-0.5 text-xs text-ink break-words">{reasons.join(" · ")}</div>
+        {whyNotList ? (
+          <ul className="mt-1.5 space-y-1">
+            {whyNotList.map((w, i) => (
+              <li key={i} className="text-xs text-ink/80 flex items-start gap-1.5">
+                <span className="font-semibold text-danger/80">• {w.reason}:</span>
+                <span>{w.detail}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-1 text-xs text-muted break-words">
+            {rec.exclusion_reason || "Ranked below stronger candidates"}
+          </div>
+        )}
       </div>
     </div>
   );

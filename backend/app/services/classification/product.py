@@ -17,22 +17,22 @@ from dataclasses import asdict, dataclass, field
 # category -> keywords that identify it (checked in order; first strong hit wins).
 _CATEGORY_KEYWORDS: list[tuple[str, str, list[str]]] = [
     # (product_category, sector, keywords)
-    ("Distribution Transformer", "electrical", ["transformer", "distribution transformer", "kva transformer"]),
-    ("Induction Motor", "electrical", ["induction motor", "three phase motor", "motor", "bldc"]),
-    ("LED Luminaire", "electrical", ["led luminaire", "street light", "luminaire", "led lamp", "lighting"]),
-    ("Solar PV System", "electrical", ["solar", "photovoltaic", "pv module", "charge controller", "solar panel"]),
-    ("Switchgear", "electrical", ["switchgear", "mcb", "circuit breaker", "controlgear", "panel board"]),
-    ("Cable & Conductor", "electrical", ["cable", "conductor", "wiring", "xlpe", "pvc insulated"]),
-    ("Battery / Storage", "electrical", ["battery", "lithium", "lifepo4", "storage battery", "cell"]),
-    ("Centrifugal Pump", "mechanical", ["centrifugal pump", "pump", "rotodynamic"]),
-    ("Valve / Fitting", "mechanical", ["valve", "gate valve", "ball valve", "fitting"]),
-    ("Pressure Vessel / Gauge", "mechanical", ["pressure gauge", "pressure vessel", "gauge", "boiler"]),
-    ("Structural Steel", "materials", ["structural steel", "steel section", "rolled steel", "e250", "beam"]),
-    ("Steel Pole", "materials", ["pole", "tubular pole", "lighting pole", "octagonal pole"]),
-    ("Casting / Forging", "materials", ["casting", "grey iron", "forging", "ductile iron"]),
-    ("Cement / Concrete", "civil", ["concrete", "cement", "rcc", "reinforced concrete", "aggregate"]),
-    ("Pipe (Water)", "water", ["pipe", "pvc pipe", "hdpe pipe", "potable water", "water supply"]),
-    ("Electronic Apparatus", "electronics", ["electronic apparatus", "audio", "video", "it equipment", "adapter"]),
+    ("Distribution Transformer", "electrical", ["distribution transformer", "power transformer", "kva transformer", "oil immersed transformer", "transformer"]),
+    ("Centrifugal Pump", "mechanical", ["submersible pump", "centrifugal pump", "monobloc pump", "borewell pump", "tube-well pump", "rotodynamic pump", "pump set", "pump"]),
+    ("Induction Motor", "electrical", ["induction motor", "three phase motor", "squirrel cage", "electric motor", "electric drive", "bldc motor", "motor", "drive"]),
+    ("LED Luminaire", "electrical", ["led luminaire", "street light", "flood light", "luminaire", "led lamp", "lighting"]),
+    ("Solar PV System", "electrical", ["solar photovoltaic", "pv module", "solar panel", "charge controller", "photovoltaic", "solar"]),
+    ("Switchgear", "electrical", ["circuit breaker", "air circuit breaker", "mcb", "mccb", "switchgear", "controlgear", "panel board"]),
+    ("Cable & Conductor", "electrical", ["power cable", "conductor", "xlpe cable", "pvc cable", "wiring", "cable"]),
+    ("Battery / Storage", "electrical", ["lithium ion", "storage battery", "lifepo4", "lead acid battery", "battery", "cell"]),
+    ("Valve / Fitting", "mechanical", ["gate valve", "ball valve", "check valve", "butterfly valve", "valve", "pipe fitting"]),
+    ("Pressure Vessel / Gauge", "mechanical", ["pressure gauge", "bourdon tube", "pressure vessel", "boiler"]),
+    ("Structural Steel", "materials", ["structural steel", "steel section", "rolled steel", "e250", "steel beam", "i-beam"]),
+    ("Steel Pole", "materials", ["tubular pole", "lighting pole", "octagonal pole", "steel pole", "swaged pole"]),
+    ("Casting / Forging", "materials", ["grey iron casting", "iron casting", "casting", "grey iron", "forging", "ductile iron"]),
+    ("Cement / Concrete", "civil", ["reinforced concrete", "concrete", "portland cement", "cement", "rcc", "aggregate"]),
+    ("Pipe (Water)", "water", ["ductile iron pipe", "di pipe", "pvc pipe", "hdpe pipe", "upvc pipe", "water supply pipe", "potable water pipe", "pipe"]),
+    ("Electronic Apparatus", "electronics", ["electronic apparatus", "audio video", "it equipment", "power adapter", "electronic equipment"]),
 ]
 
 _INSTALL = {
@@ -51,31 +51,65 @@ _PHASE_RE = re.compile(r"\b(single|three|3|1)\s*[- ]?\s*phase\b", re.IGNORECASE)
 
 @dataclass
 class ProductProfile:
-    product_category: str
-    sub_category: str
-    sector: str
-    installation: str
-    phases: int | None
-    parameters: dict[str, str]              # e.g. {"voltage": "11 kV", "power": "100 kVA"}
+    product_category: str                   # Legacy: e.g. "Distribution Transformer"
+    sub_category: str                       # Legacy: e.g. "Oil Immersed"
+    sector: str                             # e.g. "electrical"
+    installation: str                       # "outdoor" | "indoor" | ...
+    phases: int | None                      # 1 | 3 | None
+    parameters: dict[str, str]              # e.g. {"voltage": "11 kV", "capacity": "25 kVA"}
     method: str                             # "deterministic" | "llm_assisted"
     matched_keywords: list[str] = field(default_factory=list)
     confidence: str = "MEDIUM"
 
+    # Canonical profile attributes (Phase 3)
+    product: str = ""                       # Canonical specific product: "Oil Immersed Distribution Transformer"
+    category: str = ""                      # Broader category: "Electrical Equipment"
+    capacity: str = ""                      # Rating / capacity: "25 kVA"
+    canonical_spec: str = ""                # Summary: "Distribution Transformer, 25 kVA, 3-phase, outdoor"
+
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        if not d.get("product"):
+            d["product"] = f"{self.sub_category} {self.product_category}".strip() if self.sub_category else self.product_category
+        if not d.get("category"):
+            d["category"] = f"{self.sector.title()} Infrastructure" if self.sector else self.product_category
+        if not d.get("capacity"):
+            d["capacity"] = self.parameters.get("capacity") or self.parameters.get("power") or self.parameters.get("pressure") or ""
+        return d
 
 
-def classify_product(requirement_dicts: list[dict], analysis_sector: str = "") -> ProductProfile:
-    """requirement_dicts: [{description, requirement_type, attributes:[{key,raw_value,unit,canonical_unit,normalized_value}]}]."""
-    corpus = " ".join((r.get("description") or "") for r in requirement_dicts).lower()
+_SECTOR_TO_CATEGORY_GROUP = {
+    "electrical": "Electrical Equipment & Power Infrastructure",
+    "mechanical": "Mechanical Machinery & Pumping Systems",
+    "water": "Water Supply & Public Health Engineering",
+    "civil": "Civil Construction & Structural Materials",
+    "materials": "Metallurgical & Construction Materials",
+    "safety": "Fire Safety & Life Protection Equipment",
+    "electronics": "Electronic & Telecommunication Apparatus",
+}
+
+
+def classify_product(requirement_dicts: list[dict] | str, analysis_sector: str = "") -> ProductProfile:
+    """requirement_dicts: [{description, requirement_type, attributes:[{key,raw_value,unit,canonical_unit,normalized_value}]}] or a raw string."""
+    if isinstance(requirement_dicts, str):
+        requirement_dicts = [{"description": requirement_dicts}]
+    raw_corpus = " ".join((r.get("description") or "") for r in requirement_dicts)
+    from app.services.extraction.multilingual import canonicalize_text
+    corpus = canonicalize_text(raw_corpus).lower()
 
     category, sector, matched = "Uncategorised", analysis_sector or "", []
+    best_score = 0
     for cat, sec, kws in _CATEGORY_KEYWORDS:
         hits = [k for k in kws if k in corpus]
         if hits:
-            category, matched = cat, hits
-            sector = sec if not analysis_sector else analysis_sector
-            break
+            score = sum(len(k.split()) * 3 for k in hits)
+            if analysis_sector and sec.lower() == analysis_sector.lower():
+                score += 4
+            if score > best_score:
+                best_score = score
+                category = cat
+                sector = sec if not analysis_sector else analysis_sector
+                matched = hits
 
     # Installation condition.
     installation = ""
@@ -104,14 +138,34 @@ def classify_product(requirement_dicts: list[dict], analysis_sector: str = "") -
     sub = ""
     for token, label in [("oil immersed", "Oil Immersed"), ("dry type", "Dry Type"),
                          ("energy efficient", "Energy Efficient"), ("monocrystalline", "Monocrystalline"),
-                         ("galvanised", "Hot-dip Galvanised"), ("galvanized", "Hot-dip Galvanised")]:
+                         ("galvanised", "Hot-dip Galvanised"), ("galvanized", "Hot-dip Galvanised"),
+                         ("submersible", "Submersible Borehole"), ("centrifugal", "Centrifugal Horizontal"),
+                         ("tmt", "Thermo-Mechanically Treated (TMT)")]:
         if token in corpus:
             sub = label
             break
 
     confidence = "HIGH" if len(matched) >= 2 else "MEDIUM" if matched else "LOW"
+
+    # Derive canonical profile fields
+    canonical_prod = f"{sub} {category}".strip() if sub and sub.lower() not in category.lower() else category
+    broad_cat = _SECTOR_TO_CATEGORY_GROUP.get(sector, f"{sector.title()} Infrastructure" if sector else category)
+    capacity_val = params.get("capacity") or params.get("power") or params.get("pressure") or params.get("dimension") or ""
+
+    spec_parts = [canonical_prod]
+    if capacity_val:
+        spec_parts.append(capacity_val)
+    if phases:
+        spec_parts.append(f"{phases}-phase")
+    if installation:
+        spec_parts.append(installation)
+    canonical_spec_str = ", ".join(spec_parts)
+
     return ProductProfile(
         product_category=category, sub_category=sub, sector=sector, installation=installation,
         phases=phases, parameters=params, method="deterministic",
         matched_keywords=matched, confidence=confidence,
+        product=canonical_prod, category=broad_cat, capacity=capacity_val,
+        canonical_spec=canonical_spec_str,
     )
+

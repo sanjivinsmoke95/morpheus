@@ -34,6 +34,15 @@ export interface Analysis {
   requirements_total?: number | null;
   open_issues?: number | null;
   verdict?: string | null;
+  ai_capability?: {
+    llm_available: boolean;
+    semantic_embeddings_available: boolean;
+    mode: "offline" | "semantic" | "SEMANTIC_AVAILABLE" | "DEGRADED/OFFLINE";
+    status?: string;
+    is_semantic?: boolean;
+    provider: string;
+    fallback_active: boolean;
+  } | null;
 }
 
 export interface ReqAttribute {
@@ -52,6 +61,8 @@ export interface Requirement {
   req_code: string;
   requirement_type: string;
   description: string;
+  original_text?: string | null;
+  normalized_text?: string | null;
   source_page: number | null;
   source_section: string;
   confidence: string;
@@ -684,4 +695,22 @@ export function useTenderClause(analysisId: string) {
     enabled: Boolean(analysisId),
   });
 }
+
+export interface SystemAiStatus {
+  llm_available: boolean;
+  semantic_embeddings_available: boolean;
+  mode: "offline" | "semantic";
+  provider: string;
+  fallback_active: boolean;
+  notice: string;
+}
+
+export function useSystemAiStatus() {
+  return useQuery<SystemAiStatus>({
+    queryKey: ["system-ai-status"],
+    queryFn: async () => (await api.get(`/system/ai-status`)).data,
+    staleTime: 60_000,
+  });
+}
+
 

@@ -42,6 +42,7 @@ class AnalysisRead(BaseModel):
     requirements_total: int | None = None
     open_issues: int | None = None
     verdict: str | None = None
+    ai_capability: dict | None = None
 
 
 # ---- requirements ----
@@ -63,6 +64,8 @@ class RequirementRead(BaseModel):
     req_code: str
     requirement_type: str
     description: str
+    original_text: str | None = None
+    normalized_text: str | None = None
     source_page: int | None
     source_section: str
     confidence: str

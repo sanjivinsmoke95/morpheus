@@ -207,6 +207,25 @@ Timestamp: ${new Date().toISOString()}`;
             >
               {ready ? "Completed" : "Processing"}
             </span>
+
+            {/* Transparent AI Capability Status Badge */}
+            {analysis?.ai_capability?.mode === "SEMANTIC_AVAILABLE" || analysis?.ai_capability?.mode === "semantic" ? (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                title={`Live Semantic AI provider: ${analysis.ai_capability.provider}`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Semantic AI ({analysis.ai_capability.provider})
+              </span>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                title="Zero-cost, reproducible offline deterministic retrieval and rule verification"
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                Offline Deterministic
+              </span>
+            )}
           </div>
 
           {/* Compact factual metadata */}

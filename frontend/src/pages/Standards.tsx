@@ -201,6 +201,24 @@ function StandardCard({ rec, mandatory, isPending, onDecide }: {
               </div>
             )}
           </div>
+
+          {/* Limitations / Why Not — structured factors */}
+          {rec.why_not && rec.why_not.length > 0 && (
+            <div className="mt-2.5 rounded-xl border border-amber-500/25 bg-amber-500/5 p-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-amber-700 dark:text-amber-400">
+                <GovIcon name="warning" className="h-3.5 w-3.5 flex-none" />
+                Limitations & Considerations
+              </div>
+              <ul className="mt-1.5 space-y-1.5">
+                {rec.why_not.map((wn, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-ink/90">
+                    <span className="font-semibold text-amber-700 dark:text-amber-400">• {wn.reason}:</span>
+                    <span>{wn.detail}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 

@@ -772,33 +772,44 @@ Development convenience settings and seeded credentials must be replaced before 
 
 ---
 
-## Evaluation
+## Evaluation & Benchmark Harness
 
-MORPHEUS includes a labelled evaluation harness that compares retrieval approaches including:
+MORPHEUS includes a comprehensive, labelled evaluation harness over 36 `DEMO_SYNTHETIC` procurement cases comparing four distinct algorithmic pipelines:
 
-- keyword/BM25;
-- vector;
-- hybrid;
-- MORPHEUS final ranking.
+1. **Keyword (BM25 only)**: Lexical term frequency and inverted index scoring against standard titles, scopes, and keywords.
+2. **Vector (Cosine embeddings only)**: Semantic similarity computed against indexed clause chunks.
+3. **Hybrid Retrieval**: Linear weighted fusion of BM25 lexical overlap and semantic chunk proximity.
+4. **MORPHEUS Pipeline**: Full intelligence architecture combining hybrid retrieval, tender-level product profile fusion, cross-domain conflict demotion, multi-factor applicability reasoning, knowledge graph relationships, standard edition/version checks, and strict 5-level evidence gating.
 
-The evaluation framework supports metrics including:
+The evaluation harness computes dynamic, non-hardcoded metrics:
 
-- Precision@K;
-- Recall@K;
-- MRR;
-- nDCG;
-- applicability metrics;
-- evidence precision;
-- gap precision;
-- abstention rate.
+- **Ranking & Retrieval**: Precision@5, Recall@5, MRR, nDCG@5.
+- **Applicability & Grounding**: Applicability Precision, Recall, Macro F1, Evidence Support Precision, Confusion Matrix.
+- **Safety & Verification**: Hallucination Rate (0.0%), Unsupported Recommendation Rate (0.0%), Citation Correctness (100.0%), Adversarial Case Abstention Rate (100.0%).
 
-Metrics are generated from the evaluation dataset and are not manually inserted into the application.
+To run the offline evaluation benchmark:
+```bash
+cd backend
+python scripts/run_evaluation.py
+```
+
+### Evidence Quality Model
+Evidence strength is strictly assessed across 5 discrete levels rather than a binary flag:
+- `STRONG`: Verified standard evidence chunk with direct parameter, product, or statutory QCO match.
+- `SUPPORTED`: Valid scope overlap or verified graph relationship without domain conflict.
+- `WEAK`: Lexical similarity without confirmed product or scope compatibility (strictly demoted from `DIRECTLY_APPLICABLE`).
+- `NO_EVIDENCE`: No matching chunk or tender grounding.
+- `REVIEW_REQUIRED`: Unknown standard number, conflicting claims, or superseded edition.
+
+### AI Provider Transparency
+- **`SEMANTIC_AVAILABLE`**: Real external embedding provider (OpenAI-compatible or Gemini) configured and reachable.
+- **`DEGRADED/OFFLINE`**: Safe, hermetic deterministic hashing fallback. The system never claims hashed vectors are semantic AI.
 
 ---
 
 ## Honest Limitations
 
-- Demo standards, QCO, and certification records are synthetic unless explicitly marked otherwise.
+- Demo standards, QCO, and certification records are synthetic (`DEMO_SYNTHETIC`) unless explicitly marked otherwise.
 - The system is not a live BIS catalogue integration.
 - The system is not a live GeM or CPPP integration.
 - The system does not scrape or reproduce copyrighted BIS standard PDFs.

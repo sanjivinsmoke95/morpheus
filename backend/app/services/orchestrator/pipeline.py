@@ -107,10 +107,19 @@ def _extract_requirements(db: Session, analysis: Analysis, trace: list[dict]) ->
     reqs = run_extraction(canonical_pages)
     lang_names = ", ".join(dict.fromkeys(l["language"] for l in langs)) or "English"
     _trace(trace, "Language detected", lang_names)
+    orig_pages_dict = {p.page_number: (p.text or "") for p in pages}
     for r in reqs:
+        sp = r.get("source_page")
+        orig_page_txt = orig_pages_dict.get(sp, "")
+        orig_line = _match_original_text(orig_page_txt, r["description"])
+        norm_line = r["description"]
+
         req = Requirement(
             analysis_id=analysis.id, req_code=r["req_code"], requirement_type=r["requirement_type"],
-            description=r["description"], source_page=r.get("source_page"),
+            description=norm_line,
+            original_text=orig_line if orig_line != norm_line else None,
+            normalized_text=norm_line,
+            source_page=sp,
             source_section=r.get("source_section", ""), confidence=r["confidence"],
             extraction_method=r.get("extraction_method", "rule"),
         )
@@ -125,6 +134,29 @@ def _extract_requirements(db: Session, analysis: Analysis, trace: list[dict]) ->
             ))
     db.commit()
     _trace(trace, "Requirements extracted", f"{len(reqs)} structured requirement(s) from {len(pages)} page(s)")
+
+
+def _match_original_text(orig_page_text: str, canonical_desc: str) -> str:
+    """Find corresponding original sentence in untransliterated page text."""
+    if not orig_page_text:
+        return canonical_desc
+    lines = [ln.strip() for ln in orig_page_text.splitlines() if ln.strip()]
+    if not lines:
+        return canonical_desc
+    # Exact match
+    for ln in lines:
+        if ln.lower() == canonical_desc.lower():
+            return ln
+    # Non-ASCII / Indic script line match
+    import re
+    digits = re.findall(r"\d+", canonical_desc)
+    from app.services.extraction.multilingual import canonicalize_text
+    for ln in lines:
+        if any(ch > "\x7f" for ch in ln):
+            c_ln = canonicalize_text(ln)
+            if any(d in ln for d in digits) or any(w.lower() in c_ln.lower() for w in canonical_desc.split()[:3]):
+                return ln
+    return canonical_desc
 
 
 def _recommend_all(db: Session, analysis: Analysis, trace: list[dict]) -> None:
@@ -173,27 +205,89 @@ def _recommend_for(db: Session, analysis: Analysis, requirement: Requirement) ->
     db.flush()
 
     query = _ReqQuery(description=requirement.description, attributes=_attrs_of(db, requirement))
-    candidates = retrieve_for_requirement(db, query, analysis.sector, top_k=5)
+    candidates = retrieve_for_requirement(
+        db, query, analysis.sector, product_profile=analysis.product_profile_json, top_k=5
+    )
     if not candidates:
         return 0
 
+    from app.models import CertificationRecord, QcoRecord, StandardRelationship, StandardVersion
+    from app.services.classification.applicability import evaluate_applicability
+
     # Referenced-standard match?
     referenced = _referenced_norms(query.attributes)
+    desc_norm = normalize_is_number(requirement.description)
     best_included: Recommendation | None = None
     for rank, cand in enumerate(candidates, start=1):
-        is_ref = cand.standard.is_number_normalized in referenced
-        # Evidence first (so classification can honor "has_evidence").
+        is_ref = (cand.standard.is_number_normalized in referenced) or (
+            bool(cand.standard.is_number_normalized) and cand.standard.is_number_normalized in desc_norm
+        )
         tender_ev = assemble.tender_evidence(db, requirement, analysis.document_id)
         std_ev = assemble.standard_evidence(db, cand.standard, cand.matched_chunk)
-        cls = classify(requirement.requirement_type, cand.signals, cand.relevance,
-                       is_referenced_match=is_ref, has_evidence=True)
+
+        # Graph relationships for this standard
+        graph_rels = []
+        rel_out = db.execute(
+            select(StandardRelationship, Standard.is_number)
+            .join(Standard, Standard.id == StandardRelationship.to_standard_id)
+            .where(StandardRelationship.from_standard_id == cand.standard.id)
+        ).all()
+        for ro, tgt in rel_out:
+            graph_rels.append({"relationship_type": ro.relationship_type, "target_is_number": tgt, "note": ro.note})
+        rel_in = db.execute(
+            select(StandardRelationship, Standard.is_number)
+            .join(Standard, Standard.id == StandardRelationship.from_standard_id)
+            .where(StandardRelationship.to_standard_id == cand.standard.id)
+        ).all()
+        for ri, src in rel_in:
+            graph_rels.append({"relationship_type": ri.relationship_type, "target_is_number": src, "note": ri.note})
+
+        # Versions, QCO, Cert
+        v_rows = db.execute(select(StandardVersion).where(StandardVersion.standard_id == cand.standard.id)).scalars().all()
+        v_recs = [{"version_label": v.version_label, "is_current": v.is_current} for v in v_rows]
+        q_rows = db.execute(select(QcoRecord).where(QcoRecord.standard_id == cand.standard.id)).scalars().all()
+        q_recs = [{"qco_status": q.qco_status, "order_name": q.order_name} for q in q_rows]
+        c_rows = db.execute(select(CertificationRecord).where(CertificationRecord.standard_id == cand.standard.id)).scalars().all()
+        c_recs = [{"scheme": c.scheme, "requirement": c.requirement} for c in c_rows]
+
+        cls = evaluate_applicability(
+            requirement_type=requirement.requirement_type,
+            requirement_desc=requirement.description,
+            requirement_attributes=query.attributes,
+            candidate_standard=cand.standard,
+            signals={**cand.signals, "lexical": cand.lexical, "semantic": cand.semantic},
+            relevance=cand.relevance,
+            matched_chunk=cand.matched_chunk,
+            product_profile=analysis.product_profile_json,
+            analysis_sector=analysis.sector,
+            graph_relationships=graph_rels,
+            version_records=v_recs,
+            qco_records=q_recs,
+            cert_records=c_recs,
+            is_referenced_match=is_ref,
+            has_tender_evidence=bool(tender_ev and tender_ev.text),
+            has_standard_evidence=bool(std_ev and (std_ev.text or cand.matched_chunk)),
+        )
+
+        signals_payload = {
+            **cand.signals,
+            "lexical": round(cand.lexical, 3),
+            "semantic": round(cand.semantic, 3),
+            "why": cls.why,
+            "why_not": cls.why_not,
+            "graph_support": cls.graph_support,
+            "qco_enforced": cls.qco_enforced,
+            "certification_required": cls.certification_required,
+            "evidence_strength": str(cls.evidence_strength),
+            "decision_trace": cls.decision_trace,
+        }
 
         rec = Recommendation(
             analysis_id=analysis.id, requirement_id=requirement.id, standard_id=cand.standard.id,
             applicability_class=cls.applicability_class, relevance=cand.relevance,
             relevance_score=round(cand.score, 4), retrieval_method=cand.retrieval_method,
-            signals_json={**cand.signals, "lexical": round(cand.lexical, 3), "semantic": round(cand.semantic, 3)},
-            rationale=cls.rationale, confidence=cls.confidence, final_rank=rank,
+            signals_json=signals_payload,
+            rationale=cls.rationale, confidence=str(cls.evidence_strength), final_rank=rank,
             excluded=cls.excluded, exclusion_reason=cls.exclusion_reason,
         )
         db.add(rec)

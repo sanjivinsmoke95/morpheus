@@ -177,8 +177,27 @@ function RequirementPanel({ analysisId, req, onPrev, onNext }: { analysisId: str
         {tab === "details" && (
           <div className="space-y-4">
             <div>
-              <div className="mb-1 text-xs font-semibold text-muted">Requirement</div>
-              <div className="rounded-lg bg-panel/60 p-3 text-sm text-ink break-words">{req.description}</div>
+              <div className="mb-1 flex items-center justify-between text-xs font-semibold text-muted">
+                <span>Normalized Requirement</span>
+                {req.original_text && req.original_text !== req.description && (
+                  <span className="rounded bg-primary-soft px-1.5 py-0.5 font-tech text-[10px] text-primary">
+                    Bilingual / Normalized
+                  </span>
+                )}
+              </div>
+              <div className="rounded-lg bg-panel/60 p-3 text-sm break-words text-ink">{req.description}</div>
+
+              {req.original_text && req.original_text !== req.description && (
+                <div className="mt-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 p-3">
+                  <div className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-700 dark:text-amber-400">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
+                    Original Tender Requirement (Source Extract)
+                  </div>
+                  <div className="rounded border border-line/40 bg-panel/40 p-2 font-mono text-xs italic break-words text-ink/90">
+                    {req.original_text}
+                  </div>
+                </div>
+              )}
             </div>
             {req.attributes.length > 0 && (
               <div>
