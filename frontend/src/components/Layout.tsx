@@ -73,10 +73,8 @@ function Icon({ name }: { name: string }) {
 }
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
-  `group flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200 ${
-    isActive
-      ? "bg-white/15 text-white shadow-xs border border-white/20 backdrop-blur-xs ring-1 ring-emerald-400/30 font-bold"
-      : "text-white/75 hover:bg-white/10 hover:text-white"
+  `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition-colors ${
+    isActive ? "bg-white text-primary shadow-sm" : "text-white/75 hover:bg-white/10 hover:text-white"
   }`;
 
 export function Layout() {
@@ -96,10 +94,8 @@ export function Layout() {
 
   const sidebar = (
     <div
-      className="flex h-full flex-col text-white border-r border-emerald-900/60 shadow-xl"
-      style={{
-        background: "linear-gradient(180deg, #053b28 0%, #032a1c 65%, #011c12 100%)",
-      }}
+      className="flex h-full flex-col text-white"
+      style={{ background: "#013528" }}
     >
       {/* Brand Logo & Wordmark - Links to Home */}
       <Link

@@ -52,9 +52,12 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     <div className="fixed inset-0 z-[80] flex items-start justify-center px-4 pt-[12vh]" role="dialog" aria-modal="true" aria-label="Command palette">
       <div className="absolute inset-0 bg-ink/40 backdrop-blur-sm" onClick={onClose} aria-hidden />
       <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl">
-        <div className="flex items-center gap-2 border-b border-line px-4">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 text-muted"><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" strokeLinecap="round" /></svg>
-          <input ref={inputRef} value={q} onChange={(e) => setQ(e.target.value)}
+        <div className="flex items-center gap-3 border-b border-line px-4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 flex-none text-muted"><circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" strokeLinecap="round" /></svg>
+          <input
+            ref={inputRef}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => Math.min(i + 1, items.length - 1)); }
               else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
@@ -62,8 +65,10 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
               else if (e.key === "Escape") onClose();
             }}
             placeholder="Search tenders, standards, or run an action…"
-            className="w-full bg-transparent py-3.5 text-sm text-ink outline-none placeholder:text-muted" />
-          <kbd className="rounded border border-line bg-panel px-1.5 py-0.5 text-[10px] text-muted">esc</kbd>
+            className="w-full border-0 bg-transparent py-3.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
+            style={{ outline: "none", boxShadow: "none" }}
+          />
+          <kbd className="flex-none rounded-md border border-line bg-panel px-1.5 py-0.5 text-[10px] font-semibold text-muted">esc</kbd>
         </div>
         <div className="max-h-[52vh] overflow-y-auto py-2">
           {items.length === 0 ? (
