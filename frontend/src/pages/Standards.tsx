@@ -28,14 +28,30 @@ export function StandardsPage() {
     return s;
   }, [qco]);
 
-  // Best recommendation per standard, sorted by relevance.
+  // Best recommendation per standard, sorted by relevance with aggregated standard review status.
   const cards = useMemo(() => {
-    const best = new Map<string, Recommendation>();
+    const byStd = new Map<string, Recommendation[]>();
     for (const r of recs ?? []) {
-      const cur = best.get(r.standard.id);
-      if (!cur || r.relevance_score > cur.relevance_score) best.set(r.standard.id, r);
+      if (!byStd.has(r.standard.id)) byStd.set(r.standard.id, []);
+      byStd.get(r.standard.id)!.push(r);
     }
-    return [...best.values()].sort((a, b) => b.relevance_score - a.relevance_score);
+    const res: Recommendation[] = [];
+    for (const list of byStd.values()) {
+      const sorted = [...list].sort((a, b) => b.relevance_score - a.relevance_score);
+      const bestRec = { ...sorted[0] };
+      const hasAccepted = list.some((r) => r.review_status === "ACCEPTED");
+      const hasRejected = list.some((r) => r.review_status === "REJECTED");
+      const hasReview = list.some((r) => r.review_status === "REVIEW");
+      if (hasAccepted) {
+        bestRec.review_status = "ACCEPTED";
+      } else if (hasRejected) {
+        bestRec.review_status = "REJECTED";
+      } else if (hasReview) {
+        bestRec.review_status = "REVIEW";
+      }
+      res.push(bestRec);
+    }
+    return res.sort((a, b) => b.relevance_score - a.relevance_score);
   }, [recs]);
 
   const counts = useMemo(() => ({
@@ -56,7 +72,9 @@ export function StandardsPage() {
     const target = which === "qco"
       ? cards.filter((r) => qcoMandatory.has(r.standard.is_number) && r.review_status !== "ACCEPTED")
       : cards.filter((r) => r.relevance === "HIGH" && r.review_status !== "ACCEPTED");
-    target.forEach((r) => decide.mutate({ target_type: "recommendation", target_id: r.id, decision: "ACCEPT", reason: `Bulk accept (${which})` }));
+    target.forEach((r) =>
+      decide.mutate({ target_type: "standard", target_id: r.standard.id, decision: "ACCEPT", reason: `Bulk accept (${which})` })
+    );
   }
 
   function exportCsv() {
@@ -98,8 +116,15 @@ export function StandardsPage() {
       ) : (
         <div className="space-y-3">
           {shown.map((r) => (
-            <StandardCard key={r.id} rec={r} mandatory={qcoMandatory.has(r.standard.is_number)}
-              onDecide={(decision, reason) => decide.mutate({ target_type: "recommendation", target_id: r.id, decision, reason })} />
+            <StandardCard
+              key={r.standard.id}
+              rec={r}
+              mandatory={qcoMandatory.has(r.standard.is_number)}
+              isPending={decide.isPending && (decide.variables as any)?.target_id === r.standard.id}
+              onDecide={(decision, reason) =>
+                decide.mutate({ target_type: "standard", target_id: r.standard.id, decision, reason })
+              }
+            />
           ))}
         </div>
       )}
@@ -107,14 +132,21 @@ export function StandardsPage() {
   );
 }
 
-function StandardCard({ rec, mandatory, onDecide }: {
-  rec: Recommendation; mandatory: boolean; onDecide: (decision: string, reason?: string) => void;
+function StandardCard({ rec, mandatory, isPending, onDecide }: {
+  rec: Recommendation;
+  mandatory: boolean;
+  isPending?: boolean;
+  onDecide: (decision: string, reason?: string) => void;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const snippet = rec.evidence?.[0]?.text;
+  const isAccepted = rec.review_status === "ACCEPTED";
+  const isRejected = rec.review_status === "REJECTED";
+  const isReview = rec.review_status === "REVIEW";
+
   return (
-    <Card className={`p-4 ${mandatory ? "ring-1 ring-danger/30" : ""}`}>
+    <Card className={`p-4 transition-all duration-200 ${mandatory ? "ring-1 ring-danger/30" : ""} ${isAccepted ? "bg-panel/20 border-emerald-500/30" : ""}`}>
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -122,7 +154,7 @@ function StandardCard({ rec, mandatory, onDecide }: {
               {rec.standard.is_number}
             </Link>
             {mandatory && (
-              <span className="inline-flex items-center gap-1 rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-white">
+              <span className="inline-flex items-center gap-1 rounded-md bg-danger px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
                 QCO mandatory
                 <Tooltip text="This product category requires BIS certification under a Quality Control Order. Bids without valid certification are typically treated as non-compliant." />
               </span>
@@ -177,15 +209,69 @@ function StandardCard({ rec, mandatory, onDecide }: {
           <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
             placeholder="Reason for rejecting (recorded for audit)…"
             className="min-w-[14rem] flex-1 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-primary" />
-          <Button variant="danger" disabled={!reason.trim()}
-            onClick={() => { onDecide("REJECT", reason.trim()); setRejecting(false); setReason(""); }}>Confirm reject</Button>
+          <Button variant="danger" disabled={!reason.trim() || isPending}
+            onClick={() => { onDecide("REJECT", reason.trim()); setRejecting(false); setReason(""); }}>
+            Confirm reject
+          </Button>
           <Button variant="secondary" onClick={() => setRejecting(false)}>Cancel</Button>
         </div>
       ) : (
-        <div className="mt-3 flex gap-2 border-t border-line pt-3">
-          <Button className="px-3 py-1.5 text-xs" onClick={() => onDecide("ACCEPT", "Accepted")}>Accept</Button>
-          <Button variant="danger" className="px-3 py-1.5 text-xs" onClick={() => setRejecting(true)}>Reject…</Button>
-          <Button variant="secondary" className="px-3 py-1.5 text-xs" onClick={() => onDecide("MARK_FOR_REVIEW", "Flagged for review")}>Flag for review</Button>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {isAccepted ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs ring-1 ring-emerald-700/30">
+                <GovIcon name="check" className="h-3.5 w-3.5 stroke-[2.5]" />
+                <span>Accepted</span>
+              </span>
+            ) : (
+              <Button
+                className="px-3.5 py-1.5 text-xs inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs"
+                disabled={isPending}
+                onClick={() => onDecide("ACCEPT", "Accepted standard")}
+              >
+                <GovIcon name="check" className="h-3.5 w-3.5" />
+                <span>{isPending ? "Accepting..." : "Accept"}</span>
+              </Button>
+            )}
+
+            {isRejected ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs">
+                <GovIcon name="close" className="h-3.5 w-3.5" />
+                <span>Rejected</span>
+              </span>
+            ) : (
+              <Button
+                variant="danger"
+                className="px-3 py-1.5 text-xs"
+                disabled={isPending}
+                onClick={() => setRejecting(true)}
+              >
+                Reject…
+              </Button>
+            )}
+
+            {isReview ? (
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs">
+                <GovIcon name="flag" className="h-3.5 w-3.5" />
+                <span>Flagged for review</span>
+              </span>
+            ) : (
+              <Button
+                variant="secondary"
+                className="px-3 py-1.5 text-xs"
+                disabled={isPending}
+                onClick={() => onDecide("MARK_FOR_REVIEW", "Flagged for review")}
+              >
+                Flag for review
+              </Button>
+            )}
+          </div>
+
+          {isAccepted && (
+            <span className="text-[11px] font-medium text-emerald-700 flex items-center gap-1">
+              <GovIcon name="check" className="h-3 w-3" /> Standard ratified for tender compliance
+            </span>
+          )}
         </div>
       )}
     </Card>

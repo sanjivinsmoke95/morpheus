@@ -119,7 +119,7 @@ class RecommendationRead(BaseModel):
 
 # ---- reviews ----
 class ReviewDecisionCreate(BaseModel):
-    target_type: str = Field(pattern="^(recommendation|requirement|gap|conflict)$")
+    target_type: str = Field(pattern="^(recommendation|requirement|gap|conflict|standard)$")
     target_id: str
     decision: str
     reason: str = Field(default="", max_length=2000)

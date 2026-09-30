@@ -121,13 +121,25 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
         )}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
         <span className={`text-[11px] font-semibold ${status === "ACCEPTED" ? "text-success" : status === "REJECTED" ? "text-danger" : "text-muted"}`}>
-          {status}
+          Status: {status}
         </span>
-        <div className="ml-auto flex gap-2">
-          <Button className="px-3 py-1.5 text-xs" disabled={decide.isPending}
-            onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "ACCEPT", reason: "Accepted" })}>Accept</Button>
+        <div className="ml-auto flex items-center gap-2">
+          {status === "ACCEPTED" ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs">
+              <GovIcon name="check" className="h-3.5 w-3.5 stroke-[2.5]" /> Accepted
+            </span>
+          ) : (
+            <Button
+              className="px-3 py-1.5 text-xs inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
+              disabled={decide.isPending}
+              onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "ACCEPT", reason: "Accepted" })}
+            >
+              <GovIcon name="check" className="h-3.5 w-3.5" />
+              <span>{decide.isPending ? "Saving..." : "Accept"}</span>
+            </Button>
+          )}
           <Button variant="secondary" className="px-3 py-1.5 text-xs" disabled={decide.isPending}
             onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "MARK_FOR_REVIEW", reason: "Flagged for review" })}>Flag</Button>
           <Button variant="danger" className="px-3 py-1.5 text-xs" disabled={decide.isPending}

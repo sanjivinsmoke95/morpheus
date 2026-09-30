@@ -44,10 +44,29 @@ export function ReviewPage() {
                   </div>
                   <div className="mt-0.5 text-xs text-muted">{r.standard.title}</div>
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {["ACCEPT", "REJECT", "MARK_FOR_REVIEW"].map((d) => (
-                      <button key={d} onClick={() => decide.mutate({ target_type: "recommendation", target_id: r.id, decision: d })}
-                        className="rounded bg-panel px-2 py-1 text-[11px] capitalize hover:bg-line/60">{d.replace(/_/g, " ").toLowerCase()}</button>
-                    ))}
+                    {["ACCEPT", "REJECT", "MARK_FOR_REVIEW"].map((d) => {
+                      const isActive = (d === "ACCEPT" && r.review_status === "ACCEPTED") ||
+                                       (d === "REJECT" && r.review_status === "REJECTED") ||
+                                       (d === "MARK_FOR_REVIEW" && r.review_status === "REVIEW");
+                      return (
+                        <button
+                          key={d}
+                          disabled={decide.isPending}
+                          onClick={() => decide.mutate({ target_type: "standard", target_id: r.standard.id, decision: d })}
+                          className={`rounded px-2.5 py-1 text-[11px] font-medium capitalize transition-all ${
+                            isActive
+                              ? d === "ACCEPT"
+                                ? "bg-emerald-600 text-white shadow-xs"
+                                : d === "REJECT"
+                                ? "bg-rose-600 text-white shadow-xs"
+                                : "bg-amber-600 text-white shadow-xs"
+                              : "bg-panel hover:bg-line/60 text-ink"
+                          }`}
+                        >
+                          {isActive && d === "ACCEPT" ? "✓ Accepted" : d.replace(/_/g, " ").toLowerCase()}
+                        </button>
+                      );
+                    })}
                   </div>
                 </Card>
               ))}

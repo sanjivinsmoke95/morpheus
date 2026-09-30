@@ -187,6 +187,10 @@ export function useDecide(analysisId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["decisions", analysisId] });
       qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
+      qc.invalidateQueries({ queryKey: ["decision-log", analysisId] });
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["report-summary", analysisId] });
     },
   });
 }
