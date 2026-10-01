@@ -1,51 +1,10 @@
-import { flushSync } from "react-dom";
-import { useNavigate as useRRNavigate, type NavigateOptions, type To } from "react-router-dom";
 import { queryClient } from "@/main";
 import { api } from "@/lib/api";
 
 /**
- * Checks if the browser supports the native View Transitions API and if
- * the user has NOT requested reduced motion.
- */
-export function isViewTransitionSupported(): boolean {
-  return (
-    typeof document !== "undefined" &&
-    "startViewTransition" in document &&
-    typeof (document as { startViewTransition?: unknown }).startViewTransition === "function" &&
-    !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-/**
- * Executes a state transition inside document.startViewTransition using flushSync
- * to synchronously update the DOM for silky smooth native cross-fades.
- */
-export function startSmoothTransition(callback: () => void): void {
-  if (isViewTransitionSupported()) {
-    (document as unknown as { startViewTransition: (cb: () => void) => void }).startViewTransition(() => {
-      flushSync(callback);
-    });
-  } else {
-    callback();
-  }
-}
-
-/**
- * Hook providing a view-transition-wrapped navigate function.
- */
-export function useSmoothNavigate() {
-  const navigate = useRRNavigate();
-  return (to: To, options?: NavigateOptions) => {
-    startSmoothTransition(() => {
-      navigate(to, options);
-    });
-  };
-}
-
-/**
- * Prefetches all primary data endpoints for an analysis ID so that clicking
- * between tabs (Overview, Requirements, Standards, Issues, Evidence, Review, Report)
- * loads instantly in 0ms with zero loading skeletons or layout shifts.
+ * Prefetches all data endpoints for an analysis ID so that switching
+ * between tabs (Overview, Requirements, Standards, Issues & Gaps, Evidence, Review, Report)
+ * is instantaneous without any loading delay or skeleton flash.
  */
 export function prefetchAnalysisBundle(id: string) {
   if (!id) return;
@@ -82,6 +41,25 @@ export function prefetchAnalysisBundle(id: string) {
   queryClient.prefetchQuery({
     queryKey: ["recommendations", id, false],
     queryFn: async () => (await api.get(`/analyses/${id}/recommendations`, { params: { include_excluded: false } })).data,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // QCO mandatory status
+  queryClient.prefetchQuery({
+    queryKey: ["qco", id],
+    queryFn: async () => (await api.get(`/analyses/${id}/qco`)).data,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Gaps & conflicts
+  queryClient.prefetchQuery({
+    queryKey: ["gaps", id],
+    queryFn: async () => (await api.get(`/analyses/${id}/gaps`)).data,
+    staleTime: 5 * 60 * 1000,
+  });
+  queryClient.prefetchQuery({
+    queryKey: ["conflicts", id],
+    queryFn: async () => (await api.get(`/analyses/${id}/conflicts`)).data,
     staleTime: 5 * 60 * 1000,
   });
 

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette } from "@/components/CommandPalette";
-import { prefetchRoute, startSmoothTransition } from "@/lib/navigation";
+import { prefetchRoute } from "@/lib/navigation";
 
 type NavItem = { to: string; label: string; icon: string; end?: boolean };
 
@@ -81,7 +81,6 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Layout() {
   const { user, logout } = useAuth();
   const nav = navFor(user?.role);
-  const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
@@ -99,40 +98,6 @@ export function Layout() {
   useEffect(() => {
     setMobileOpen(false);
   }, [location.pathname]);
-
-  // Global smooth view transition handler for internal anchor clicks
-  useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      const target = (e.target as HTMLElement)?.closest?.("a");
-      if (!target) return;
-
-      const href = target.getAttribute("href");
-      const targetAttr = target.getAttribute("target");
-      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || targetAttr === "_blank") {
-        return;
-      }
-
-      try {
-        const url = new URL(target.href, window.location.origin);
-        if (url.origin !== window.location.origin) return;
-
-        const currentPath = window.location.pathname + window.location.search + window.location.hash;
-        const targetPath = url.pathname + url.search + url.hash;
-        if (currentPath === targetPath) return;
-
-        e.preventDefault();
-        startSmoothTransition(() => {
-          navigate(targetPath);
-        });
-      } catch {
-        // Fall back to default
-      }
-    };
-
-    document.addEventListener("click", handleGlobalClick, { capture: true });
-    return () => document.removeEventListener("click", handleGlobalClick, { capture: true });
-  }, [navigate]);
 
   const sidebar = (
     <div
@@ -305,9 +270,7 @@ export function Layout() {
         </header>
 
         <main id="main-content" role="main" tabIndex={-1} className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-          <div key={location.pathname} className="page-transition-wrapper">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
         <footer className="mx-auto max-w-[1400px] px-4 pb-8 sm:px-6 lg:px-8">
           <p className="border-t border-line pt-4 text-[11px] leading-snug text-muted">

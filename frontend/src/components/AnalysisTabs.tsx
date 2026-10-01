@@ -25,7 +25,7 @@ const advanced = (id: string): Tab[] => [
 ];
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  `relative -mb-px whitespace-nowrap border-b-2 px-1.5 pb-2.5 text-sm tab-transition ${
+  `relative -mb-px whitespace-nowrap border-b-2 px-1.5 pb-2.5 text-sm ${
     isActive
       ? "border-primary text-primary font-bold shadow-[0_1px_0_0_var(--color-primary)]"
       : "border-transparent text-muted hover:border-line hover:text-ink font-medium"
@@ -78,7 +78,7 @@ export function AnalysisTabs({ id }: { id: string }) {
               end
               onMouseEnter={() => prefetchAnalysisBundle(id)}
               className={({ isActive }) =>
-                `text-sm tab-transition ${isActive ? "font-semibold text-primary" : "text-muted hover:text-ink"}`
+                `text-sm ${isActive ? "font-semibold text-primary" : "text-muted hover:text-ink"}`
               }
             >
               {t.label}

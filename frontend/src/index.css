@@ -150,89 +150,12 @@ h3 {
   background: #bfb8a6;
 }
 
-/* ── MORPHEUS Ultra-Smooth Page Transitions ───────────────────────────────
-   Native View Transitions API integration with hardware-accelerated fallbacks.
-   Zero lag, zero layout reflows, composite-only opacity & translateY transforms. */
-
-@supports (view-transition-name: none) {
-  /* Isolate fixed sidebar and top header so they stay stationary and rock solid */
-  aside,
-  header {
-    view-transition-name: none;
-  }
-
-  #main-content {
-    view-transition-name: main-content;
-  }
-}
-
-::view-transition-old(main-content) {
-  animation: morpheusPageOut 0.12s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-
-::view-transition-new(main-content) {
-  animation: morpheusPageIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes morpheusPageOut {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(-3px);
-  }
-}
-
-@keyframes morpheusPageIn {
-  from {
-    opacity: 0;
-    transform: translateY(3px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hardware-accelerated smooth route transition wrapper */
-.page-transition-wrapper {
-  animation: morpheusPageFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  will-change: opacity, transform;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-}
-
-@keyframes morpheusPageFadeIn {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 3px, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-/* Smooth tab and micro-interaction transitions */
-.tab-transition {
-  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
-}
-
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
-  ::view-transition-group(*),
-  ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-  .page-transition-wrapper {
-    animation: none !important;
-  }
 }
+
 
 
