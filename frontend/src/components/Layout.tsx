@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette } from "@/components/CommandPalette";
+import { prefetchRoute, startSmoothTransition } from "@/lib/navigation";
 
 type NavItem = { to: string; label: string; icon: string; end?: boolean };
 
@@ -80,6 +81,8 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Layout() {
   const { user, logout } = useAuth();
   const nav = navFor(user?.role);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -92,6 +95,45 @@ export function Layout() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Close mobile drawer on route transition
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
+  // Global smooth view transition handler for internal anchor clicks
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const target = (e.target as HTMLElement)?.closest?.("a");
+      if (!target) return;
+
+      const href = target.getAttribute("href");
+      const targetAttr = target.getAttribute("target");
+      if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || targetAttr === "_blank") {
+        return;
+      }
+
+      try {
+        const url = new URL(target.href, window.location.origin);
+        if (url.origin !== window.location.origin) return;
+
+        const currentPath = window.location.pathname + window.location.search + window.location.hash;
+        const targetPath = url.pathname + url.search + url.hash;
+        if (currentPath === targetPath) return;
+
+        e.preventDefault();
+        startSmoothTransition(() => {
+          navigate(targetPath);
+        });
+      } catch {
+        // Fall back to default
+      }
+    };
+
+    document.addEventListener("click", handleGlobalClick, { capture: true });
+    return () => document.removeEventListener("click", handleGlobalClick, { capture: true });
+  }, [navigate]);
+
   const sidebar = (
     <div
       className="flex h-full flex-col text-white"
@@ -102,6 +144,7 @@ export function Layout() {
         to="/"
         className="group mx-2 mt-2 flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
         aria-label="MORPHEUS Home — Standards Intelligence for Public Procurement"
+        onMouseEnter={() => prefetchRoute("/")}
       >
         <img
           src="/brand/emblem_light.png"
@@ -120,13 +163,27 @@ export function Layout() {
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {nav.main.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink
+            key={i.to}
+            to={i.to}
+            end={i.end}
+            className={linkClass}
+            onMouseEnter={() => prefetchRoute(i.to)}
+            onClick={() => setMobileOpen(false)}
+          >
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}
         <div className="my-3 border-t border-white/10" />
         {nav.secondary.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink
+            key={i.to}
+            to={i.to}
+            end={i.end}
+            className={linkClass}
+            onMouseEnter={() => prefetchRoute(i.to)}
+            onClick={() => setMobileOpen(false)}
+          >
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}
@@ -248,7 +305,9 @@ export function Layout() {
         </header>
 
         <main id="main-content" role="main" tabIndex={-1} className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-          <Outlet />
+          <div key={location.pathname} className="page-transition-wrapper">
+            <Outlet />
+          </div>
         </main>
         <footer className="mx-auto max-w-[1400px] px-4 pb-8 sm:px-6 lg:px-8">
           <p className="border-t border-line pt-4 text-[11px] leading-snug text-muted">
