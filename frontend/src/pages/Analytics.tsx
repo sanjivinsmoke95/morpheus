@@ -64,19 +64,9 @@ export function AnalyticsPage() {
         </div>
       )}
 
-      {/* ── Official Government Hero Header — Secretariat Architecture with Gradient Blend ── */}
-      <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
-        {/* Building image — right side with gentle gradient blend */}
-        <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden">
-          <img
-            src="/assets/hero/secretariat-building.webp"
-            alt=""
-            className="h-full w-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/75 to-transparent" />
-        </div>
-
-        <div className="relative z-10 px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
+      {/* ── Official Government Analytics Header ── */}
+      <div className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-r from-surface via-surface to-emerald-950/5 p-6 shadow-xs sm:p-8">
+        <div className="max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-tech text-[11px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -93,7 +83,7 @@ export function AnalyticsPage() {
           <h1 className="mt-3 max-w-xl font-display text-2xl font-bold leading-tight tracking-tight text-ink sm:text-[2rem]">
             Department Standards Analytics &amp; <span className="text-saffron">Reports.</span>
           </h1>
-          <p className="mt-2.5 max-w-lg text-sm leading-relaxed text-muted">
+          <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-muted">
             Comprehensive standards-coverage trends, statutory Quality Control Order (QCO) enforcement, and compliance intelligence across all public procurement tenders.
           </p>
 
@@ -126,12 +116,12 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Quote overlay on the right */}
-        <div className="pointer-events-none absolute right-6 top-5 z-20 hidden max-w-[210px] text-right lg:block">
+        {/* Right side subtle watermark / quote */}
+        <div className="pointer-events-none absolute right-8 top-8 hidden max-w-[220px] text-right lg:block opacity-85">
           <p className="font-serif text-sm italic leading-snug text-ink/75">
-            "Standards build trust.<br />Trust builds a stronger nation."
+            "Transparency in analysis.<br />Precision in governance."
           </p>
-          <p className="mt-1 text-xs font-semibold text-muted">— Government of India</p>
+          <p className="mt-1 text-xs font-semibold text-muted">— MORPHEUS System Core</p>
         </div>
       </div>
 

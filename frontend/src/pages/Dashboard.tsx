@@ -33,12 +33,15 @@ export function DashboardPage() {
         {/* LEFT COLUMN */}
         <div className="space-y-6">
           {/* Hero — Secretariat Architecture with AI Intelligence */}
-          <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
+          <div className="relative min-h-[220px] overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
             {/* Building image — right side with gentle gradient blend */}
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden select-none">
               <img
                 src="/assets/hero/secretariat-building.webp"
-                alt=""
+                alt="Central Secretariat"
+                width={640}
+                height={320}
+                decoding="async"
                 className="h-full w-full object-cover object-center"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/75 to-transparent" />

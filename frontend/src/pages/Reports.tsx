@@ -59,19 +59,9 @@ export function ReportsPage() {
       ) : (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="space-y-6">
-            {/* Executive Hero Banner — Secretariat Architecture with Gradient Blend */}
-            <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-xs">
-              {/* Building image — right side with gentle gradient blend */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] overflow-hidden">
-                <img
-                  src="/assets/hero/secretariat-building.webp"
-                  alt=""
-                  className="h-full w-full object-cover object-center"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-surface via-surface/75 to-transparent" />
-              </div>
-
-              <div className="relative z-10 px-6 pb-6 pt-5 sm:px-8 sm:pb-8 sm:pt-6">
+            {/* Executive Hero Banner — Standards-Aligned Compliance Report */}
+            <div className="relative overflow-hidden rounded-2xl border border-line bg-gradient-to-r from-surface via-surface to-emerald-950/5 p-6 shadow-xs sm:p-8">
+              <div className="max-w-xl">
                 <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 font-tech text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-primary/20">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -91,7 +81,7 @@ export function ReportsPage() {
               </div>
 
               {/* Quote overlay on the right */}
-              <div className="pointer-events-none absolute right-6 top-5 z-20 hidden max-w-[210px] text-right lg:block">
+              <div className="pointer-events-none absolute right-6 top-6 hidden max-w-[210px] text-right lg:block opacity-85">
                 <p className="font-serif text-sm italic leading-snug text-ink/75">
                   "Standards build trust.<br />Trust builds a stronger nation."
                 </p>

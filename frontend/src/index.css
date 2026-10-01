@@ -43,7 +43,11 @@
   color-scheme: light;
 }
 
-html,
+html {
+  scrollbar-gutter: stable;
+  margin: 0;
+}
+
 body {
   margin: 0;
 }
