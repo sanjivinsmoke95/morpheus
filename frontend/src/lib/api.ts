@@ -1,9 +1,9 @@
 import axios from "axios";
 
 const TOKEN_KEY = "morpheus.token";
-// `??` (not `||`) so an explicit empty VITE_API_URL means "same origin" (relative
-// /api/v1) — used when the built SPA is served by the backend behind one URL/tunnel.
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8010";
+// When VITE_API_URL is not set, use empty string for same-origin relative URLs (/api/v1)
+// This ensures external users over tunnels or production URLs do not attempt to connect to localhost:8010.
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
 export const api = axios.create({ baseURL: `${API_BASE}/api/v1` });
 
