@@ -12,10 +12,10 @@ export default defineConfig({
     port: 5174,
     allowedHosts: true,
     proxy: {
-      "/api": "http://localhost:8010",
-      "/health": "http://localhost:8010",
-      "/docs": "http://localhost:8010",
-      "/openapi.json": "http://localhost:8010",
+      "/api": { target: "http://127.0.0.1:8010", changeOrigin: true },
+      "/health": { target: "http://127.0.0.1:8010", changeOrigin: true },
+      "/docs": { target: "http://127.0.0.1:8010", changeOrigin: true },
+      "/openapi.json": { target: "http://127.0.0.1:8010", changeOrigin: true },
     },
   },
 });
