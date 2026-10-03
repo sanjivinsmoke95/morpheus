@@ -19,7 +19,7 @@ from app.api.routers import (
     admin, advanced, analyses, assistant, audit, auth, dashboard, documents, evaluation, export, graph,
     insights, recommendations, regulatory, reports, requirements, reviews, standards,
 )
-from app.core.config import settings
+from app.core.config import is_serverless, settings
 from app.core.logging import configure_logging
 from app.db import Base, SessionLocal, engine
 
@@ -43,24 +43,29 @@ async def lifespan(_app: FastAPI):
             raise RuntimeError("SECRET_KEY must be set to a strong value in production.")
         if settings.auth_dev_mode:
             raise RuntimeError("AUTH_DEV_MODE must be false in production.")
-    if settings.environment in ("development", "test"):
+    bootstrap = settings.environment in ("development", "test") or settings.auto_migrate or is_serverless()
+    if bootstrap:
         Base.metadata.create_all(bind=engine)
-        if settings.environment == "development":
+        if settings.environment != "test":
             from app.core.seed import seed_users
             from app.services.standards.seed import seed_demo_standards
 
             with SessionLocal() as db:
                 seed_users(db)
-                seed_demo_standards(db)
-                from app.services.evaluation.harness import run_evaluation
-                run_evaluation(db)  # compute baseline metrics on the gold set
-            try:
-                from scripts.seed_showcase import main as seed_showcase
-                seed_showcase()  # idempotent pre-analysed demo tender; never blocks startup
-                from scripts.seed_scenarios import main as seed_scenarios
-                seed_scenarios()  # multilingual + other demo scenarios
-            except Exception:  # noqa: BLE001
-                logger.exception("Scenario seed skipped")
+                if settings.seed_demo_data:
+                    seed_demo_standards(db)
+                    if not is_serverless():
+                        from app.services.evaluation.harness import run_evaluation
+                        run_evaluation(db)
+            # Heavy local demos stay off Vercel cold starts.
+            if settings.environment == "development" and not is_serverless():
+                try:
+                    from scripts.seed_showcase import main as seed_showcase
+                    seed_showcase()
+                    from scripts.seed_scenarios import main as seed_scenarios
+                    seed_scenarios()
+                except Exception:  # noqa: BLE001
+                    logger.exception("Scenario seed skipped")
     yield
     logger.info("Shutting down")
 
@@ -75,6 +80,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
+    allow_origin_regex=settings.cors_origin_regex or None,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -146,22 +152,26 @@ app.include_router(insights.router, prefix=api)
 app.include_router(export.router, prefix=api)
 
 
-# ── Serve the built SPA (single-origin deploy / tunnel) ────────────────────
-# When frontend/dist exists, the backend serves it so one URL hosts the whole app
-# (API under /api, everything else → SPA). Enables a single cloudflared tunnel.
+# ── Serve the built SPA (single-origin deploy / tunnel / Vercel) ───────────
+# When frontend/dist (or backend/static from the Vercel build) exists, the
+# backend serves it so one URL hosts the whole app (API under /api).
 import os as _os  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
-_DIST = _os.path.join(_os.path.dirname(__file__), "..", "..", "frontend", "dist")
-if _os.path.isdir(_DIST):
+_BACKEND_ROOT = _os.path.abspath(_os.path.join(_os.path.dirname(__file__), ".."))
+_DIST_CANDIDATES = (
+    _os.path.join(_BACKEND_ROOT, "..", "frontend", "dist"),
+    _os.path.join(_BACKEND_ROOT, "static"),
+)
+_DIST = next((p for p in _DIST_CANDIDATES if _os.path.isdir(p)), None)
+if _DIST:
     _assets = _os.path.join(_DIST, "assets")
     if _os.path.isdir(_assets):
         app.mount("/assets", StaticFiles(directory=_assets), name="assets")
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa(full_path: str):  # noqa: ANN201
-        # API/docs are matched by earlier routes; this only handles SPA + static files.
         candidate = _os.path.normpath(_os.path.join(_DIST, full_path))
         if full_path and candidate.startswith(_os.path.normpath(_DIST)) and _os.path.isfile(candidate):
             return FileResponse(candidate)

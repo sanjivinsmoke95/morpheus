@@ -12,10 +12,12 @@ dist/
 .env
 .env.*
 !.env.example
+.vercel
 
 # Data / storage
 *.db
 storage/
+backend/static/
 
 # OS
 .DS_Store

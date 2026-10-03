@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.db import get_db
 from app.models import Analysis, Requirement, RequirementAttribute, RequirementNote, User
 from app.schemas.slice import RequirementAttributeRead, RequirementRead, RequirementUpdate
@@ -51,7 +52,10 @@ def update_requirement(
     req.extraction_method = "edited"
     db.commit()
     # Editing changes downstream results → re-recommend just this requirement.
-    background.add_task(rerun_requirement, req.analysis_id, req.id)
+    if settings.defer_pipeline:
+        rerun_requirement(req.analysis_id, req.id)
+    else:
+        background.add_task(rerun_requirement, req.analysis_id, req.id)
     return req_read(db, req)
 
 
@@ -76,7 +80,10 @@ def add_requirement(
     )
     db.add(req)
     db.commit()
-    background.add_task(rerun_requirement, analysis_id, req.id)
+    if settings.defer_pipeline:
+        rerun_requirement(analysis_id, req.id)
+    else:
+        background.add_task(rerun_requirement, analysis_id, req.id)
     return req_read(db, req)
 
 
