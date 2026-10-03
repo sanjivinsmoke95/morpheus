@@ -24,10 +24,11 @@ async def upload(
         raise HTTPException(status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
                             f"Unsupported type '{file.content_type}'. Allowed: PDF, DOCX, TXT.")
     data = await file.read()
-    max_bytes = settings.max_upload_mb * 1024 * 1024
+    max_mb = settings.effective_max_upload_mb
+    max_bytes = max_mb * 1024 * 1024
     if len(data) > max_bytes:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                            f"File exceeds {settings.max_upload_mb} MB limit.")
+                            f"File exceeds {max_mb} MB limit.")
     if not data:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Empty file.")
     try:

@@ -5,13 +5,22 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.db import get_db
 from app.models import Analysis, Document, User
 from app.models.enums import AnalysisStatus
 from app.schemas.slice import AnalysisCreate, AnalysisRead
-from app.services.orchestrator.pipeline import run_pipeline
+from app.services.orchestrator.pipeline import ensure_pipeline, run_pipeline
 
 router = APIRouter(prefix="/analyses", tags=["analyses"])
+
+_DONE = {AnalysisStatus.READY.value, AnalysisStatus.FAILED.value}
+
+
+def _schedule(analysis_id: str, background: BackgroundTasks) -> None:
+    if settings.defer_pipeline:
+        return  # GET /analyses/:id advances one stage per poll (Vercel)
+    background.add_task(run_pipeline, analysis_id)
 
 
 @router.post("", response_model=AnalysisRead, status_code=status.HTTP_201_CREATED)
@@ -29,7 +38,7 @@ def create_analysis(
     )
     db.add(analysis)
     db.commit()
-    background.add_task(run_pipeline, analysis.id)  # runs after the response is sent
+    _schedule(analysis.id, background)
     return analysis
 
 
@@ -67,6 +76,13 @@ def get_analysis(analysis_id: str, db: Session = Depends(get_db), _: User = Depe
     analysis = db.get(Analysis, analysis_id)
     if not analysis:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
+    if settings.defer_pipeline and analysis.status not in _DONE:
+        db.commit()
+        ensure_pipeline(analysis_id, one_tick=True)
+        db.expire_all()
+        analysis = db.get(Analysis, analysis_id)
+        if not analysis:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
     item = AnalysisRead.model_validate(analysis)
     item.ai_capability = get_system_ai_status()
     if analysis.status == AnalysisStatus.READY.value:
@@ -110,5 +126,5 @@ def rerun(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Analysis not found.")
     analysis.status = AnalysisStatus.QUEUED.value
     db.commit()
-    background.add_task(run_pipeline, analysis_id)
+    _schedule(analysis_id, background)
     return analysis

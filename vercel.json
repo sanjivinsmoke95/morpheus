@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "npm --prefix frontend ci",
+  "buildCommand": "npm --prefix frontend run build && rm -rf backend/static public && mkdir -p backend/static public && cp -R frontend/dist/. backend/static/ && cp -R frontend/dist/. public/",
+  "outputDirectory": "public",
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 60,
+      "memory": 1024,
+      "includeFiles": "backend/**",
+      "excludeFiles": "{backend/tests/**,backend/.venv/**,backend/storage/**,backend/**/__pycache__/**}"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/index.py" }
+  ]
+}

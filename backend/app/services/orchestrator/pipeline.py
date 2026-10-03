@@ -10,9 +10,10 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass, field
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
+from app.core.config import is_serverless
 from app.db import SessionLocal
 from app.models import (
     Analysis, DocumentPage, Recommendation, RecommendationEvidence, Requirement, RequirementAttribute, Standard,
@@ -39,19 +40,86 @@ def _set_status(db: Session, analysis: Analysis, status: AnalysisStatus, error: 
     db.commit()
 
 
-def run_analysis(db: Session, analysis: Analysis) -> None:
-    """Core pipeline over a given session (directly unit/E2E testable)."""
-    trace: list[dict] = []
+_TERMINAL = {AnalysisStatus.READY.value, AnalysisStatus.FAILED.value}
+_EXTRACT_STATUSES = {
+    AnalysisStatus.QUEUED.value,
+    AnalysisStatus.EXTRACTING.value,
+    AnalysisStatus.OCR.value,
+    AnalysisStatus.EXTRACTING_REQUIREMENTS.value,
+}
+_RETRIEVE_STATUSES = {
+    AnalysisStatus.RETRIEVING.value,
+    AnalysisStatus.RANKING.value,
+    AnalysisStatus.CLASSIFYING.value,
+}
+
+
+def _lock(db: Session, analysis_id: str) -> None:
+    """Serialize ticks for one analysis (Postgres). SQLite tests are single-threaded."""
+    if db.get_bind().dialect.name != "postgresql":
+        return
+    db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:k))"), {"k": f"morpheus:{analysis_id}"})
+
+
+def tick_analysis(db: Session, analysis: Analysis) -> None:
+    """Run the next pipeline stage and stop.
+
+    Vercel/serverless invocations have a short deadline, so the Processing page
+    polls GET /analyses/:id and each request advances one stage.
+    """
+    if analysis.status in _TERMINAL:
+        return
+    _lock(db, analysis.id)
+    db.refresh(analysis)
+    if analysis.status in _TERMINAL:
+        return
+    trace: list[dict] = list(analysis.decision_trace_json or [])
     try:
-        _extract_requirements(db, analysis, trace)
-        _classify_product(db, analysis, trace)
-        _recommend_all(db, analysis, trace)
+        if analysis.status in _EXTRACT_STATUSES:
+            _extract_requirements(db, analysis, trace)
+            _classify_product(db, analysis, trace)
+            analysis.decision_trace_json = trace
+            _set_status(db, analysis, AnalysisStatus.RETRIEVING)
+            return
+        if analysis.status in _RETRIEVE_STATUSES:
+            _recommend_all(db, analysis, trace)
+            analysis.decision_trace_json = trace
+            _set_status(db, analysis, AnalysisStatus.AUDITING)
+            return
         _audit(db, analysis, trace)
         analysis.decision_trace_json = trace
         _set_status(db, analysis, AnalysisStatus.READY)
     except Exception as exc:  # noqa: BLE001 — record the failing stage, don't crash the worker
         logger.exception("pipeline failed for analysis %s", analysis.id)
         _set_status(db, analysis, AnalysisStatus.FAILED, error=str(exc)[:500])
+
+
+def run_analysis(db: Session, analysis: Analysis) -> None:
+    """Run every remaining stage (local/docker and tests)."""
+    guard = 0
+    while analysis.status not in _TERMINAL:
+        before = analysis.status
+        tick_analysis(db, analysis)
+        db.refresh(analysis)
+        guard += 1
+        if analysis.status == before or guard > 8:
+            if analysis.status not in _TERMINAL:
+                _set_status(db, analysis, AnalysisStatus.FAILED, error="pipeline stalled")
+            break
+
+
+def ensure_pipeline(analysis_id: str, *, one_tick: bool | None = None) -> None:
+    """Advance a queued/in-flight analysis. Used by GET on serverless."""
+    if one_tick is None:
+        one_tick = is_serverless()
+    with SessionLocal() as db:
+        analysis = db.get(Analysis, analysis_id)
+        if not analysis or analysis.status in _TERMINAL:
+            return
+        if one_tick:
+            tick_analysis(db, analysis)
+        else:
+            run_analysis(db, analysis)
 
 
 def _trace(trace: list[dict], step: str, detail: str) -> None:

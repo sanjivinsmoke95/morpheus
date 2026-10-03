@@ -708,6 +708,40 @@ npm run build
 
 The GitHub Actions workflow also runs backend migrations/tests and frontend typecheck/build on pushes to `main` and pull requests.
 
+## Deploy on Vercel + Supabase
+
+The Vite UI and FastAPI API run as **one Vercel project**. Postgres (and file
+storage) live on **Supabase**. Analysis jobs no longer depend on FastAPI
+`BackgroundTasks` — the Processing page polls `GET /analyses/:id`, and each
+request runs the next pipeline stage (required on serverless).
+
+1. Create a Supabase project. In **SQL Editor** run `create extension if not exists vector;` (optional; embeddings are JSON today).
+2. **Storage** → new **private** bucket named `morpheus`.
+3. Copy the database URI (transaction pooler, port **6543**) and the **service role** key.
+4. On Vercel, import this repo and set:
+
+| Name | Value |
+|---|---|
+| `ENVIRONMENT` | `production` |
+| `SECRET_KEY` | a long random string |
+| `AUTH_DEV_MODE` | `false` |
+| `DATABASE_URL` | Supabase pooler URI |
+| `SUPABASE_URL` | `https://<ref>.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | service role (server-only) |
+| `SUPABASE_STORAGE_BUCKET` | `morpheus` |
+| `AUTO_MIGRATE` | `true` (first deploy; then you can turn it off) |
+| `CORS_ORIGINS` | `https://<your-app>.vercel.app` |
+| `SEED_ADMIN_PASSWORD` (and officer/reviewer) | strong passwords |
+
+5. Deploy. Open `/health`, then log in with the seeded admin email.
+
+Limits of this host: request bodies ~**4 MB**, function timeout **60s** (Vercel
+Pro; Hobby is 10s — use Pro for real PDFs). Scanned-PDF OCR needs Tesseract,
+which is not on Vercel; text PDFs/DOCX/TXT work. Neo4j is optional and unused
+unless you set `NEO4J_URI`.
+
+## Architecture & design docs
+
 ### Important prototype limitation
 
 The included standards/QCO/certification demo records are labelled **DEMO_SYNTHETIC** where applicable. They are not presented as authoritative BIS data. The system is designed to accept curated/verified metadata without embedding copyrighted standard PDFs.
