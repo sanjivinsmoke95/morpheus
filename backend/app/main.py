@@ -45,7 +45,13 @@ async def lifespan(_app: FastAPI):
             raise RuntimeError("AUTH_DEV_MODE must be false in production.")
     bootstrap = settings.environment in ("development", "test") or settings.auto_migrate or is_serverless()
     if bootstrap:
-        Base.metadata.create_all(bind=engine)
+        try:
+            Base.metadata.create_all(bind=engine)
+        except Exception:  # noqa: BLE001 — serverless boot must not die if the DB is briefly unreachable
+            logger.exception("Schema bootstrap skipped (database unavailable)")
+            yield
+            logger.info("Shutting down")
+            return
         if settings.environment != "test":
             from app.core.seed import seed_users
             from app.services.standards.seed import seed_demo_standards
