@@ -86,7 +86,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
-    allow_origin_regex=settings.cors_origin_regex or None,
+    allow_origin_regex=(
+        r"^https?://.*" if settings.environment == "development"
+        else (settings.cors_origin_regex or None)
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,6 +141,15 @@ def liveness() -> dict:
 
 
 api = settings.api_prefix
+
+
+@app.get(f"{api}/system/ai-status", tags=["system"])
+def system_ai_status() -> dict:
+    """Return explicit AI capability status (Phase 2): mode, provider, fallback status."""
+    from app.services.ai.factory import get_system_ai_status
+    return get_system_ai_status()
+
+
 app.include_router(auth.router, prefix=api)
 app.include_router(admin.router, prefix=api)
 app.include_router(documents.router, prefix=api)

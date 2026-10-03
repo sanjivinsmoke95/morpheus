@@ -25,8 +25,8 @@ export function RegulatoryPage() {
               <span className="font-tech font-medium text-ink">{q.is_number}</span>
               <StatusChip tone={QCO_TONE[q.qco_status] ?? "neutral"}>{q.qco_status}</StatusChip>
             </div>
-            <div className="mt-0.5 text-xs text-muted">{q.order_name || q.product_description}</div>
-            <div className="mt-0.5 text-[11px] text-muted">{q.notes}</div>
+            <div className="mt-0.5 text-xs text-muted break-words">{q.order_name || q.product_description}</div>
+            <div className="mt-0.5 text-[11px] text-muted break-words">{q.notes}</div>
             <div className="mt-1 text-[10px] text-muted">
               {q.effective_date ? `effective ${q.effective_date} · ` : ""}source {q.source_name} · {q.data_origin}
             </div>
@@ -52,8 +52,8 @@ export function RegulatoryPage() {
               <span className="font-tech text-ink"><span className="font-medium">{a.is_number}</span> · {a.amendment_no}</span>
               <StatusChip tone="warning">{a.confidence}</StatusChip>
             </div>
-            <div className="mt-0.5 text-xs text-muted">{a.summary}</div>
-            <div className="mt-0.5 text-[11px] text-muted">{a.potential_impact}</div>
+            <div className="mt-0.5 text-xs text-muted break-words">{a.summary}</div>
+            <div className="mt-0.5 text-[11px] text-muted break-words">{a.potential_impact}</div>
             {a.affected_clauses?.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
                 {a.affected_clauses.map((cl: string) => <span key={cl} className="rounded bg-panel px-1.5 py-0.5 text-[10px] text-muted">{cl}</span>)}

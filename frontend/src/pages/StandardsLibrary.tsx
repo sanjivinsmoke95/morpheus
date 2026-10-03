@@ -28,14 +28,36 @@ export function StandardsLibraryPage() {
         subtitle="Search the Indian Standards catalogue and open any standard to see its analysis context. Demo records are labelled Demo data."
       />
 
-      <div className="mb-4">
+      <div className="relative mb-4">
+        <svg
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           aria-label="Search standards"
           placeholder="Search by IS number, title, or scope…"
-          className="w-full rounded-xl border border-line bg-surface px-4 py-2.5 text-sm text-ink outline-none focus:border-primary"
+          className="w-full rounded-xl border border-line bg-surface pl-10 pr-10 py-2.5 text-sm text-ink placeholder:text-muted/60 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15 shadow-2xs"
         />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-full p-1 text-xs text-muted hover:bg-line/40 hover:text-ink transition-colors"
+            aria-label="Clear search"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="mb-3 flex flex-wrap gap-2">
@@ -61,18 +83,20 @@ export function StandardsLibraryPage() {
       ) : (
         <>
           <div className="mb-2 text-xs text-muted tabular-nums">{rows.length} standard{rows.length === 1 ? "" : "s"}</div>
-          <Card>
+          <Card className="divide-y divide-line overflow-hidden p-0" hover={false}>
             {rows.map((s) => (
               <Link key={s.id} to={`/standards/${s.id}`}
-                className="flex items-center gap-3 border-b border-line px-4 py-3 transition-colors last:border-b-0 hover:bg-panel">
-                <span className="w-28 flex-none font-tech text-sm font-semibold text-primary">{s.is_number}</span>
+                className="group flex items-center gap-3.5 px-4 py-3.5 transition-all duration-150 hover:bg-panel">
+                <span className="w-28 flex-none font-tech text-sm font-bold text-primary group-hover:underline">{s.is_number}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-ink">{s.title}</span>
+                  <span className="block truncate text-sm font-medium text-ink">{s.title}</span>
                   <span className="text-xs capitalize text-muted">{s.sector}</span>
                 </span>
-                {s.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
-                <StatusChip tone={s.status === "ACTIVE" ? "success" : "warning"}>{s.status}</StatusChip>
-                <span className="flex-none text-primary" aria-hidden>→</span>
+                <div className="flex flex-none items-center gap-2">
+                  {s.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
+                  <StatusChip tone={s.status === "ACTIVE" ? "success" : "warning"}>{s.status}</StatusChip>
+                  <span className="flex-none text-primary font-bold transition-transform group-hover:translate-x-1" aria-hidden>→</span>
+                </div>
               </Link>
             ))}
           </Card>

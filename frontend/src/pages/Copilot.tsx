@@ -37,10 +37,10 @@ export function CopilotPage() {
                 {drafts.map((d, i) => (
                   <div key={i} className="rounded-lg border border-warning/30 bg-warning-soft/60 p-3 text-sm">
                     <div className="text-[10px] font-semibold uppercase tracking-wide text-warning">{d.label}</div>
-                    <div className="mt-1 text-ink">{d.draft_text}</div>
-                    <div className="mt-1 text-xs text-muted">{d.rationale}</div>
+                    <div className="mt-1 text-ink break-words">{d.draft_text}</div>
+                    <div className="mt-1 text-xs text-muted break-words">{d.rationale}</div>
                     {d.supporting_standard && (
-                      <div className="mt-0.5 font-tech text-[11px] text-muted">Supported by {d.supporting_standard}</div>
+                      <div className="mt-0.5 font-tech text-[11px] text-muted break-words">Supported by {d.supporting_standard}</div>
                     )}
                   </div>
                 ))}

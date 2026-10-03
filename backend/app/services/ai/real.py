@@ -35,6 +35,29 @@ def _post(url: str, payload: dict, headers: dict) -> dict:
         return json.loads(resp.read().decode("utf-8"))
 
 
+from typing import Any
+from pydantic import BaseModel, ValidationError
+
+
+def _validate_with_schema(data: dict, schema: Any | None) -> tuple[dict, bool, str]:
+    if schema is None:
+        return data, True, ""
+    if isinstance(schema, type) and issubclass(schema, BaseModel):
+        try:
+            validated = schema.model_validate(data)
+            return validated.model_dump(), True, ""
+        except ValidationError as exc:
+            return data, False, f"Pydantic schema validation failed: {exc}"
+        except Exception as exc:
+            return data, False, f"Schema validation error: {exc}"
+    if isinstance(schema, dict):
+        required = schema.get("required", [])
+        missing = [k for k in required if k not in data]
+        if missing:
+            return data, False, f"Missing required fields: {', '.join(missing)}"
+    return data, True, ""
+
+
 # ── OpenAI-compatible (OpenAI, Azure OpenAI, local vLLM/Ollama, etc.) ───────
 class OpenAICompatibleLLM(LLMProvider):
     name = "openai_compatible"
@@ -53,17 +76,39 @@ class OpenAICompatibleLLM(LLMProvider):
                     {"Authorization": f"Bearer {self._key}"})
         return out["choices"][0]["message"]["content"]
 
-    def complete_json(self, prompt: str, schema: dict | None = None, *, temperature: float = 0.0,
+    def complete_json(self, prompt: str, schema: Any | None = None, *, temperature: float = 0.0,
                       max_retries: int = 2) -> dict:
-        for _ in range(max_retries + 1):
+        cur_prompt = prompt
+        schema_hint = ""
+        if isinstance(schema, type) and issubclass(schema, BaseModel):
+            schema_hint = f"\nOutput must conform to this JSON schema:\n{json.dumps(schema.model_json_schema())}"
+        elif isinstance(schema, dict):
+            schema_hint = f"\nOutput must conform to this schema:\n{json.dumps(schema)}"
+
+        last_error = "unknown_error"
+        for attempt in range(max_retries + 1):
             try:
-                txt = self._chat(prompt + "\n\nRespond with ONLY valid JSON.", temperature)
+                full_prompt = cur_prompt + schema_hint + "\n\nRespond with ONLY valid JSON."
+                txt = self._chat(full_prompt, temperature)
                 start, end = txt.find("{"), txt.rfind("}")
                 if start >= 0 and end > start:
-                    return json.loads(txt[start:end + 1])
+                    parsed = json.loads(txt[start:end + 1])
+                    val_dict, is_valid, err_msg = _validate_with_schema(parsed, schema)
+                    if is_valid:
+                        return val_dict
+                    logger.warning("Attempt %d JSON schema validation failed: %s", attempt + 1, err_msg)
+                    last_error = err_msg
+                    cur_prompt = (
+                        prompt
+                        + f"\n\n[REPAIR INSTRUCTION]: Your previous output failed schema validation: {err_msg}."
+                        f"\nPlease repair the JSON output to strictly satisfy all schema requirements."
+                    )
+                else:
+                    last_error = "No JSON object found in response"
             except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError) as exc:
-                logger.warning("LLM complete_json failed: %s", exc)
-        return {"_abstain": True}
+                logger.warning("LLM complete_json attempt %d failed: %s", attempt + 1, exc)
+                last_error = str(exc)
+        return {"_abstain": True, "_error": "schema_validation_failed", "_detail": last_error}
 
     def complete_text(self, prompt: str, *, temperature: float = 0.2) -> str:
         try:
@@ -126,17 +171,39 @@ class GeminiLLM(LLMProvider):
                      "generationConfig": {"temperature": temperature}}, {})
         return out["candidates"][0]["content"]["parts"][0]["text"]
 
-    def complete_json(self, prompt: str, schema: dict | None = None, *, temperature: float = 0.0,
+    def complete_json(self, prompt: str, schema: Any | None = None, *, temperature: float = 0.0,
                       max_retries: int = 2) -> dict:
-        for _ in range(max_retries + 1):
+        cur_prompt = prompt
+        schema_hint = ""
+        if isinstance(schema, type) and issubclass(schema, BaseModel):
+            schema_hint = f"\nOutput must conform to this JSON schema:\n{json.dumps(schema.model_json_schema())}"
+        elif isinstance(schema, dict):
+            schema_hint = f"\nOutput must conform to this schema:\n{json.dumps(schema)}"
+
+        last_error = "unknown_error"
+        for attempt in range(max_retries + 1):
             try:
-                txt = self._gen(prompt + "\n\nRespond with ONLY valid JSON.", temperature)
+                full_prompt = cur_prompt + schema_hint + "\n\nRespond with ONLY valid JSON."
+                txt = self._gen(full_prompt, temperature)
                 start, end = txt.find("{"), txt.rfind("}")
                 if start >= 0 and end > start:
-                    return json.loads(txt[start:end + 1])
+                    parsed = json.loads(txt[start:end + 1])
+                    val_dict, is_valid, err_msg = _validate_with_schema(parsed, schema)
+                    if is_valid:
+                        return val_dict
+                    logger.warning("Gemini attempt %d JSON schema validation failed: %s", attempt + 1, err_msg)
+                    last_error = err_msg
+                    cur_prompt = (
+                        prompt
+                        + f"\n\n[REPAIR INSTRUCTION]: Your previous output failed schema validation: {err_msg}."
+                        f"\nPlease repair the JSON output to strictly satisfy all schema requirements."
+                    )
+                else:
+                    last_error = "No JSON object found in response"
             except (urllib.error.URLError, KeyError, json.JSONDecodeError, TimeoutError) as exc:
-                logger.warning("Gemini complete_json failed: %s", exc)
-        return {"_abstain": True}
+                logger.warning("Gemini complete_json attempt %d failed: %s", attempt + 1, exc)
+                last_error = str(exc)
+        return {"_abstain": True, "_error": "schema_validation_failed", "_detail": last_error}
 
     def complete_text(self, prompt: str, *, temperature: float = 0.2) -> str:
         try:

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { apiError } from "@/lib/api";
 
@@ -42,21 +42,25 @@ export function LoginPage() {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-primary/70 to-primary-dark/95" />
         <div className="relative flex h-full flex-col justify-between p-12 text-white">
-          <div className="flex items-center gap-2.5 self-start">
-            <img src="/brand/emblem_light.png" alt="" className="h-10 w-auto opacity-90" />
-            <span className="font-display text-xl font-semibold tracking-wide text-white">MORPHEUS</span>
-          </div>
+          <Link
+            to="/"
+            className="group flex items-center gap-2.5 self-start cursor-pointer transition-opacity hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-white/40 rounded-lg"
+            aria-label="MORPHEUS Home"
+          >
+            <img src="/brand/emblem_light.png" alt="" className="h-10 w-auto opacity-95 transition-transform duration-200 group-hover:scale-105" />
+            <span className="font-display text-xl font-bold tracking-wider text-white group-hover:text-emerald-200 transition-colors">MORPHEUS</span>
+          </Link>
           <div className="max-w-md">
-            <h1 className="font-display text-3xl font-semibold leading-tight">
+            <h1 className="font-display text-3xl font-bold leading-tight tracking-tight text-white sm:text-4xl">
               Every tender specification, checked against the Indian Standards ecosystem.
             </h1>
-            <p className="mt-4 text-sm leading-relaxed text-white/80">
+            <p className="mt-4 text-sm leading-relaxed text-white/85">
               MORPHEUS reads a procurement spec, maps each requirement to the applicable IS
               standards, flags QCO-mandatory certification, detects gaps and conflicts, and grounds
               every finding in evidence — so the officer decides with confidence.
             </p>
           </div>
-          <p className="text-[11px] leading-snug text-white/55">
+          <p className="text-xs leading-snug text-white/60">
             Prototype — not an official Government of India system. Demo data labelled DEMO_SYNTHETIC.
           </p>
         </div>
@@ -65,17 +69,21 @@ export function LoginPage() {
       {/* Form panel */}
       <div className="flex min-h-screen items-center justify-center px-4 py-10 lg:min-h-0">
         <div className="w-full max-w-sm">
-          <div className="mb-6 flex items-center gap-2.5 lg:hidden">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-primary text-lg font-bold text-white">
+          <Link
+            to="/"
+            className="mb-6 flex items-center gap-2.5 lg:hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg"
+            aria-label="MORPHEUS Home"
+          >
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary text-lg font-bold text-white shadow-xs transition-transform duration-200 group-hover:scale-105">
               M
             </div>
             <div>
-              <div className="text-lg font-semibold tracking-wide">MORPHEUS</div>
+              <div className="text-lg font-bold tracking-wide text-primary">MORPHEUS</div>
               <div className="text-xs text-muted">Standards Compliance for Public Procurement</div>
             </div>
-          </div>
+          </Link>
 
-          <h2 className="font-display text-2xl font-semibold text-ink">Sign in</h2>
+          <h2 className="font-display text-2xl font-bold tracking-tight text-ink">Sign in</h2>
           <p className="mt-1 text-sm text-muted">Choose your role to continue.</p>
 
           {/* Role cards */}

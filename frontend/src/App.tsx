@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
 import { Layout } from "@/components/Layout";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import { LoginPage } from "@/pages/Login";
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnalyticsPage } from "@/pages/Analytics";
@@ -52,6 +53,7 @@ function PublicOnly({ children }: { children: ReactNode }) {
 export function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/login" element={<PublicOnly><LoginPage /></PublicOnly>} />
         <Route element={<RequireAuth><Layout /></RequireAuth>}>

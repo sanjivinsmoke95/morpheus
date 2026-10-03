@@ -31,6 +31,19 @@ def _get_or_create_review(db: Session, analysis_id: str, user: User) -> Review:
 
 
 def _snapshot(db: Session, target_type: str, target_id: str) -> tuple[dict, list]:
+    if target_type == "standard":
+        s = db.get(Standard, target_id)
+        if not s:
+            return {}, []
+        ai = {"standard_id": s.id, "is_number": s.is_number, "title": s.title}
+        rec = db.execute(select(Recommendation).where(Recommendation.standard_id == s.id)).scalars().first()
+        if rec:
+            ev_ids = [re.evidence_id for re in db.execute(
+                select(RecommendationEvidence).where(RecommendationEvidence.recommendation_id == rec.id)).scalars()]
+            evs = list(db.execute(select(Evidence).where(Evidence.id.in_(ev_ids))).scalars()) if ev_ids else []
+            snap = [{"id": e.id, "source_type": e.source_type, "text": e.text, "data_origin": e.data_origin} for e in evs]
+            return ai, snap
+        return ai, []
     if target_type != "recommendation":
         return {}, []
     rec = db.get(Recommendation, target_id)
@@ -53,6 +66,7 @@ def record_decision(
     db: Session = Depends(get_db),
     user: User = Depends(require_roles(Role.OFFICER, Role.REVIEWER, Role.ADMIN)),
 ):
+    from sqlalchemy import update
     review = _get_or_create_review(db, analysis_id, user)
     ai_snap, ev_snap = _snapshot(db, payload.target_type, payload.target_id)
     decision = ReviewDecision(
@@ -65,7 +79,20 @@ def record_decision(
     if payload.target_type == "recommendation":
         rec = db.get(Recommendation, payload.target_id)
         if rec:
-            rec.review_status = _STATUS_MAP.get(payload.decision, rec.review_status)
+            new_status = _STATUS_MAP.get(payload.decision, rec.review_status)
+            rec.review_status = new_status
+            db.execute(
+                update(Recommendation)
+                .where(Recommendation.analysis_id == analysis_id, Recommendation.standard_id == rec.standard_id)
+                .values(review_status=new_status)
+            )
+    elif payload.target_type == "standard":
+        new_status = _STATUS_MAP.get(payload.decision, "ACCEPTED")
+        db.execute(
+            update(Recommendation)
+            .where(Recommendation.analysis_id == analysis_id, Recommendation.standard_id == payload.target_id)
+            .values(review_status=new_status)
+        )
     db.commit()
     return decision
 
@@ -184,6 +211,9 @@ def decision_log(analysis_id: str, db: Session = Depends(get_db), _: User = Depe
                 std_num = s.is_number if s else None
                 req = db.get(Requirement, rec.requirement_id)
                 req_code = req.req_code if req else None
+        elif d.target_type == "standard":
+            s = std_by_id.get(d.target_id)
+            std_num = s.is_number if s else None
         out.append({
             "id": d.id, "action": d.decision, "target_type": d.target_type,
             "requirement": req_code, "standard": std_num, "reason": d.reason,

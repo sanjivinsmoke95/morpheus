@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const TOKEN_KEY = "morpheus.token";
-// Empty VITE_API_URL = same origin (Vercel / backend-served SPA).
-// Unset in `vite` dev → local API. Production builds default to same origin.
+// Empty VITE_API_URL = same origin (Vercel / tunnels / backend-served SPA).
+// Vite dev without env → local API. Production builds default to relative /api/v1.
 const API_BASE =
   import.meta.env.VITE_API_URL ??
   (import.meta.env.DEV ? "http://localhost:8010" : "");

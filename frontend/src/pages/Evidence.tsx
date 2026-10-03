@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
 import { AIAnswerPanel } from "@/components/AIAnswerPanel";
-import { Button, Card, EmptyState, Skeleton, StatusChip, Tooltip, type Tone } from "@/components/ui";
+import { Button, Card, EmptyState, GovIcon, Skeleton, StatusChip, Tooltip, type Tone } from "@/components/ui";
 import { EvidenceStrength, SectionHeader, strengthOf } from "@/components/workspace";
 import {
   useClauses, useDecide, useRecommendations, useRequirements,
@@ -98,7 +98,7 @@ export function EvidencePage() {
                 {page && (
                   <div className="mt-4">
                     <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-muted/70">Source text</div>
-                    <div className="font-evidence max-h-72 overflow-y-auto whitespace-pre-wrap rounded-lg border border-line bg-panel/40 p-3 text-[12px] leading-relaxed text-ink">
+                    <div className="font-evidence max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-lg border border-line bg-panel/40 p-3 text-[12px] leading-relaxed text-ink">
                       {highlight(page.text_excerpt, selClause?.evidence_text) || "No text on this page."}
                     </div>
                   </div>
@@ -185,7 +185,7 @@ export function EvidencePage() {
                     </ChainStep>
 
                     <ChainStep n={3} label="Evidence from the tender">
-                      <div className="font-evidence rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12px] leading-relaxed text-ink">
+                      <div className="font-evidence rounded-lg border border-line bg-panel/40 px-3 py-2 text-[12px] leading-relaxed text-ink break-words">
                         “{selClause.evidence_text || selRec?.evidence[0]?.text || "No source snippet retrieved."}”
                       </div>
                       <div className="mt-1 font-tech text-[10px] uppercase tracking-wide text-muted">
@@ -198,7 +198,7 @@ export function EvidencePage() {
                         <ul className="space-y-1">
                           {selRec.why.map((w, i) => (
                             <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                              <span className="mt-0.5 text-success" aria-hidden>✓</span>
+                              <GovIcon name="check" className="mt-0.5 h-3.5 w-3.5 flex-none text-success" />
                               <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
                             </li>
                           ))}
@@ -218,13 +218,25 @@ export function EvidencePage() {
                           <StatusChip tone={STATUS_TONE[selRec.review_status] ?? "neutral"}>{selRec.review_status}</StatusChip>
                           <Tooltip text="Records an auditable decision. MORPHEUS assists the officer's judgement — it does not decide." />
                         </div>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <Button className="px-3 py-1.5 text-xs" disabled={decide.isPending}
-                            onClick={() => decide.mutate({ target_type: "recommendation", target_id: selRec.id, decision: "ACCEPT", reason: "Accepted from evidence workspace" })}>Accept</Button>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          {selRec.review_status === "ACCEPTED" ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs">
+                              <GovIcon name="check" className="h-3.5 w-3.5 stroke-[2.5]" /> Accepted
+                            </span>
+                          ) : (
+                            <Button
+                              className="px-3 py-1.5 text-xs inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
+                              disabled={decide.isPending}
+                              onClick={() => decide.mutate({ target_type: "standard", target_id: selRec.standard.id, decision: "ACCEPT", reason: "Accepted from evidence workspace" })}
+                            >
+                              <GovIcon name="check" className="h-3.5 w-3.5" />
+                              <span>{decide.isPending ? "Saving..." : "Accept"}</span>
+                            </Button>
+                          )}
                           <Button variant="secondary" className="px-3 py-1.5 text-xs" disabled={decide.isPending}
-                            onClick={() => decide.mutate({ target_type: "recommendation", target_id: selRec.id, decision: "MARK_FOR_REVIEW", reason: "Flagged from evidence workspace" })}>Flag for review</Button>
+                            onClick={() => decide.mutate({ target_type: "standard", target_id: selRec.standard.id, decision: "MARK_FOR_REVIEW", reason: "Flagged from evidence workspace" })}>Flag for review</Button>
                           <Button variant="danger" className="px-3 py-1.5 text-xs" disabled={decide.isPending}
-                            onClick={() => decide.mutate({ target_type: "recommendation", target_id: selRec.id, decision: "REJECT", reason: "Rejected from evidence workspace" })}>Reject</Button>
+                            onClick={() => decide.mutate({ target_type: "standard", target_id: selRec.standard.id, decision: "REJECT", reason: "Rejected from evidence workspace" })}>Reject</Button>
                         </div>
                       </ChainStep>
                     )}

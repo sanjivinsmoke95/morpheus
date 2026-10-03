@@ -9,45 +9,68 @@ from __future__ import annotations
 
 
 def build_why(signals: dict, applicability_class: str, relevance: str,
-              version_status: str | None = None) -> list[dict]:
+              version_status: str | None = None, graph_info: str | None = None) -> list[dict]:
     """Positive factors supporting a recommendation. Each: {factor, detail}."""
     s = signals or {}
+    # If the applicability engine already populated structured why items, return them.
+    if s.get("why") and isinstance(s["why"], list) and len(s["why"]) > 0:
+        return s["why"]
+
     out: list[dict] = []
+    if s.get("referenced_match"):
+        out.append({"factor": "Explicit tender citation", "detail": "The tender explicitly references this standard number."})
     if s.get("product_match"):
-        out.append({"factor": "Product category matches", "detail": "The standard's product category appears in the requirement."})
+        out.append({"factor": "Product category matches", "detail": "The standard's product category matches the requirement specification."})
     if s.get("parameter_match"):
-        out.append({"factor": "Parameter requirement matches", "detail": "A specified parameter (voltage/capacity/…) is covered by the standard."})
+        out.append({"factor": "Parameter requirement matches", "detail": "Specified technical parameter (voltage/capacity/head/pressure) is covered by the standard."})
     if s.get("scope_match", 0) >= 0.3:
-        out.append({"factor": "Scope matches", "detail": "The requirement overlaps the standard's stated scope."})
+        out.append({"factor": "Functional scope matches", "detail": "The requirement text directly overlaps the standard's stated functional scope."})
     if s.get("material_match"):
-        out.append({"factor": "Material matches", "detail": "A material named in the requirement is covered."})
+        out.append({"factor": "Material specification matches", "detail": "A material named in the requirement (e.g. cast iron, steel, copper) is covered."})
     if s.get("sector_match"):
-        out.append({"factor": "Sector matches", "detail": "The tender sector matches the standard's sector."})
+        out.append({"factor": "Procurement sector matches", "detail": "The tender sector matches the standard's designated sector."})
+    if s.get("graph_support") or graph_info:
+        detail = s.get("graph_support") or graph_info
+        out.append({"factor": "Knowledge Graph relationship", "detail": f"Inter-standard graph link: {detail}."})
+    if s.get("qco_enforced"):
+        out.append({"factor": "Quality Control Order (QCO)", "detail": "Catalogue record indicates mandatory treatment; verify against current official gazette order before procurement use."})
     if s.get("semantic", 0) >= 0.5:
-        out.append({"factor": "Semantic similarity", "detail": "Strong meaning-level similarity (semantic model enabled)."})
-    elif s.get("lexical", 0) >= 0.6:
-        out.append({"factor": "Strong keyword match", "detail": "High lexical (BM25) overlap with the requirement."})
+        out.append({"factor": "Semantic similarity", "detail": f"Dense vector embedding similarity score ({round(s.get('semantic', 0), 2)}) confirms semantic alignment."})
+    elif s.get("lexical", 0) >= 0.5:
+        out.append({"factor": "Strong keyword match (BM25)", "detail": "High lexical overlap with the requirement text."})
     if applicability_class == "DIRECTLY_APPLICABLE":
-        out.append({"factor": "Directly applicable", "detail": "Classified as directly applicable by the rule gate."})
-    if applicability_class == "TESTING":
-        out.append({"factor": "Testing relationship", "detail": "The standard defines a test method for this requirement."})
+        out.append({"factor": "Directly applicable", "detail": "Classified as directly applicable product standard by the applicability engine."})
+    elif applicability_class == "TESTING":
+        out.append({"factor": "Testing standard", "detail": "Standard defines mandatory test methods and acceptance procedures for this product."})
+    elif applicability_class == "CONDITIONAL":
+        out.append({"factor": "Conditional applicability", "detail": "Applicable subject to specific parameter or capacity threshold verification."})
+    elif applicability_class == "MATERIAL":
+        out.append({"factor": "Material specification", "detail": "Standard governs the composition and mechanical properties of components."})
     if version_status == "CURRENT":
-        out.append({"factor": "Current version", "detail": "The referenced/latest edition is current."})
+        out.append({"factor": "Current active version", "detail": "The standard edition is recorded as active in the catalogue; verify current publication status before contract execution."})
     return out
 
 
 def build_why_not(signals: dict, exclusion_reason: str, version_status: str | None = None) -> list[dict]:
-    """Reasons an alternative was not selected. Each: {reason, detail}."""
+    """Reasons an alternative was not selected or limitations on an included standard."""
     s = signals or {}
+    # If the applicability engine already populated structured why_not items, return them.
+    if s.get("why_not") and isinstance(s["why_not"], list) and len(s["why_not"]) > 0:
+        return s["why_not"]
+
     out: list[dict] = []
     if version_status in ("OUTDATED", "SUPERSEDED"):
-        out.append({"reason": "Superseded / outdated", "detail": "A newer edition of this standard exists."})
+        out.append({"reason": "Superseded / outdated edition", "detail": "Catalogue record indicates a newer edition exists. Advisory check: GFR 2017 Rule 144(i) recommends current national standards."})
+    elif version_status == "WITHDRAWN":
+        out.append({"reason": "Withdrawn standard", "detail": "Catalogue record indicates this standard has been withdrawn; verify current active replacement."})
+
     if not s.get("product_match"):
-        out.append({"reason": "Product mismatch", "detail": "The standard's product category was not found in the requirement."})
-    if s.get("scope_match", 0) < 0.3:
-        out.append({"reason": "Scope mismatch", "detail": "Little overlap with the standard's scope."})
+        out.append({"reason": "Product mismatch", "detail": "The standard's designated product category was not found in the requirement."})
+    if s.get("scope_match", 0) < 0.25:
+        out.append({"reason": "Scope mismatch", "detail": "Little textual or functional overlap with the standard's scope."})
     if not s.get("parameter_match"):
-        out.append({"reason": "Parameter mismatch", "detail": "No specified parameter was matched."})
+        out.append({"reason": "Parameter mismatch", "detail": "No specified parameter values were matched directly in the standard excerpt."})
     if not out and exclusion_reason:
         out.append({"reason": "Weaker evidence", "detail": exclusion_reason})
     return out
+

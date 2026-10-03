@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import { prefetchAnalysisBundle } from "@/lib/navigation";
 
 type Tab = { to: string; label: string; end?: boolean };
 
@@ -24,8 +25,10 @@ const advanced = (id: string): Tab[] => [
 ];
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
-  `whitespace-nowrap border-b-2 px-1 pb-2 text-sm font-medium transition-colors ${
-    isActive ? "border-primary text-primary" : "border-transparent text-muted hover:text-ink"
+  `relative -mb-px whitespace-nowrap border-b-2 px-1.5 pb-2.5 text-sm ${
+    isActive
+      ? "border-primary text-primary font-bold shadow-[0_1px_0_0_var(--color-primary)]"
+      : "border-transparent text-muted hover:border-line hover:text-ink font-medium"
   }`;
 
 export function AnalysisTabs({ id }: { id: string }) {
@@ -34,17 +37,28 @@ export function AnalysisTabs({ id }: { id: string }) {
   const onAdvanced = advTabs.some((t) => location.pathname === t.to);
   const [open, setOpen] = useState(onAdvanced);
 
+  // Instantly warm the cache for all analysis tabs so navigation is 0ms
+  useEffect(() => {
+    prefetchAnalysisBundle(id);
+  }, [id]);
+
   return (
     <nav className="mb-6 border-b border-line" aria-label="Analysis sections">
       <div className="flex flex-wrap items-center gap-x-5">
         {primary(id).map((t) => (
-          <NavLink key={t.to} to={t.to} end={t.end} className={tabClass}>
+          <NavLink
+            key={t.to}
+            to={t.to}
+            end={t.end}
+            className={tabClass}
+            onMouseEnter={() => prefetchAnalysisBundle(id)}
+          >
             {t.label}
           </NavLink>
         ))}
         <button
           onClick={() => setOpen((v) => !v)}
-          className={`ml-auto flex items-center gap-1 pb-2 text-sm font-medium transition-colors ${
+          className={`ml-auto flex items-center gap-1 pb-2.5 text-sm font-semibold transition-colors cursor-pointer ${
             onAdvanced ? "text-primary" : "text-muted hover:text-ink"
           }`}
           aria-expanded={open}
@@ -55,13 +69,14 @@ export function AnalysisTabs({ id }: { id: string }) {
       </div>
 
       {open && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-b-lg bg-panel/60 px-3 py-2">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted/70">Analyst tools</span>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-b-lg bg-panel/70 px-3.5 py-2.5 border-t border-line/40">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted">Analyst tools</span>
           {advTabs.map((t) => (
             <NavLink
               key={t.to}
               to={t.to}
               end
+              onMouseEnter={() => prefetchAnalysisBundle(id)}
               className={({ isActive }) =>
                 `text-sm ${isActive ? "font-semibold text-primary" : "text-muted hover:text-ink"}`
               }

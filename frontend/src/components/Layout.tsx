@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/auth";
 import { CommandPalette } from "@/components/CommandPalette";
+import { prefetchRoute } from "@/lib/navigation";
 
 type NavItem = { to: string; label: string; icon: string; end?: boolean };
 
@@ -80,6 +81,7 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
 export function Layout() {
   const { user, logout } = useAuth();
   const nav = navFor(user?.role);
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -92,47 +94,73 @@ export function Layout() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Close mobile drawer on route transition
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   const sidebar = (
     <div
       className="flex h-full flex-col text-white"
-      style={{ background: "#16362d" }}
+      style={{ background: "#013528" }}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-5 pb-2 pt-5">
-        <img src="/brand/emblem_light.png" alt="" className="h-9 w-auto opacity-90" />
-        <div className="leading-tight">
-          <div className="font-display text-lg font-semibold tracking-wide">MORPHEUS</div>
-          <div className="text-[10px] leading-tight text-white/55">Standards Intelligence<br />for Public Procurement</div>
+      {/* Brand Logo & Wordmark - Links to Home */}
+      <Link
+        to="/"
+        className="group mx-2 mt-2 flex items-center gap-3 rounded-xl px-3 py-3 transition-all duration-200 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 cursor-pointer"
+        aria-label="MORPHEUS Home — Standards Intelligence for Public Procurement"
+        onMouseEnter={() => prefetchRoute("/")}
+      >
+        <img
+          src="/brand/emblem_light.png"
+          alt="Emblem of India"
+          className="h-10 w-auto opacity-95 transition-transform duration-200 group-hover:scale-105 flex-none"
+        />
+        <div className="leading-tight min-w-0">
+          <div className="font-display text-xl font-bold tracking-wider text-white transition-colors group-hover:text-emerald-200">
+            MORPHEUS
+          </div>
+          <div className="text-[11px] font-medium leading-tight text-white/70">
+            Standards Intelligence<br />for Public Procurement
+          </div>
         </div>
-      </div>
+      </Link>
 
       <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {nav.main.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink
+            key={i.to}
+            to={i.to}
+            end={i.end}
+            className={linkClass}
+            onMouseEnter={() => prefetchRoute(i.to)}
+            onClick={() => setMobileOpen(false)}
+          >
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}
         <div className="my-3 border-t border-white/10" />
         {nav.secondary.map((i) => (
-          <NavLink key={i.to} to={i.to} end={i.end} className={linkClass} onClick={() => setMobileOpen(false)}>
+          <NavLink
+            key={i.to}
+            to={i.to}
+            end={i.end}
+            className={linkClass}
+            onMouseEnter={() => prefetchRoute(i.to)}
+            onClick={() => setMobileOpen(false)}
+          >
             <Icon name={i.icon} /> {i.label}
           </NavLink>
         ))}
       </nav>
 
-      {/* Decorative footer (matches the design: monuments line-art + motto + quote) */}
-      <div className="px-4 pb-5 pt-2 text-center">
-        <img src="/assets/sidebar/heritage-illustration.svg" alt="" className="mx-auto w-full max-w-[210px]"
-          style={{ mixBlendMode: "lighten" }} />
-        <div className="mt-1 text-[12px] font-semibold leading-tight text-white/85">
-          Transparent Procurement<br />Stronger India
-        </div>
-        <div className="mx-auto my-2.5 h-2 w-16 rounded-full"
-          style={{ background: "linear-gradient(90deg,#FF9933,#ffffff,#138808)", clipPath: "polygon(0 40%,100% 0,100% 60%,0 100%)" }} />
-        <p className="text-[11px] italic leading-snug text-white/55">
-          “Good governance<br />builds a stronger nation.”
-        </p>
-        <p className="mt-0.5 text-[10px] text-white/45">— Government of India</p>
+      {/* Decorative footer (heritage illustration + motto + quote) */}
+      <div className="mt-auto flex-shrink-0 select-none px-3 pb-4 pt-1 text-center">
+        <img
+          src="/brand/sidebar_heritage_banner.png"
+          alt="Transparent Procurement Stronger India"
+          className="mx-auto w-full max-w-[210px] object-contain"
+        />
       </div>
     </div>
   );
@@ -162,35 +190,70 @@ export function Layout() {
       {/* Content column */}
       <div className="min-w-0 flex-1">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-surface/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8"
-          style={{ top: "env(safe-area-inset-top, 0px)" }}>
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu"
-            className="grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel lg:hidden">☰</button>
+        <header
+          className="sticky top-0 z-30 flex items-center gap-3 border-b border-line bg-surface/90 px-4 py-3 backdrop-blur-md shadow-2xs sm:px-6 lg:px-8"
+          style={{ top: "env(safe-area-inset-top, 0px)" }}
+        >
+          <button
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+            className="grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel lg:hidden"
+          >
+            ☰
+          </button>
+
+          {/* Mobile Brand Link to Home */}
+          <Link
+            to="/"
+            className="flex items-center gap-2 lg:hidden flex-none pr-1 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-lg group"
+            aria-label="MORPHEUS Home"
+          >
+            <img src="/brand/emblem_light.png" alt="" className="h-7 w-auto transition-transform duration-200 group-hover:scale-105" />
+            <span className="font-display text-base font-bold tracking-wide text-primary">MORPHEUS</span>
+          </Link>
+
           <div className="relative min-w-0 flex-1 max-w-xl">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
-                <circle cx="11" cy="11" r="7" /><path d="m20 20-3-3" strokeLinecap="round" />
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3-3" strokeLinecap="round" />
               </svg>
             </span>
-            <input placeholder="Search tenders, standards, keywords…" readOnly
-              onFocus={() => setPaletteOpen(true)} onClick={() => setPaletteOpen(true)}
+            <input
+              placeholder="Search tenders, standards, clause requirements…"
+              readOnly
+              onFocus={() => setPaletteOpen(true)}
+              onClick={() => setPaletteOpen(true)}
               aria-label="Open command palette"
-              className="w-full cursor-pointer rounded-xl border border-line bg-canvas py-2 pl-9 pr-14 text-sm text-ink outline-none focus:border-primary" />
-            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] text-muted sm:block">⌘K</kbd>
+              className="w-full cursor-pointer rounded-xl border border-line bg-canvas/80 py-2 pl-9.5 pr-14 text-xs font-medium text-ink shadow-inner outline-none transition-all hover:bg-canvas focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/20"
+            />
+            <kbd className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[10px] font-bold text-muted shadow-2xs sm:block">
+              ⌘K
+            </kbd>
           </div>
-          <NavLink to="/regulatory-updates" aria-label="Regulatory updates and alerts"
-            className="relative grid h-9 w-9 flex-none place-items-center rounded-lg text-muted hover:bg-panel">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-5 w-5"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" />
+
+          <NavLink
+            to="/regulatory-updates"
+            aria-label="Regulatory updates and alerts"
+            className="relative grid h-9 w-9 flex-none place-items-center rounded-xl border border-line/60 text-muted transition-all hover:border-primary/40 hover:bg-panel hover:text-ink shadow-2xs"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
+              <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6M10 20a2 2 0 0 0 4 0" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-danger ring-2 ring-surface animate-pulse" />
           </NavLink>
+
           <div className="relative flex-none">
-            <button onClick={() => setUserMenu((v) => !v)} className="flex items-center gap-2 rounded-lg px-1.5 py-1 hover:bg-panel">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-white">
+            <button
+              onClick={() => setUserMenu((v) => !v)}
+              className="flex items-center gap-2 rounded-xl border border-line/70 bg-surface/80 p-1 pr-2.5 shadow-2xs transition-all hover:bg-panel hover:border-line focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+            >
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-xs font-bold text-white shadow-xs">
                 {(user?.full_name || "U").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase()}
               </span>
               <span className="hidden text-left leading-tight sm:block">
-                <span className="block text-xs font-semibold text-ink">{user?.full_name || user?.email}</span>
-                <span className="block text-[10px] capitalize text-muted">{(user?.role || "").toLowerCase()}</span>
+                <span className="block text-xs font-bold text-ink">{user?.full_name || user?.email}</span>
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-muted">{(user?.role || "").toLowerCase()}</span>
               </span>
               <span className="hidden text-xs text-muted sm:block">▾</span>
             </button>

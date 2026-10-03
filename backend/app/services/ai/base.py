@@ -5,6 +5,7 @@ every stage runnable and tests hermetic with no API keys."""
 from __future__ import annotations
 
 import abc
+from typing import Any
 
 
 class LLMProvider(abc.ABC):
@@ -16,10 +17,11 @@ class LLMProvider(abc.ABC):
         """True when a real backend is configured and reachable."""
 
     @abc.abstractmethod
-    def complete_json(self, prompt: str, schema: dict | None = None, *, temperature: float = 0.0,
+    def complete_json(self, prompt: str, schema: Any | None = None, *, temperature: float = 0.0,
                       max_retries: int = 2) -> dict:
-        """Return a parsed JSON object. On unrecoverable failure return
-        {'_abstain': True} so the caller can mark the item REVIEW_REQUIRED."""
+        """Return a parsed JSON object validated against schema if provided.
+        On unrecoverable failure or validation error return {'_abstain': True, '_error': ...}
+        so the caller can mark the item REVIEW_REQUIRED."""
 
     @abc.abstractmethod
     def complete_text(self, prompt: str, *, temperature: float = 0.2) -> str:

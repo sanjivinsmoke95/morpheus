@@ -30,6 +30,19 @@ export interface Analysis {
   product_profile_json?: ProductProfile | null;
   decision_trace_json?: TraceStep[] | null;
   languages_json?: LanguageInfo[] | null;
+  compliance_pct?: number | null;
+  requirements_total?: number | null;
+  open_issues?: number | null;
+  verdict?: string | null;
+  ai_capability?: {
+    llm_available: boolean;
+    semantic_embeddings_available: boolean;
+    mode: "offline" | "semantic" | "SEMANTIC_AVAILABLE" | "DEGRADED/OFFLINE";
+    status?: string;
+    is_semantic?: boolean;
+    provider: string;
+    fallback_active: boolean;
+  } | null;
 }
 
 export interface ReqAttribute {
@@ -48,6 +61,8 @@ export interface Requirement {
   req_code: string;
   requirement_type: string;
   description: string;
+  original_text?: string | null;
+  normalized_text?: string | null;
   source_page: number | null;
   source_section: string;
   confidence: string;
@@ -187,6 +202,10 @@ export function useDecide(analysisId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["decisions", analysisId] });
       qc.invalidateQueries({ queryKey: ["recommendations", analysisId] });
+      qc.invalidateQueries({ queryKey: ["decision-log", analysisId] });
+      qc.invalidateQueries({ queryKey: ["analysis", analysisId] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      qc.invalidateQueries({ queryKey: ["report-summary", analysisId] });
     },
   });
 }
@@ -436,7 +455,7 @@ export function useDashboard() {
 
 export interface AnalyticsSummary {
   kpis: { total_analyses: number; compliance_rate: number; avg_gaps: number; standards_catalogue: number };
-  sector_breakdown: { sector: string; count: number; compliance_rate: number }[];
+  sector_breakdown: { sector: string; count: number; compliance_rate: number; catalogue_standards?: number }[];
   gap_categories: { category: string; gap_count: number }[];
   top_standards: { is_number: string; title: string; citation_count: number }[];
   trend: { week: string; analyses_count: number; compliance_rate: number }[];
@@ -662,6 +681,9 @@ export interface TenderClauseResponse {
   primary_standard: string | null;
   primary_title: string | null;
   clause_text: string;
+  clause_text_en?: string;
+  clause_text_hi?: string;
+  bilingual_available?: boolean;
   has_mandatory_qco: boolean;
   standards_cited: string[];
 }
@@ -673,4 +695,22 @@ export function useTenderClause(analysisId: string) {
     enabled: Boolean(analysisId),
   });
 }
+
+export interface SystemAiStatus {
+  llm_available: boolean;
+  semantic_embeddings_available: boolean;
+  mode: "offline" | "semantic";
+  provider: string;
+  fallback_active: boolean;
+  notice: string;
+}
+
+export function useSystemAiStatus() {
+  return useQuery<SystemAiStatus>({
+    queryKey: ["system-ai-status"],
+    queryFn: async () => (await api.get(`/system/ai-status`)).data,
+    staleTime: 60_000,
+  });
+}
+
 

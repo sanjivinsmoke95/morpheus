@@ -3,7 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import ReactFlow, { Background, Controls, type Edge, type Node } from "reactflow";
 import "reactflow/dist/style.css";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Card, StatusChip, type Tone } from "@/components/ui";
+import { Card, GovIcon, StatusChip, type Tone } from "@/components/ui";
 import { SectionHeader } from "@/components/workspace";
 import { useGraph, useVersionFindings, type GraphNode } from "@/lib/morpheus";
 
@@ -46,8 +46,21 @@ export function KnowledgeGraphPage() {
     const recs = graph.nodes.filter((n) => n.recommended);
     const others = graph.nodes.filter((n) => !n.recommended);
     const pos = new Map<string, { x: number; y: number }>();
-    recs.forEach((n, i) => pos.set(n.id, { x: 120, y: 60 + i * 90 }));
-    others.forEach((n, i) => pos.set(n.id, { x: 480, y: 40 + i * 70 }));
+    
+    // Balanced 2D cluster layout:
+    // Left: Recommended standards in 3 compact columns (fits within ~500px width, ~480px height)
+    recs.forEach((n, i) => {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      pos.set(n.id, { x: 30 + col * 170, y: 30 + row * 60 });
+    });
+    
+    // Right: Related / Normative standards in 2 columns (fits within ~350px width)
+    others.forEach((n, i) => {
+      const col = i % 2;
+      const row = Math.floor(i / 2);
+      pos.set(n.id, { x: 560 + col * 170, y: 30 + row * 60 });
+    });
 
     const nodes: Node[] = graph.nodes.map((n) => {
       const c = nodeColors(n);
@@ -58,11 +71,18 @@ export function KnowledgeGraphPage() {
         position: pos.get(n.id) ?? { x: 0, y: 0 },
         data: { label: n.is_number },
         style: {
-          background: c.bg, color: c.color,
+          background: c.bg,
+          color: c.color,
           border: `${isSel ? 2 : 1}px solid ${isSel ? "#c99a2e" : c.border}`,
-          borderRadius: 10, fontSize: 11, fontWeight: 600, width: 150, padding: 6,
-          opacity: dim ? 0.28 : 1, transition: "opacity 150ms",
-          boxShadow: isSel ? "0 0 0 3px rgba(201,154,46,0.25)" : "none",
+          borderRadius: 8,
+          fontSize: 11,
+          fontWeight: 600,
+          width: 155,
+          padding: "6px 8px",
+          textAlign: "center" as const,
+          opacity: dim ? 0.28 : 1,
+          transition: "all 150ms",
+          boxShadow: isSel ? "0 0 0 3px rgba(201,154,46,0.3)" : "0 1px 3px rgba(0,0,0,0.06)",
         },
       };
     });
@@ -100,16 +120,20 @@ export function KnowledgeGraphPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-        <Card className="h-[480px] overflow-hidden">
+        <Card className="h-[560px] overflow-hidden">
           {isLoading ? (
             <div className="grid h-full place-items-center text-sm text-muted">Loading graph…</div>
           ) : !graph?.nodes.length ? (
             <div className="grid h-full place-items-center text-sm text-muted">No graph for this analysis.</div>
           ) : (
             <ReactFlow
+              key={graph.nodes.length}
               nodes={nodes}
               edges={edges}
               fitView
+              fitViewOptions={{ padding: 0.1 }}
+              minZoom={0.2}
+              maxZoom={1.5}
               onNodeClick={(_, n) => setSelected((cur) => (cur === n.id ? null : n.id))}
               onPaneClick={() => setSelected(null)}
               proOptions={{ hideAttribution: true }}
@@ -125,7 +149,9 @@ export function KnowledgeGraphPage() {
             <Card className="p-4 text-sm">
               <div className="mb-1 flex items-center justify-between">
                 <span className="font-tech text-sm font-semibold text-primary">{selNode.is_number}</span>
-                <button onClick={() => setSelected(null)} className="text-xs text-muted hover:text-ink" aria-label="Clear selection">✕</button>
+                <button onClick={() => setSelected(null)} className="rounded p-0.5 text-muted hover:bg-panel hover:text-ink transition" aria-label="Clear selection">
+                  <GovIcon name="close" className="h-3.5 w-3.5" />
+                </button>
               </div>
               <div className="text-ink">{selNode.title}</div>
               <div className="mt-2 flex flex-wrap items-center gap-2">

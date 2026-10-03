@@ -46,3 +46,25 @@ def get_embedder() -> EmbeddingProvider:
     if choice in ("openai_compatible", "gemini"):
         logger.info("EMBEDDING_PROVIDER=%s set but no API key — using the offline hashing stub.", choice)
     return StubEmbeddingProvider()
+
+
+def get_system_ai_status() -> dict:
+    """Return explicit AI capability status object (Phase 2 & Phase 8).
+    Never pretends offline hashing is semantic AI.
+    """
+    llm = get_llm()
+    emb = get_embedder()
+    is_semantic = bool(emb.available and emb.is_semantic)
+    status_label = "SEMANTIC_AVAILABLE" if is_semantic else "DEGRADED/OFFLINE"
+    return {
+        "llm_available": bool(llm.available),
+        "semantic_embeddings_available": is_semantic,
+        "mode": status_label,
+        "status": status_label,
+        "is_semantic": is_semantic,
+        "provider": f"{llm.name}+{emb.name}",
+        "fallback_active": not is_semantic,
+        "llm_name": llm.name,
+        "embedding_name": emb.name,
+    }
+

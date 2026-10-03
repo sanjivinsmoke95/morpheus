@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AnalysisHeader } from "@/components/AnalysisHeader";
-import { Button, Card, EmptyState, MatchBar, Skeleton, StatusChip, type Tone } from "@/components/ui";
+import { Button, Card, EmptyState, GovIcon, MatchBar, Skeleton, StatusChip, type Tone } from "@/components/ui";
 import { EvidenceStrength, strengthOf } from "@/components/workspace";
 import { useDecide, useRecommendations, useRequirements, type Recommendation } from "@/lib/morpheus";
 
@@ -95,7 +95,7 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
         {rec.standard.data_origin === "DEMO_SYNTHETIC" && <StatusChip tone="neutral">Demo data</StatusChip>}
         <span className="ml-auto"><EvidenceStrength level={strengthOf(rec)} showLabel={false} /></span>
       </div>
-      <div className="mt-0.5 text-sm font-medium text-ink">{rec.standard.title}</div>
+      <div className="mt-0.5 text-sm font-medium text-ink break-words">{rec.standard.title}</div>
 
       <div className="mt-2 max-w-md"><MatchBar score={rec.relevance_score} /></div>
 
@@ -105,29 +105,59 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
           <ul className="mt-1.5 grid gap-1.5 sm:grid-cols-2">
             {rec.why.map((w, i) => (
               <li key={i} className="flex items-start gap-2 text-sm text-ink">
-                <span className="mt-0.5 text-success" aria-hidden>✓</span>
-                <span><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
+                <GovIcon name="check" className="mt-0.5 h-3.5 w-3.5 flex-none text-success" />
+                <span className="break-words"><span className="font-medium">{w.factor}</span>{w.detail ? <span className="text-muted"> — {w.detail}</span> : null}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm text-muted">{rec.rationale || "No structured factors recorded."}</p>
+          <p className="mt-1 text-sm text-muted break-words">{rec.rationale || "No structured factors recorded."}</p>
         )}
         {snippet && (
-          <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink">
+          <div className="font-evidence mt-2 border-t border-line pt-2 text-[12px] leading-relaxed text-ink break-words">
             <span className="font-tech text-[10px] uppercase tracking-wide text-muted">Evidence · </span>
             “{snippet.slice(0, 200)}{snippet.length > 200 ? "…" : ""}”
           </div>
         )}
+
+        {/* Limitations & Considerations */}
+        {rec.why_not && rec.why_not.length > 0 && (
+          <div className="mt-2.5 rounded-lg border border-amber-500/25 bg-amber-500/5 p-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-amber-700 dark:text-amber-400">
+              <GovIcon name="warning" className="h-3 w-3 flex-none" />
+              Limitations & Considerations
+            </div>
+            <ul className="mt-1 space-y-1">
+              {rec.why_not.map((wn, i) => (
+                <li key={i} className="flex items-start gap-1.5 text-xs text-ink/90">
+                  <span className="font-semibold text-amber-700 dark:text-amber-400">• {wn.reason}:</span>
+                  <span>{wn.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
-      <div className="mt-3 flex items-center gap-2 border-t border-line pt-3">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
         <span className={`text-[11px] font-semibold ${status === "ACCEPTED" ? "text-success" : status === "REJECTED" ? "text-danger" : "text-muted"}`}>
-          {status}
+          Status: {status}
         </span>
-        <div className="ml-auto flex gap-2">
-          <Button className="px-3 py-1.5 text-xs" disabled={decide.isPending}
-            onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "ACCEPT", reason: "Accepted" })}>Accept</Button>
+        <div className="ml-auto flex items-center gap-2">
+          {status === "ACCEPTED" ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs">
+              <GovIcon name="check" className="h-3.5 w-3.5 stroke-[2.5]" /> Accepted
+            </span>
+          ) : (
+            <Button
+              className="px-3 py-1.5 text-xs inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
+              disabled={decide.isPending}
+              onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "ACCEPT", reason: "Accepted" })}
+            >
+              <GovIcon name="check" className="h-3.5 w-3.5" />
+              <span>{decide.isPending ? "Saving..." : "Accept"}</span>
+            </Button>
+          )}
           <Button variant="secondary" className="px-3 py-1.5 text-xs" disabled={decide.isPending}
             onClick={() => decide.mutate({ target_type: "recommendation", target_id: rec.id, decision: "MARK_FOR_REVIEW", reason: "Flagged for review" })}>Flag</Button>
           <Button variant="danger" className="px-3 py-1.5 text-xs" disabled={decide.isPending}
@@ -138,22 +168,36 @@ function RecCard({ analysisId, rec }: { analysisId: string; rec: Recommendation 
   );
 }
 
-/* Excluded candidate — shows only the reason the backend actually provided. */
+/* Excluded candidate — shows reasons, severity, and recommendations */
 function ExcludedRow({ rec }: { rec: Recommendation }) {
-  const reasons = rec.why_not && rec.why_not.length > 0
-    ? rec.why_not.map((w) => w.reason)
-    : [rec.exclusion_reason || "Ranked below stronger candidates"];
+  const whyNotList = rec.why_not && rec.why_not.length > 0 ? rec.why_not : null;
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface px-3 py-2">
-      <span className="mt-0.5 flex-none text-muted" aria-hidden>✕</span>
-      <div className="min-w-0">
+    <div className="flex items-start gap-2.5 rounded-lg border border-line bg-surface p-3">
+      <GovIcon name="close" className="mt-0.5 h-3.5 w-3.5 flex-none text-muted" />
+      <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <Link to={`/standards/${rec.standard.id}`} className="font-tech text-xs font-semibold text-muted hover:text-primary hover:underline">
             {rec.standard.is_number}
           </Link>
-          <span className="truncate text-xs text-muted">{rec.standard.title}</span>
+          <span className="truncate text-xs font-medium text-ink">{rec.standard.title}</span>
+          <span className="ml-auto text-[10px] font-tech uppercase text-muted">
+            {rec.applicability_class.replace(/_/g, " ")}
+          </span>
         </div>
-        <div className="mt-0.5 text-xs text-ink">{reasons.join(" · ")}</div>
+        {whyNotList ? (
+          <ul className="mt-1.5 space-y-1">
+            {whyNotList.map((w, i) => (
+              <li key={i} className="text-xs text-ink/80 flex items-start gap-1.5">
+                <span className="font-semibold text-danger/80">• {w.reason}:</span>
+                <span>{w.detail}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="mt-1 text-xs text-muted break-words">
+            {rec.exclusion_reason || "Ranked below stronger candidates"}
+          </div>
+        )}
       </div>
     </div>
   );
